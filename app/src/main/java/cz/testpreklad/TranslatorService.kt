@@ -34,6 +34,7 @@ import cz.testpreklad.core.HdmiProbe
 import cz.testpreklad.core.I18n
 import cz.testpreklad.core.Lang
 import cz.testpreklad.core.OcrBlock
+import cz.testpreklad.core.Perf
 import cz.testpreklad.core.OcrLine
 import cz.testpreklad.core.ScreenLayout
 import cz.testpreklad.core.Segment
@@ -102,8 +103,7 @@ class TranslatorService : Service() {
         private const val TAG = "TestPreklad"
         private const val CHANNEL = "test_preklad"
         private const val NOTIF_ID = 1
-        private const val CAPTURE_W = 1280      // rozlišení pro OCR (na titulky stačí, šetří výkon)
-        private const val INTERVAL_MS = 100L     // jak často se kontroluje obrazovka (10× za sekundu)
+
         private const val CACHE_PREFIX = "preklady_"
     }
 
@@ -132,6 +132,16 @@ class TranslatorService : Service() {
 
     /** Kdy schovat pruh (překlad zůstane chvíli po zmizení angličtiny, ať se dá dočíst). 0 = nic. */
     private var lastLicenseCheck = 0L
+
+    /** Výkon podle paměti zařízení – slabší televize čtou menší obraz a méně často. */
+    private val perf: Perf by lazy {
+        try {
+            val am = getSystemService(android.app.ActivityManager::class.java)
+            val mi = android.app.ActivityManager.MemoryInfo()
+            am.getMemoryInfo(mi)
+            Perf.forDevice(mi.totalMem / (1024 * 1024), am.isLowRamDevice)
+        } catch (_: Exception) { Perf.forDevice(0, false) }
+    }
     private var hideAt = 0L
     @Volatile private var holdMs = 1000L
     @Volatile private var showOriginal = false
@@ -319,7 +329,7 @@ class TranslatorService : Service() {
 
     private fun setupCapture(mp: MediaProjection) {
         setupScreenSize()
-        capW = min(CAPTURE_W, screenW)
+        capW = min(perf.captureWidth, screenW)
         capH = max(2, ((screenH.toLong() * capW) / screenW).toInt() and 1.inv())
         val r = ImageReader.newInstance(capW, capH, PixelFormat.RGBA_8888, 2)
         reader = r
@@ -379,7 +389,7 @@ class TranslatorService : Service() {
                 if (!Prefs.license(this).canRun) { stopSelf(); return }
             }
             val spent = SystemClock.uptimeMillis() - t0
-            delay(max(20L, INTERVAL_MS - spent))
+            delay(max(20L, perf.intervalMs - spent))
         }
     }
 
@@ -604,12 +614,13 @@ class TranslatorService : Service() {
             monitor.overlayCaptured -> "celá obrazovka (nakukuje)"
             else -> "OK"
         }
+        val ecoInfo = if (perf.eco) " · úsporný režim" else ""
         val zoneInfo = if (!autoFind) "ručně" else if (autoZone.learned != null) "auto – titulky nalezeny" else "auto – hledám"
         val app = "oblast: $zoneInfo · " + (TitulkyAccessibility.foregroundPackage ?: "?") + " · HDMI test: " + hdmiProbe.verdict
         val err = lastError?.let { "\nchyba překladu: ${it.take(60)}" } ?: ""
         ov.debug(
             "snímky ${frames / secs}/s · OCR ${ocrRuns / secs}/s · ${lastMs} ms\n" +
-                "překlad: $mode · paměť ${cache.size()} · snímání: $capture\n" +
+                "překlad: $mode · paměť ${cache.size()} · snímání: $capture$ecoInfo\n" +
                 "aplikace: $app\n" +
                 "čtu: ${lastOcrText.replace('\n', ' ').take(70)}$err"
         )

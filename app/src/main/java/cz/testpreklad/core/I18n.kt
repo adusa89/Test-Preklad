@@ -220,10 +220,23 @@ object I18n {
         "n_text" to ("Anglické titulky se překládají." to "Anglické titulky sa prekladajú."),
     )
 
+    private val EXTRA: Map<Lang, Map<String, String>> = mapOf(
+        Lang.PL to I18N_PL, Lang.DE to I18N_DE, Lang.HU to I18N_HU, Lang.UK to I18N_UK,
+        Lang.ES to I18N_ES, Lang.FR to I18N_FR, Lang.IT to I18N_IT,
+    )
+
     fun t(lang: Lang, key: String): String {
         val p = S[key] ?: return key
-        return if (lang == Lang.SK) p.second else p.first
+        return when (lang) {
+            Lang.CS -> p.first
+            Lang.SK -> p.second
+            else -> EXTRA[lang]?.get(key) ?: p.first
+        }
     }
+
+    /** Pro testy: má jazyk vlastní překlad daného textu? */
+    fun hasOwn(lang: Lang, key: String): Boolean = EXTRA[lang]?.containsKey(key) == true
+    fun ownKeys(lang: Lang): Set<String> = EXTRA[lang]?.keys ?: emptySet()
 
     /** Pro testy: všechny klíče. */
     val keys: Set<String> get() = S.keys

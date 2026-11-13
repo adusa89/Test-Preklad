@@ -268,3 +268,40 @@ class LatencyTest {
         assertTrue("zpoždění $delay ms", delay in 0..250)
     }
 }
+
+class PerfTest {
+    @Test fun weakTvGetsEcoMode() {
+        assertEquals(Perf(854, 220, true), Perf.forDevice(1024, false))
+        assertEquals(Perf(854, 220, true), Perf.forDevice(4096, true))      // systém hlásí "low RAM"
+        assertEquals(Perf(1024, 150, true), Perf.forDevice(2048, false))
+        assertEquals(Perf(1280, 100, false), Perf.forDevice(3072, false))
+        assertEquals(Perf(1280, 100, false), Perf.forDevice(0, false))      // neznámá paměť
+    }
+}
+
+class AllLanguagesTest {
+    @Test fun everyLanguageHasEveryText() {
+        for (lang in Lang.values()) for (k in I18n.keys) {
+            val v = I18n.t(lang, k)
+            assertTrue("$lang/$k prázdné", v.isNotBlank())
+            if (lang != Lang.CS && lang != Lang.SK) assertTrue("$lang/$k chybí překlad", I18n.hasOwn(lang, k))
+        }
+    }
+
+    @Test fun noExtraKeysAndPlaceholdersKept() {
+        for (lang in Lang.values()) {
+            assertTrue("$lang %d", I18n.t(lang, "lic_trial").contains("%d"))
+            assertTrue("$lang klíče navíc: " + (I18n.ownKeys(lang) - I18n.keys), I18n.keys.containsAll(I18n.ownKeys(lang)))
+        }
+    }
+
+    @Test fun menuReallyDiffersByLanguage() {
+        assertEquals("Ustawienia", I18n.t(Lang.PL, "m_settings"))
+        assertEquals("Einstellungen", I18n.t(Lang.DE, "m_settings"))
+        assertEquals("Beállítások", I18n.t(Lang.HU, "m_settings"))
+        assertEquals("Налаштування", I18n.t(Lang.UK, "m_settings"))
+        assertEquals("Ajustes", I18n.t(Lang.ES, "m_settings"))
+        assertEquals("Réglages", I18n.t(Lang.FR, "m_settings"))
+        assertEquals("Impostazioni", I18n.t(Lang.IT, "m_settings"))
+    }
+}
