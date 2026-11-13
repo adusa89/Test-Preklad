@@ -234,6 +234,7 @@ class TranslatorService : Service() {
         if (running) return
         if (!Prefs.license(this).canRun) { startError = "licence"; stopSelf(); return }
         lastLicenseCheck = SystemClock.uptimeMillis()
+        Log.i("TP_TEST", "A11Y|" + (TitulkyAccessibility.instance != null) + "|launchers=" + launchers)
         Log.i("TP_TEST", "START|cap=${capW}x${capH}|screen=${screenW}x${screenH}|eco=${perf.eco}|usb=${usb != null}")
         lang = Prefs.lang(this)
         statsFor(this)
@@ -525,7 +526,8 @@ class TranslatorService : Service() {
         // záznam pro automatickou zkoušku (jen prvních pár set čtení)
         if (ticksLogged++ < 400) Log.i("TP_TEST", "READ|${if (peek) "peek" else "norm"}|ocr=${lastOcrMs}ms|zone=${(z.height * 100).toInt()}%|" + picked.text.replace('\n', ' ').take(40))
 
-        when (val action = tracker.onOcr(picked.text)) {
+        // slabé zařízení: jedno čtení trvá déle než půl sekundy → nečekej na druhé potvrzení
+        when (val action = tracker.onOcr(picked.text, slowDevice = lastOcrMs > 500)) {
             is SubtitleTracker.Action.Show -> {
                 // překlad už většinou běží (spuštěný po prvním přečtení) – jen se počká na výsledek
                 val ready = inflight.remove(action.text)

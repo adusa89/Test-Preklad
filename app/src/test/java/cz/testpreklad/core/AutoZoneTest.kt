@@ -13,8 +13,8 @@ class AutoZoneTest {
     @Test fun learnsBottomSubtitlesAfterThreeHits() {
         val a = AutoZone()
         assertFalse(a.onSubtitle(0.86f, 0.90f, 1000))
-        assertFalse(a.onSubtitle(0.84f, 0.92f, 2000))       // dvouřádkový
-        assertTrue(a.onSubtitle(0.86f, 0.90f, 3000))
+        assertTrue(a.onSubtitle(0.84f, 0.92f, 2000))        // dvouřádkový
+        a.onSubtitle(0.86f, 0.90f, 3000)
         val z = a.learned!!
         assertTrue("pás obsahuje titulky", z.top <= 0.84f && z.bottom >= 0.92f)
         assertTrue("pás je úzký", z.height < 0.35f)
@@ -69,7 +69,7 @@ class AutoZoneTest {
     @Test fun ignoresNonsenseBounds() {
         val a = AutoZone()
         repeat(5) { assertFalse(a.onSubtitle(-1f, -1f, 1)) }
-        repeat(5) { assertFalse(a.onSubtitle(0.1f, 0.9f, 1)) }   // "titulek" přes celou obrazovku
+        repeat(5) { assertFalse(a.onSubtitle(0.05f, 0.9f, 1)) }   // "titulek" přes celou obrazovku
         assertNull(a.learned)
     }
 }

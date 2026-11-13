@@ -31,7 +31,13 @@ class SubtitleTracker(
         get() = count >= maxOf(stableFrames, hideAfterEmpty) &&
             (candidate.isEmpty() || TextLogic.similar(candidate, shown))  // nepřeložený text = ještě ne
 
-    fun onOcr(text: String): Action {
+    /**
+     * [slowDevice] = čtení obrazu trvá dlouho (slabá televize). Pak se nečeká na druhé potvrzení,
+     * pokud titulek vypadá celý (končí tečkou, otazníkem…) – jinak by překlad přišel pozdě nebo vůbec.
+     */
+    fun onOcr(text: String, slowDevice: Boolean = false): Action {
+        val needStable = if (slowDevice && TextLogic.looksComplete(text)) 1 else stableFrames
+        val needEmpty = if (slowDevice) 1 else hideAfterEmpty
         if (TextLogic.similar(text, candidate)) {
             count++
             // u podobných textů si pamatujeme ten delší (OCR někdy usekne písmeno)
@@ -42,13 +48,13 @@ class SubtitleTracker(
         }
 
         if (candidate.isEmpty()) {
-            if (count >= hideAfterEmpty && shown.isNotEmpty()) {
+            if (count >= needEmpty && shown.isNotEmpty()) {
                 shown = ""
                 return Action.Hide
             }
             return Action.None
         }
-        if (count < stableFrames) return Action.None
+        if (count < needStable) return Action.None
         if (TextLogic.similar(candidate, shown)) return Action.None
         return Action.Show(candidate)
     }

@@ -120,6 +120,12 @@ object TextLogic {
         return Picked(mergeSpeakerLines(parts).joinToString("\n").trim(), count, top, bottom)
     }
 
+    /** Vypadá text jako celá věta (ne rozpracovaný nebo useknutý titulek)? */
+    fun looksComplete(text: String): Boolean {
+        val t = text.trim()
+        return t.length >= 8 && t.last() in ".!?…\"')"
+    }
+
     /**
      * Rozdělí řádky podle toho, jestli jejich střed leží uvnitř obdélníku (v pixelech oblasti).
      * Používá se k oddělení textu našeho vlastního pruhu od textu hry.

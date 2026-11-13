@@ -33,10 +33,11 @@ for i in 1 2 3 4 5 6 7; do key 20; key 23; sleep 2; shot "07_menu_$i"; done
 adb shell appops set $PKG SYSTEM_ALERT_WINDOW allow
 adb shell appops set $PKG PROJECT_MEDIA allow
 # Usnadnění zapnuté jako u skutečného uživatele (pruh přes Usnadnění, aplikace ví, co je na obrazovce)
+adb shell am force-stop $PKG
+# (vynucené zastavení aplikace Usnadnění vypíná, proto se zapíná až po něm)
 adb shell settings put secure enabled_accessibility_services $PKG/$PKG.TitulkyAccessibility
 adb shell settings put secure accessibility_enabled 1
-sleep 3
-adb shell am force-stop $PKG
+sleep 4
 adb shell am start -n $PKG/.MainActivity --ez autostart true
 sleep 25; shot 08_po_spusteni
 # kdyby se přesto ukázal dotaz na snímání, potvrď ho

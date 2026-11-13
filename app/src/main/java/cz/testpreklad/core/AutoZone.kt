@@ -13,7 +13,7 @@ import kotlin.math.min
  *    začne znovu hledat po celé obrazovce.
  */
 class AutoZone(
-    private val needSamples: Int = 3,
+    private val needSamples: Int = 2,
     private val rescanAfterMs: Long = 120_000L,
 ) {
     private val samples = ArrayDeque<Pair<Float, Float>>()   // (horní, dolní) okraj titulku, 0..1
@@ -65,8 +65,11 @@ class AutoZone(
     private fun sampleCenter(): Float = samples.map { (it.first + it.second) / 2 }.average().toFloat()
 
     companion object {
-        /** Oblast při hledání: skoro celá obrazovka (bez úplných okrajů). */
-        val SCAN = Zone(0.05f, 0.04f, 0.95f, 0.98f)
+        /**
+         * Oblast při hledání: spodní polovina obrazovky – tam mají hry titulky. Celá obrazovka by se
+         * na slabších televizích četla příliš dlouho (zkouška v emulátoru). Titulky nahoře → ruční oblast.
+         */
+        val SCAN = Zone(0.05f, 0.50f, 0.95f, 0.98f)
         const val MARGIN = 0.06f
         const val MIN_HEIGHT = 0.18f
         const val SPREAD = 0.15f

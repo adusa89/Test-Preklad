@@ -344,3 +344,37 @@ class EmulatorFindingsTest {
         assertEquals(0, m.peekFailures)
     }
 }
+
+
+class SlowDeviceTest {
+    @Test fun completeSentenceShownAfterOneReadOnSlowDevice() {
+        val t = SubtitleTracker()
+        assertTrue(t.onOcr("Dutch: We need money, Arthur.", slowDevice = true) is SubtitleTracker.Action.Show)
+    }
+
+    @Test fun incompleteTextStillWaitsOnSlowDevice() {
+        val t = SubtitleTracker()
+        assertEquals(SubtitleTracker.Action.None, t.onOcr("Arthur: L roakon IAIO oint ann find noth", slowDevice = true))
+        assertEquals(SubtitleTracker.Action.None, t.onOcr("Dut", slowDevice = true))
+    }
+
+    @Test fun slowDeviceHidesAfterOneEmptyRead() {
+        val t = SubtitleTracker()
+        val a = t.onOcr("Ride on, boys.", slowDevice = true) as SubtitleTracker.Action.Show
+        t.confirmShown(a.text)
+        assertEquals(SubtitleTracker.Action.Hide, t.onOcr("", slowDevice = true))
+    }
+
+    @Test fun fastDeviceUnchanged() {
+        val t = SubtitleTracker()
+        assertEquals(SubtitleTracker.Action.None, t.onOcr("Dutch: We need money, Arthur."))
+        assertTrue(t.onOcr("Dutch: We need money, Arthur.") is SubtitleTracker.Action.Show)
+    }
+
+    @Test fun looksComplete() {
+        assertTrue(TextLogic.looksComplete("We ride at dawn."))
+        assertTrue(TextLogic.looksComplete("Where is he?"))
+        assertFalse(TextLogic.looksComplete("We ride at"))
+        assertFalse(TextLogic.looksComplete("No."))
+    }
+}
