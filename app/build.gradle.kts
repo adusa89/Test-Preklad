@@ -11,8 +11,8 @@ android {
         applicationId = "cz.testpreklad"
         minSdk = 26          // Android 8 a novější (prakticky všechny Android TV a boxy)
         targetSdk = 34
-        versionCode = 9
-        versionName = "0.9"
+        versionCode = 10
+        versionName = "0.10"
     }
 
     buildTypes {

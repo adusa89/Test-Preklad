@@ -29,7 +29,9 @@ import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import cz.testpreklad.core.AutoZone
 import cz.testpreklad.core.CaptureMonitor
+import cz.testpreklad.core.DiagLog
 import cz.testpreklad.core.FrameSignature
+import cz.testpreklad.core.Glossary
 import cz.testpreklad.core.HdmiProbe
 import cz.testpreklad.core.I18n
 import cz.testpreklad.core.Lang
@@ -157,6 +159,12 @@ class TranslatorService : Service() {
     private var ticksLogged = 0
 
     /** Naposledy zobrazené překlady (čas, text) – aby je aplikace nikdy nepřeložila znovu. */
+    /** Slovník: jména podle hry, předpřipravené hlášky a vlastní slovník uživatele. */
+    @Volatile private var glossary: Glossary? = null
+
+    /** Záznam pro automatickou zkoušku i pro hlášení chyby. */
+    private fun tp(msg: String) { Log.i("TP_TEST", msg); DiagLog.add(msg) }
+
     private val recentShown = ArrayDeque<Pair<Long, String>>()
     @Volatile private var lastError: String? = null
 
@@ -237,8 +245,8 @@ class TranslatorService : Service() {
         if (running) return
         if (!Prefs.license(this).canRun) { startError = "licence"; stopSelf(); return }
         lastLicenseCheck = SystemClock.uptimeMillis()
-        Log.i("TP_TEST", "A11Y|" + (TitulkyAccessibility.instance != null) + "|launchers=" + launchers)
-        Log.i("TP_TEST", "START|cap=${capW}x${capH}|screen=${screenW}x${screenH}|eco=${perf.eco}|usb=${usb != null}")
+        tp("A11Y|" + (TitulkyAccessibility.instance != null) + "|launchers=" + launchers)
+        tp("START|cap=${capW}x${capH}|screen=${screenW}x${screenH}|eco=${perf.eco}|usb=${usb != null}")
         lang = Prefs.lang(this)
         statsFor(this)
         loadCache()
@@ -263,6 +271,13 @@ class TranslatorService : Service() {
         if (autoFind != wasAuto) autoZone.reset()
         if (autoFind) layout = layout.copy(read = autoZone.current)
         onlyRemotePlay = Prefs.onlyRemotePlay(this)
+        glossary = Prefs.glossary(this)
+        // změna hry nebo slovníku → dřívější překlady už neplatí
+        val sig = Prefs.glossarySignature(this)
+        if (sig != Prefs.savedGlossarySignature(this)) {
+            cache.clear(); try { cacheFile().delete() } catch (_: Exception) {}
+            Prefs.setSavedGlossarySignature(this, sig)
+        }
         source = Prefs.source(this)
         holdMs = Prefs.holdMs(this).toLong()
         showOriginal = Prefs.showOriginal(this)
@@ -510,7 +525,7 @@ class TranslatorService : Service() {
                     // opakovaně → pruh schovej úplně a začni znovu, ať nikdy „nezamrzne“
                     monitor.clearFailures()
                     hideAt = 0; ov.hide(); tracker.reset(); lastSig = null
-                    Log.i("TP_TEST", "RESET|peek failed")
+                    tp("RESET|peek failed")
                 }
                 return
             }
@@ -534,15 +549,15 @@ class TranslatorService : Service() {
                 monitor.onPeekResult(stillSawOwnBar = true)
                 if (monitor.needsReset) {
                     monitor.clearFailures(); hideAt = 0; ov.hide(); tracker.reset(); lastSig = null
-                    Log.i("TP_TEST", "RESET|own text")
+                    tp("RESET|own text")
                 }
             } else if (ov.isShown && layout.cover) monitor.markCaptured()
-            if (ticksLogged++ < 400) Log.i("TP_TEST", "OWN|" + picked.text.replace('\n', ' ').take(40))
+            if (ticksLogged++ < 400) tp("OWN|" + picked.text.replace('\n', ' ').take(40))
             return
         }
         if (peek) monitor.onPeekResult(stillSawOwnBar = false)
         // záznam pro automatickou zkoušku (jen prvních pár set čtení)
-        if (ticksLogged++ < 400) Log.i("TP_TEST", "READ|${if (peek) "peek" else "norm"}|ocr=${lastOcrMs}ms|zone=${(z.height * 100).toInt()}%|" + picked.text.replace('\n', ' ').take(40))
+        if (ticksLogged++ < 400) tp("READ|${if (peek) "peek" else "norm"}|ocr=${lastOcrMs}ms|zone=${(z.height * 100).toInt()}%|" + picked.text.replace('\n', ' ').take(40))
 
         // slabé zařízení: jedno čtení trvá déle než půl sekundy → nečekej na druhé potvrzení
         when (val action = tracker.onOcr(picked.text, slowDevice = lastOcrMs > 500)) {
@@ -558,7 +573,7 @@ class TranslatorService : Service() {
                 val nowMs = SystemClock.uptimeMillis()
                 recentShown.addLast(nowMs to plain)
                 while (recentShown.size > 4 || (recentShown.isNotEmpty() && nowMs - recentShown.first().first > 15_000)) recentShown.removeFirst()
-                Log.i("TP_TEST", "SHOW|" + action.text.replace('\n', ' ') + "|" + segs.joinToString(" ") { (it.speaker?.plus(": ") ?: "") + it.body })
+                tp("SHOW|" + action.text.replace('\n', ' ') + "|" + segs.joinToString(" ") { (it.speaker?.plus(": ") ?: "") + it.body })
                 ov.show(segs, if (showOriginal) action.text else null, top, bottom)
                 statsFor(this).line()
                 // automatika: zapamatuj si, kde na obrazovce titulky jsou
@@ -569,7 +584,7 @@ class TranslatorService : Service() {
             }
             // anglický titulek zmizel – překlad nech chvíli dočíst
             SubtitleTracker.Action.Hide -> {
-                Log.i("TP_TEST", "HIDE")
+                tp("HIDE")
                 if (holdMs <= 0) ov.hide() else hideAt = SystemClock.uptimeMillis() + holdMs
             }
             SubtitleTracker.Action.None -> {
@@ -583,7 +598,7 @@ class TranslatorService : Service() {
 
     /** Automatika změnila oblast čtení (našla titulky, nebo se vrátila k hledání). */
     private fun zoneChanged() {
-        Log.i("TP_TEST", "ZONE|" + (autoZone.learned?.let { "learned ${it.top}-${it.bottom}" } ?: "scan"))
+        tp("ZONE|" + (autoZone.learned?.let { "learned ${it.top}-${it.bottom}" } ?: "scan"))
         layout = layout.copy(read = autoZone.current)
         overlay?.setLayout(layout)
         lastSig = null
@@ -662,7 +677,7 @@ class TranslatorService : Service() {
 
     private suspend fun translate(text: String): String? {
         cache.get(text)?.let { statsFor(this).cacheHit(); return it }
-        val out = try { OfflineTranslator.translate(lang, text) } catch (e: Exception) {
+        val out = try { OfflineTranslator.translate(lang, text, glossary) } catch (e: Exception) {
             lastError = e.javaClass.simpleName; Log.w(TAG, "offline", e); null
         }
         if (out != null) { cache.put(text, out); lastError = null }

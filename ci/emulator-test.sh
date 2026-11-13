@@ -13,6 +13,8 @@ adb shell getprop ro.build.version.release > $OUT/device.txt
 adb shell getprop ro.product.model >> $OUT/device.txt
 adb shell wm size >> $OUT/device.txt
 adb shell cat /proc/meminfo | head -1 >> $OUT/device.txt
+# Android 13+: povolení notifikací, aby dotaz nepřekryl průvodce
+adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS 2>/dev/null || true
 adb logcat -c
 
 # 1) první spuštění: průvodce krok za krokem

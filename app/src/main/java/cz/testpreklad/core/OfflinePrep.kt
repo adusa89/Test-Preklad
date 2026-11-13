@@ -112,9 +112,12 @@ object OfflinePrep {
         val names: List<String>,
     )
 
+    /** Slang → spisovná angličtina, včetně "them boys" → "those boys". */
+    fun standardize(text: String): String =
+        THEM_DET.replace(normalize(text)) { m -> m.groupValues[1] + "hose " }
+
     fun prepare(text: String): Prepared {
-        // "them" před množným číslem ("them Pinkertons", "them boys") → "those"
-        val plain = THEM_DET.replace(normalize(text)) { m -> m.groupValues[1] + "hose " }
+        val plain = standardize(text)
         val names = ArrayList<String>()
         val protectedText = NAME_RX.replace(plain) { m ->
             val name = m.value

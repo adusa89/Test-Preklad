@@ -2,6 +2,9 @@ package cz.testpreklad
 
 import android.content.Context
 import android.content.SharedPreferences
+import cz.testpreklad.core.BuiltinPhrases
+import cz.testpreklad.core.GameProfiles
+import cz.testpreklad.core.Glossary
 import cz.testpreklad.core.I18n
 import cz.testpreklad.core.Lang
 import cz.testpreklad.core.License
@@ -93,6 +96,32 @@ object Prefs {
     /** Průvodce prvním spuštěním už proběhl. */
     fun wizardDone(c: Context) = bool(c, "wizard_done", false)
     fun setWizardDone(c: Context, v: Boolean) = setBool(c, "wizard_done", v)
+
+    // ---- hra a slovník ----
+    fun gameId(c: Context): String = p(c).getString("game", "all") ?: "all"
+    fun setGameId(c: Context, v: String) = p(c).edit().putString("game", v).apply()
+
+    /** Vlastní slovník uživatele pro daný jazyk (anglicky → překlad). */
+    fun userDict(c: Context, lang: Lang): LinkedHashMap<String, String> =
+        Glossary.parseUser(p(c).getString("dict_${lang.code}", null))
+    fun setUserDict(c: Context, lang: Lang, m: Map<String, String>) =
+        p(c).edit().putString("dict_${lang.code}", Glossary.serializeUser(m)).apply()
+
+    /** Slovník pro překlad: jména podle hry + předpřipravené hlášky + vlastní slovník. */
+    fun glossary(c: Context): Glossary {
+        val lang = lang(c)
+        val user = userDict(c, lang)
+        val sentences = LinkedHashMap(BuiltinPhrases.forLang(lang))
+        val terms = LinkedHashMap<String, String>()
+        for ((k, v) in user) if (Glossary.isSentence(k)) sentences[k] = v else terms[k] = v
+        return Glossary(GameProfiles.of(gameId(c)).names, terms, sentences)
+    }
+
+    /** Otisk nastavení slovníku – když se změní, paměť překladů se smaže. */
+    fun glossarySignature(c: Context): String =
+        gameId(c) + "|" + lang(c).code + "|" + userDict(c, lang(c)).hashCode()
+    fun savedGlossarySignature(c: Context): String = p(c).getString("gloss_sig", "") ?: ""
+    fun setSavedGlossarySignature(c: Context, v: String) = p(c).edit().putString("gloss_sig", v).apply()
 
     // ---- licence ----
     fun unlocked(c: Context) = bool(c, "unlocked", false)

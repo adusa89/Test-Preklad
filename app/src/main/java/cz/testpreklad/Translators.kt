@@ -6,6 +6,7 @@ import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.Translator
 import com.google.mlkit.nl.translate.TranslatorOptions
+import cz.testpreklad.core.Glossary
 import cz.testpreklad.core.Lang
 import cz.testpreklad.core.OfflinePrep
 import kotlinx.coroutines.tasks.await
@@ -47,8 +48,9 @@ object OfflineTranslator {
      * Překlad s úpravami pro hry: slang → spisovná angličtina, jména postav a míst se nepřekládají.
      * Když se značky jmen při překladu poškodí, přeloží se text bez nich (nic se neztratí).
      */
-    suspend fun translate(lang: Lang, text: String): String {
-        val p = OfflinePrep.prepare(text)
+    suspend fun translate(lang: Lang, text: String, glossary: Glossary? = null): String {
+        glossary?.sentence(text)?.let { return it }      // ručně zadaný překlad celé věty
+        val p = glossary?.prepare(text) ?: OfflinePrep.prepare(text)
         if (p.names.isNotEmpty()) {
             OfflinePrep.finish(p, translateRaw(lang, p.protectedText))?.let { return it }
         }

@@ -25,7 +25,10 @@ import android.widget.ScrollView
 import android.widget.Toast
 import cz.testpreklad.core.ScreenLayout
 import cz.testpreklad.core.Segment
+import cz.testpreklad.core.DiagLog
+import cz.testpreklad.core.GameProfiles
 import cz.testpreklad.core.Source
+import cz.testpreklad.core.UpdateCheck
 import cz.testpreklad.core.SubtitleHistory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -69,6 +72,10 @@ class MainActivity : Activity() {
     private var lastPaused = false
     /** Krok průvodce prvním spuštěním; -1 = průvodce neběží. */
     private var wizard = -1
+    private var draftEn = ""
+    private var draftTr = ""
+    private var newVersion: String? = null
+    private var reportText: String? = null
     private var draftCode = ""
     private var codeError = false
     private var hdmiTestPending = false
@@ -92,6 +99,7 @@ class MainActivity : Activity() {
         if (auto) { Prefs.setWizardDone(this, true); wizard = -1 }
         render()
         if (auto) main.postDelayed({ startFlow() }, 1500)
+        checkForUpdate()
         OfflineTranslator.ensureModel(Prefs.lang(this)) { runOnUiThread { if (section == Section.HOME || wizard >= 0) render(true) } }
         // Android 13+: povolení notifikací (tlačítka Pozastavit / Zastavit v notifikaci)
         if (Build.VERSION.SDK_INT >= 33) {
@@ -337,6 +345,13 @@ class MainActivity : Activity() {
         status.addView(ui.text(busyText ?: sub, 16f, Theme.MUTED), ui.lp(top = 6))
         add(status, 18)
 
+        newVersion?.let { v ->
+            add(ui.card().apply {
+                addView(ui.text(t("upd_new") + " ($v)", 17f, Theme.ACCENT, bold = true))
+                addView(ui.text(t("upd_how"), 14f, Theme.MUTED), ui.lp(top = 4))
+                addView(ui.text(BuildInfo.DOWNLOAD_URL, 14f, Theme.TEXT), ui.lp(top = 4))
+            }, 12)
+        }
         val buttons = ui.hbox()
         if (!lic.canRun) {
             buttons.addView(tagged(ui.button(t("lic_open"), primary = true) { section = Section.LICENSE; render() }, "start"))
@@ -489,6 +504,49 @@ class MainActivity : Activity() {
         add(row, 12)
         testResult?.let { add(ui.card().apply { addView(ui.text(it, 15f)) }, 12) }
 
+        // --- hra: jména postav a míst, která se nepřekládají ---
+        content.addView(ui.section(t("t_game")))
+        val game = GameProfiles.of(Prefs.gameId(this))
+        add(tagged(ui.settingRow(t("t_game_row"), if (game.id == "all") t("game_universal") else game.title) {
+            Prefs.setGameId(this, GameProfiles.next(game.id).id); applyToService(); render(true)
+        }, "game"), 0)
+        add(ui.text(t("t_game_desc"), 14f, Theme.MUTED), 6)
+
+        // --- vlastní slovník ---
+        content.addView(ui.section(t("t_dict")))
+        add(ui.text(t("t_dict_desc"), 14f, Theme.MUTED), 0)
+        val dict = Prefs.userDict(this, lang)
+        fun field(hintKey: String, value: String, tagName: String) = EditText(this).apply {
+            setText(value)
+            hint = t(hintKey)
+            setSingleLine(true)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            imeOptions = EditorInfo.IME_ACTION_DONE
+            setTextColor(Theme.TEXT)
+            setHintTextColor(Theme.MUTED)
+            textSize = 16f
+            background = ui.focusBg(Theme.CARD)
+            setPadding(ui.dp(18), ui.dp(12), ui.dp(18), ui.dp(12))
+            tag = tagName
+        }
+        val en = field("t_dict_en", draftEn, "dicten")
+        val tr = field("t_dict_tr", draftTr, "dicttr")
+        add(en, 10); add(tr, 8)
+        add(tagged(ui.button(t("t_dict_add")) {
+            val k = en.text.toString().trim(); val v = tr.text.toString().trim()
+            if (k.length >= 2 && v.isNotEmpty()) {
+                dict[k] = v; Prefs.setUserDict(this, lang, dict)
+                draftEn = ""; draftTr = ""; applyToService()
+            } else { draftEn = k; draftTr = v }
+            render(true)
+        }, "dictadd"), 10)
+        if (dict.isNotEmpty()) add(ui.text(t("t_dict_del"), 13f, Theme.MUTED), 12)
+        dict.entries.toList().forEachIndexed { i, e ->
+            add(tagged(ui.settingRow(e.key, e.value + "   ✕", Theme.TEXT) {
+                dict.remove(e.key); Prefs.setUserDict(this, lang, dict); applyToService(); render(true)
+            }, "dict$i"), 6)
+        }
+
         val s = TranslatorService.statsFor(this)
         content.addView(ui.section(t("t_stats")))
         val card = ui.card()
@@ -631,6 +689,8 @@ class MainActivity : Activity() {
             addView(ui.text("adb shell appops set $packageName SYSTEM_ALERT_WINDOW allow", 14f, Theme.ACCENT), ui.lp(top = 8))
         }, 0)
         add(tagged(ui.button(t("wz_again")) { wizard = 0; render() }, "wagain"), 16)
+        add(tagged(ui.button(t("rep_btn")) { makeReport() }, "report"), 8)
+        reportText?.let { add(ui.card().apply { addView(ui.text(it, 13f, Theme.MUTED)) }, 10) }
         add(ui.text("Test Překlad · ${BuildInfo.VERSION}", 13f, Theme.MUTED), 24)
     }
 
@@ -755,6 +815,49 @@ class MainActivity : Activity() {
         }, 2500)
     }
 
+    /** Na pozadí zjistí, jestli není ke stažení novější verze. */
+    private fun checkForUpdate() {
+        scope.launch {
+            val remote = kotlinx.coroutines.withContext(Dispatchers.IO) {
+                try {
+                    val c = java.net.URL(BuildInfo.VERSION_URL).openConnection() as java.net.HttpURLConnection
+                    c.connectTimeout = 5000; c.readTimeout = 5000
+                    try {
+                        if (c.responseCode == 200) UpdateCheck.parse(c.inputStream.bufferedReader().use { it.readText().take(100) }) else null
+                    } finally { c.disconnect() }
+                } catch (_: Exception) { null }
+            }
+            if (UpdateCheck.isNewer(remote, BuildInfo.VERSION_CODE)) {
+                newVersion = remote?.name
+                if (section == Section.HOME && wizard < 0) render(true)
+            }
+        }
+    }
+
+    /** Sestaví hlášení chyby (zařízení, nastavení, poslední události) a uloží ho do souboru. */
+    private fun makeReport() {
+        val sb = StringBuilder()
+        sb.append("Test Překlad ").append(BuildInfo.VERSION).append(" (").append(BuildInfo.VERSION_CODE).append(")\n")
+        sb.append("Zařízení: ").append(Build.MANUFACTURER).append(' ').append(Build.MODEL).append(", Android ").append(Build.VERSION.RELEASE).append(" (API ").append(Build.VERSION.SDK_INT).append(")\n")
+        val (w, h) = screenSize()
+        sb.append("Obrazovka: ").append(w).append('×').append(h).append(", televize: ").append(Prefs.isTv(this)).append("\n")
+        sb.append("Jazyk: ").append(Prefs.lang(this).code).append(", zdroj: ").append(Prefs.source(this).code).append(", hra: ").append(Prefs.gameId(this)).append("\n")
+        sb.append("Usnadnění: ").append(TitulkyAccessibility.instance != null).append(", překryv: ").append(Settings.canDrawOverlays(this))
+            .append(", model: ").append(OfflineTranslator.isReady(Prefs.lang(this))).append(", HDMI test: ").append(Prefs.hdmiResult(this)).append("\n")
+        sb.append("Automatika: ").append(Prefs.autoZone(this)).append(", oblast: ").append(Prefs.layout(this).serialize()).append("\n")
+        sb.append("Licence: ").append(Prefs.license(this).kind).append(", překlad běží: ").append(TranslatorService.running).append("\n")
+        sb.append("--- poslední události ---\n").append(DiagLog.dump())
+        val text = sb.toString()
+        val where = try {
+            val dir = getExternalFilesDir(null) ?: filesDir
+            val f = java.io.File(dir, "TestPreklad-hlaseni.txt")
+            f.writeText(text, Charsets.UTF_8)
+            f.absolutePath
+        } catch (e: Exception) { "?" }
+        reportText = t("rep_saved") + " " + where + "\n\n" + text.take(1500)
+        render(true)
+    }
+
     private fun togglePause() {
         startService(Intent(this, TranslatorService::class.java).setAction(TranslatorService.ACTION_PAUSE))
         main.postDelayed({ render(true) }, 300)
@@ -874,5 +977,8 @@ class MainActivity : Activity() {
 }
 
 object BuildInfo {
-    const val VERSION = "verze 0.9"
+    const val VERSION = "verze 0.10"
+    const val VERSION_CODE = 10
+    const val DOWNLOAD_URL = "https://github.com/adusa89/Test-Preklad/releases/download/latest/TestPreklad.apk"
+    const val VERSION_URL = "https://github.com/adusa89/Test-Preklad/releases/download/latest/version.txt"
 }

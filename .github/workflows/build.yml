@@ -39,12 +39,20 @@ jobs:
         run: |
           unzip -l TestPreklad.apk | grep -E "classes.*dex|\.so$" | head -20
           ls -la TestPreklad.apk
+          CODE=$(grep -oE 'versionCode = [0-9]+' app/build.gradle.kts | grep -oE '[0-9]+')
+          NAME=$(grep -oE 'versionName = "[^"]+"' app/build.gradle.kts | cut -d'"' -f2)
+          echo "$CODE $NAME" > version.txt
+          cat version.txt
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest TestPreklad.apk --title "Test Překlad – nejnovější APK" --notes "Automaticky sestaveno z posledního kódu."
+          gh release create latest TestPreklad.apk version.txt --title "Test Překlad – nejnovější APK" --notes "Automaticky sestaveno z posledního kódu."
 
   emulator:
-    name: Zkouška v emulátoru Android TV
+    name: Emulátor Android TV (API ${{ matrix.api }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [28, 30, 33, 34]   # Android 9, 11, 13, 14
     steps:
       - uses: actions/checkout@v5
 
@@ -65,7 +73,7 @@ jobs:
       - name: Zkouška v emulátoru
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
+          api-level: ${{ matrix.api }}
           target: android-tv
           arch: x86
           profile: tv_1080p
@@ -77,9 +85,9 @@ jobs:
         if: always()
         run: |
           cd test-results || exit 0
-          git init -q -b test-results
+          git init -q -b test-results-api${{ matrix.api }}
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add -A
           git commit -q -m "Výsledky zkoušky v emulátoru"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" test-results
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" test-results-api${{ matrix.api }}
