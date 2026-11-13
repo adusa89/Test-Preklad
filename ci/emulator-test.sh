@@ -52,7 +52,8 @@ SHOWS=$(grep -c "TP_TEST.*SHOW|" $OUT/log.txt)
 adb shell dumpsys meminfo $PKG | grep -E "TOTAL|Native Heap|Dalvik Heap" | head -4 > $OUT/memory.txt
 CRASH=$(grep -c "FATAL EXCEPTION" $OUT/log.txt)
 echo "prelozenych_titulku=$SHOWS pady=$CRASH" > $OUT/result.txt
-grep "TP_TEST" $OUT/log.txt >> $OUT/result.txt
+grep "TP_TEST" $OUT/log.txt | grep -v "READ|" >> $OUT/result.txt
+grep "TP_TEST" $OUT/log.txt > $OUT/reads.txt
 tail -c 400000 $OUT/logcat_full.txt > $OUT/logcat_tail.txt; rm $OUT/logcat_full.txt
 cat $OUT/result.txt
 exit 0

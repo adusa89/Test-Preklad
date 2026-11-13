@@ -153,6 +153,8 @@ class TranslatorService : Service() {
     private var ocrRuns = 0
     private var lastOcrText = ""
     private var lastMs = 0L
+    private var lastOcrMs = 0L
+    private var ticksLogged = 0
     @Volatile private var lastError: String? = null
 
     /** Jeden znovupoužívaný snímek obrazovky – žádné velké alokace 10× za sekundu. */
@@ -473,12 +475,14 @@ class TranslatorService : Service() {
         }
         lastSig = sig
 
+        val ocrStart = SystemClock.uptimeMillis()
         val result = try {
             recognizer.process(InputImage.fromBitmap(crop, 0)).await()
         } finally {
             crop.recycle()
         }
         ocrRuns++
+        lastOcrMs = SystemClock.uptimeMillis() - ocrStart
 
         var blocks = toBlocks(result)
         // text v místě našeho vlastního pruhu oddělíme od textu hry
@@ -518,6 +522,8 @@ class TranslatorService : Service() {
         if (picked.text.isNotEmpty()) lastOcrText = picked.text
 
         if (peek) monitor.onPeekResult(stillSawOwnBar = false)
+        // záznam pro automatickou zkoušku (jen prvních pár set čtení)
+        if (ticksLogged++ < 400) Log.i("TP_TEST", "READ|${if (peek) "peek" else "norm"}|ocr=${lastOcrMs}ms|zone=${(z.height * 100).toInt()}%|" + picked.text.replace('\n', ' ').take(40))
 
         when (val action = tracker.onOcr(picked.text)) {
             is SubtitleTracker.Action.Show -> {
@@ -543,6 +549,8 @@ class TranslatorService : Service() {
                 if (holdMs <= 0) ov.hide() else hideAt = SystemClock.uptimeMillis() + holdMs
             }
             SubtitleTracker.Action.None -> {
+                // pod pruhem je už jiný titulek → starý překlad hned schovej a čti naplno (bez nakukování)
+                if (peek && tracker.isChanging && picked.text.isNotEmpty()) { hideAt = 0; ov.hide(); lastSig = null }
                 if (tracker.isChanging) monitor.hurry(SystemClock.uptimeMillis())
                 prefetch(tracker.pendingText)
             }
