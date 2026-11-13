@@ -1,0 +1,181 @@
+package cz.testpreklad.core
+
+/** Texty aplikace v češtině a slovenštině. */
+object I18n {
+
+    private val S: Map<String, Pair<String, String>> = mapOf(
+        // ---- menu ----
+        "m_home" to ("Domů" to "Domov"),
+        "m_zones" to ("Oblasti titulků" to "Oblasti titulkov"),
+        "m_look" to ("Vzhled" to "Vzhľad"),
+        "m_translate" to ("Překlad" to "Preklad"),
+        "m_settings" to ("Nastavení" to "Nastavenia"),
+        "m_history" to ("Historie" to "História"),
+        "m_help" to ("Nápověda" to "Pomocník"),
+
+        // ---- domů ----
+        "st_running" to ("Překlad běží" to "Preklad beží"),
+        "st_running_sub" to ("Přepni do PS Remote Play a hraj. Titulky se objeví samy." to "Prepni do PS Remote Play a hraj. Titulky sa objavia samy."),
+        "st_paused" to ("Pozastaveno" to "Pozastavené"),
+        "st_paused_sub" to ("Překlad čeká. Pokračuj tlačítkem níže." to "Preklad čaká. Pokračuj tlačidlom nižšie."),
+        "st_ready" to ("Připraveno" to "Pripravené"),
+        "st_ready_sub" to ("Spusť překlad a otevře se PS Remote Play." to "Spusti preklad a otvorí sa PS Remote Play."),
+        "st_setup" to ("Ještě je potřeba nastavit" to "Ešte treba nastaviť"),
+        "st_setup_sub" to ("Projdi kontrolní seznam níže." to "Prejdi kontrolný zoznam nižšie."),
+        "st_running_hdmi" to ("Přepni televizi na HDMI s PlayStationem a hraj. Titulky se objeví samy." to "Prepni televízor na HDMI s PlayStationom a hraj. Titulky sa objavia samy."),
+        "st_ready_hdmi" to ("Spusť překlad a pak se vrať na HDMI s PlayStationem." to "Spusti preklad a potom sa vráť na HDMI s PlayStationom."),
+        "b_go_game" to ("Zpět do hry (HDMI)" to "Späť do hry (HDMI)"),
+        "go_hdmi" to ("Překlad běží – přepni na HDMI s PlayStationem." to "Preklad beží – prepni na HDMI s PlayStationom."),
+        "chk_hdmi" to ("Televize čte obraz z HDMI (plná kvalita)" to "Televízor číta obraz z HDMI (plná kvalita)"),
+        "hdmi_try" to ("Vyzkoušet" to "Vyskúšať"),
+        "hdmi_retry" to ("Zkusit test znovu" to "Skúsiť test znova"),
+        "hdmi_test_go" to ("Test HDMI: přepni na HDMI s PlayStationem, pusť hru a asi za 15 sekund se sem vrať." to "Test HDMI: prepni na HDMI s PlayStationom, pusti hru a asi o 15 sekúnd sa sem vráť."),
+        "hdmi_wait" to ("Test ještě neskončil – vrať se na HDMI se spuštěnou hrou aspoň na 15 sekund a pak sem." to "Test ešte neskončil – vráť sa na HDMI so spustenou hrou aspoň na 15 sekúnd a potom sem."),
+        "hdmi_ok" to ("✅ Funguje! Tvoje televize dovolí číst obraz z HDMI. Hraj normálně přes HDMI v plné kvalitě – titulky se budou překládat." to "✅ Funguje! Tvoj televízor dovolí čítať obraz z HDMI. Hraj normálne cez HDMI v plnej kvalite – titulky sa budú prekladať."),
+        "hdmi_blocked" to ("❌ Televize obraz z HDMI blokuje (aplikace vidí jen černo). Řešení bez ztráty kvality: levný HDMI splitter + USB klíčenka (viz manuál). Jinak PS Remote Play." to "❌ Televízor obraz z HDMI blokuje (aplikácia vidí len čierno). Riešenie bez straty kvality: lacný HDMI splitter + USB kľúčenka (pozri manuál). Inak PS Remote Play."),
+        "tip_hdmi" to ("PS5 nech připojené kabelem HDMI jako obvykle. Při povolení snímání vyber Celá obrazovka." to "PS5 nechaj pripojené káblom HDMI ako obvykle. Pri povolení snímania vyber Celá obrazovka."),
+        "b_start" to ("Spustit překlad" to "Spustiť preklad"),
+        "b_open_rp" to ("Otevřít PS Remote Play" to "Otvoriť PS Remote Play"),
+        "b_pause" to ("Pozastavit" to "Pozastaviť"),
+        "b_resume" to ("Pokračovat" to "Pokračovať"),
+        "b_stop" to ("Zastavit" to "Zastaviť"),
+        "check_title" to ("Kontrolní seznam" to "Kontrolný zoznam"),
+        "chk_overlay" to ("Zobrazení titulků přes jiné aplikace" to "Zobrazenie titulkov cez iné aplikácie"),
+        "chk_model" to ("Jazykový model pro offline překlad" to "Jazykový model pre offline preklad"),
+        "chk_rp" to ("PS Remote Play nainstalovaný" to "PS Remote Play nainštalovaný"),
+        "fix" to ("Opravit" to "Opraviť"),
+        "download" to ("Stáhnout" to "Stiahnuť"),
+        "set_up" to ("Nastavit" to "Nastaviť"),
+        "ok" to ("V pořádku" to "V poriadku"),
+        "tip_share" to ("Tip: při povolení snímání vyber „Jedna aplikace → PS Remote Play“, pokud to televize nabízí. Černý pruh pak nikdy neblikne." to
+            "Tip: pri povolení snímania vyber „Jedna aplikácia → PS Remote Play“, ak to televízor ponúka. Čierny pruh potom nikdy nebliká."),
+
+        // ---- průběh spuštění ----
+        "prep_model" to ("Připravuji jazykový model (poprvé cca 30 MB)…" to "Pripravujem jazykový model (prvýkrát cca 30 MB)…"),
+        "model_fail" to ("Jazykový model se nepodařilo stáhnout. Zkontroluj internet." to "Jazykový model sa nepodarilo stiahnuť. Skontroluj internet."),
+        "share_whole" to ("V dalším okně povol snímání obrazovky." to "V ďalšom okne povoľ snímanie obrazovky."),
+        "no_capture" to ("Toto zařízení nepodporuje snímání obrazovky." to "Toto zariadenie nepodporuje snímanie obrazovky."),
+        "capture_denied" to ("Bez povolení snímání obrazovky překlad nefunguje." to "Bez povolenia snímania obrazovky preklad nefunguje."),
+        "rp_missing" to ("PS Remote Play jsem nenašel – otevři ho ručně. Překlad běží na pozadí." to "PS Remote Play som nenašiel – otvor ho ručne. Preklad beží na pozadí."),
+        "need_overlay" to ("Nejdřív povol zobrazení titulků (Nastavení → Povolení)." to "Najprv povoľ zobrazenie titulkov (Nastavenia → Povolenia)."),
+
+        // ---- oblasti ----
+        "z_title" to ("Kde se titulky čtou a zobrazují" to "Kde sa titulky čítajú a zobrazujú"),
+        "z_desc" to ("Modrý rámeček = kde jsou anglické titulky hry. Aplikace čte jen uvnitř něj." to "Modrý rámček = kde sú anglické titulky hry. Aplikácia číta len vnútri neho."),
+        "z_calibrate" to ("Nastavit oblasti nad snímkem ze hry" to "Nastaviť oblasti nad snímkou z hry"),
+        "z_cover" to ("Černý pruh přes anglické titulky" to "Čierny pruh cez anglické titulky"),
+        "z_cover_on" to ("Přes titulky (zakryje angličtinu)" to "Cez titulky (zakryje angličtinu)"),
+        "z_cover_off" to ("Nad titulky (angličtina zůstane vidět)" to "Nad titulky (angličtina zostane viditeľná)"),
+        "z_only_subs" to ("Číst jen titulky (ignorovat menu a nápovědy)" to "Čítať len titulky (ignorovať menu a nápovedy)"),
+        "z_reset" to ("Obnovit výchozí oblasti" to "Obnoviť predvolené oblasti"),
+        "z_reset_done" to ("Oblasti vráceny na výchozí." to "Oblasti vrátené na predvolené."),
+        "z_saved" to ("Oblasti uloženy ✔" to "Oblasti uložené ✔"),
+
+        // ---- kalibrace ----
+        "cal_read_move" to ("Modrý rámeček – POSUN" to "Modrý rámček – POSUN"),
+        "cal_read_move_h" to ("Šipkami posuň modrý rámeček na anglické titulky ve hře." to "Šípkami posuň modrý rámček na anglické titulky v hre."),
+        "cal_read_size" to ("Modrý rámeček – VELIKOST" to "Modrý rámček – VEĽKOSŤ"),
+        "cal_read_size_h" to ("←/→ šířka, ↑/↓ výška. Má zakrýt jen titulky, ne celý obraz." to "←/→ šírka, ↑/↓ výška. Má zakryť len titulky, nie celý obraz."),
+        "cal_bar_move" to ("Pruh s překladem – POLOHA" to "Pruh s prekladom – POLOHA"),
+        "cal_bar_move_h" to ("↑/↓ posune pruh. Nikdy nepřekryje modrý rámeček." to "↑/↓ posunie pruh. Nikdy neprekryje modrý rámček."),
+        "cal_bar_width" to ("Pruh s překladem – ŠÍŘKA" to "Pruh s prekladom – ŠÍRKA"),
+        "cal_bar_width_h" to ("←/→ změní šířku pruhu." to "←/→ zmení šírku pruhu."),
+        "cal_keys" to ("OK = další úprava   •   ZPĚT = uložit a odejít" to "OK = ďalšia úprava   •   SPÄŤ = uložiť a odísť"),
+        "cal_no_snapshot" to ("Snímek ze hry zatím není – spusť překlad a hru, pak se sem vrať." to "Snímka z hry zatiaľ nie je – spusti preklad a hru, potom sa sem vráť."),
+        "cal_read_label" to ("Titulky hry (čtení)" to "Titulky hry (čítanie)"),
+        "cal_bar_label" to ("Tady bude překlad" to "Tu bude preklad"),
+        "cal_cover_note" to ("Pruh se položí přímo přes anglické titulky." to "Pruh sa položí priamo cez anglické titulky."),
+
+        // ---- vzhled ----
+        "l_size" to ("Velikost písma" to "Veľkosť písma"),
+        "l_opacity" to ("Neprůhlednost pruhu" to "Nepriehľadnosť pruhu"),
+        "l_original" to ("Zobrazit i anglický originál (malým písmem)" to "Zobraziť aj anglický originál (malým písmom)"),
+        "l_speaker" to ("Jména mluvčích barevně" to "Mená hovoriacich farebne"),
+        "l_hold" to ("Nechat překlad déle na obrazovce" to "Nechať preklad dlhšie na obrazovke"),
+        "l_demo" to ("Ukázka na obrazovce" to "Ukážka na obrazovke"),
+        "l_lang" to ("Jazyk aplikace a překladu" to "Jazyk aplikácie a prekladu"),
+        "size_0" to ("Malé" to "Malé"), "size_1" to ("Střední" to "Stredné"), "size_2" to ("Velké" to "Veľké"), "size_3" to ("Obří" to "Obrie"),
+        "demo_line" to ("Potřebujeme peníze, Arthure. Hodně peněz. A rychle." to "Potrebujeme peniaze, Arthur. Veľa peňazí. A rýchlo."),
+
+        // ---- překlad ----
+        "t_mode" to ("Režim překladu" to "Režim prekladu"),
+        "t_offline" to ("Offline – zdarma, bez internetu" to "Offline – zadarmo, bez internetu"),
+        "t_offline_desc" to ("Překládá se přímo v televizi, nic se neplatí a nic se neodesílá. Jména postav a míst zůstávají v originále a westernový slang se před překladem převede do spisovné angličtiny." to
+            "Prekladá sa priamo v televízore, nič sa neplatí a nič sa neodosiela. Mená postáv a miest zostávajú v origináli a westernový slang sa pred prekladom prevedie do spisovnej angličtiny."),
+        "t_model_missing" to ("chybí – stáhni ho (jen jednou, cca 30 MB)" to "chýba – stiahni ho (len raz, cca 30 MB)"),
+        "t_test" to ("Vyzkoušet překlad" to "Vyskúšať preklad"),
+        "t_testing" to ("Zkouším překlad…" to "Skúšam preklad…"),
+        "t_original" to ("Originál" to "Originál"),
+        "t_off_ok" to ("Offline překlad ✅" to "Offline preklad ✅"),
+        "t_off_fail" to ("Offline překlad ❌ (model ještě není stažený)" to "Offline preklad ❌ (model ešte nie je stiahnutý)"),
+        "t_stats" to ("Statistika" to "Štatistika"),
+        "t_lines" to ("Přeložené titulky" to "Preložené titulky"),
+        "t_hits" to ("Z paměti (zdarma, okamžitě)" to "Z pamäte (zadarmo, okamžite)"),
+        "t_reset_stats" to ("Vynulovat statistiku" to "Vynulovať štatistiku"),
+        "t_clear_memory" to ("Smazat paměť překladů" to "Vymazať pamäť prekladov"),
+        "t_cleared" to ("Hotovo." to "Hotovo."),
+
+        // ---- nastavení ----
+        "s_perm" to ("Povolení" to "Povolenia"),
+        "s_a11y" to ("Zobrazení přes Usnadnění (doporučeno pro Google TV a Chromecast)" to "Zobrazenie cez Zjednodušenie ovládania (odporúčané pre Google TV a Chromecast)"),
+        "s_overlay" to ("Zobrazení přes jiné aplikace" to "Zobrazenie cez iné aplikácie"),
+        "s_source" to ("Zdroj obrazu" to "Zdroj obrazu"),
+        "s_source_row" to ("Jak je PlayStation připojený" to "Ako je PlayStation pripojený"),
+        "src_hdmi" to ("HDMI kabel (plná kvalita)" to "HDMI kábel (plná kvalita)"),
+        "src_rp" to ("PS Remote Play" to "PS Remote Play"),
+        "src_usb" to ("USB klíčenka (plná kvalita, nebliká)" to "USB kľúčenka (plná kvalita, nebliká)"),
+        "src_hdmi_desc" to ("PS5 kabelem do TV. Aplikace čte obraz obrazovky – funguje, pokud to televize dovolí (ověří test na stránce Domů)." to "PS5 káblom do TV. Aplikácia číta obraz obrazovky – funguje, ak to televízor dovolí (overí test na stránke Domov)."),
+        "src_usb_desc" to ("PS5 → HDMI splitter → televize (plná kvalita) + USB klíčenka → USB port TV. Funguje vždy, pruh nikdy nebliká a není potřeba potvrzovat sdílení obrazovky." to "PS5 → HDMI splitter → televízor (plná kvalita) + USB kľúčenka → USB port TV. Funguje vždy, pruh nikdy nebliká a netreba potvrdzovať zdieľanie obrazovky."),
+        "src_rp_desc" to ("Hra jde do TV přes síť aplikací PS Remote Play – nižší kvalita obrazu, ale bez dalšího hardwaru." to "Hra ide do TV cez sieť aplikáciou PS Remote Play – nižšia kvalita obrazu, ale bez ďalšieho hardvéru."),
+        "src_restart" to ("Zdroj obrazu změněn – spusť překlad znovu." to "Zdroj obrazu zmenený – spusti preklad znova."),
+        "chk_usb" to ("USB klíčenka připojená a funkční" to "USB kľúčenka pripojená a funkčná"),
+        "usb_check" to ("Zkontrolovat" to "Skontrolovať"),
+        "usb_none" to ("Televize nevidí žádnou USB klíčenku. Zapoj ji do USB portu televize (a HDMI ze splitteru do klíčenky) a dej Zkontrolovat." to "Televízor nevidí žiadnu USB kľúčenku. Zapoj ju do USB portu televízora (a HDMI zo splittera do kľúčenky) a daj Skontrolovať."),
+        "usb_nocam" to ("Televize klíčenku vidí, ale její systém nepodporuje USB video. Zkus jiný USB port, případně jinou klíčenku (UVC, čip MS2109/MS2130)." to "Televízor kľúčenku vidí, ale jeho systém nepodporuje USB video. Skús iný USB port, prípadne inú kľúčenku (UVC, čip MS2109/MS2130)."),
+        "usb_perm" to ("Bez povolení „Kamera“ nejde číst obraz z USB klíčenky." to "Bez povolenia „Kamera“ nejde čítať obraz z USB kľúčenky."),
+        "usb_fail" to ("Klíčenku se nepodařilo spustit" to "Kľúčenku sa nepodarilo spustiť"),
+        "tip_usb" to ("Zapojení: PS5 → splitter → výstup 1 do TV, výstup 2 do USB klíčenky → klíčenka do USB portu TV. Hraješ na HDMI vstupu splitteru v plné kvalitě." to "Zapojenie: PS5 → splitter → výstup 1 do TV, výstup 2 do USB kľúčenky → kľúčenka do USB portu TV. Hráš na HDMI vstupe splittera v plnej kvalite."),
+        "box_warn" to ("Pozor: tohle zařízení vypadá jako Android box nebo Chromecast. Box umí kreslit jen přes svůj obraz, ne přes PS5 zapojené přímo do televize – na boxu použij PS Remote Play." to "Pozor: toto zariadenie vyzerá ako Android box alebo Chromecast. Box vie kresliť len cez svoj obraz, nie cez PS5 zapojené priamo do televízora – na boxe použi PS Remote Play."),
+        "hdmi_need_a11y" to ("Pro test HDMI zapni nejdřív Zobrazení přes Usnadnění (Nastavení → Usnadnění → Test Překlad)." to "Pre test HDMI zapni najprv Zobrazenie cez Zjednodušenie ovládania (Nastavenia → Zjednodušenie ovládania → Test Překlad)."),
+        "s_behavior" to ("Chování" to "Správanie"),
+        "s_only_rp" to ("Titulky jen v PS Remote Play (jinde se skryjí)" to "Titulky len v PS Remote Play (inde sa skryjú)"),
+        "s_auto" to ("Po spuštění otevřít PS Remote Play" to "Po spustení otvoriť PS Remote Play"),
+        "s_debug" to ("Diagnostický režim (co aplikace čte, rychlost)" to "Diagnostický režim (čo aplikácia číta, rýchlosť)"),
+        "on" to ("ZAP" to "ZAP"),
+        "off" to ("VYP" to "VYP"),
+        "a11y_hint" to ("V nastavení TV najdi Usnadnění → Test Překlad a zapni ho." to "V nastaveniach TV nájdi Zjednodušenie ovládania → Test Překlad a zapni ho."),
+        "overlay_hint" to ("Zapni „Zobrazení přes jiné aplikace“ a vrať se zpět." to "Zapni „Zobrazenie cez iné aplikácie“ a vráť sa späť."),
+        "adb_title" to ("Povolení přes počítač" to "Povolenie cez počítač"),
+        "adb_text" to ("Tahle televize nemá obrazovku pro toto povolení. Použij Usnadnění, nebo povol přes ADB:" to "Tento televízor nemá obrazovku pre toto povolenie. Použi Zjednodušenie ovládania, alebo povoľ cez ADB:"),
+
+        // ---- historie ----
+        "h_empty" to ("Zatím tu nic není. Titulky se sem ukládají během hraní." to "Zatiaľ tu nič nie je. Titulky sa sem ukladajú počas hrania."),
+        "h_clear" to ("Smazat historii" to "Vymazať históriu"),
+
+        // ---- nápověda ----
+        "help_1" to ("1. PlayStation nech připojený k televizi kabelem HDMI jako obvykle (plná kvalita)." to "1. PlayStation nechaj pripojený k televízoru káblom HDMI ako obvykle (plná kvalita)."),
+        "help_2" to ("2. Na stránce Domů dej u „Televize čte obraz z HDMI“ Vyzkoušet – test zjistí, jestli to tvoje TV dovolí." to "2. Na stránke Domov daj pri „Televízor číta obraz z HDMI“ Vyskúšať – test zistí, či to tvoj TV dovolí."),
+        "help_3" to ("3. Ve hře zapni titulky." to "3. V hre zapni titulky."),
+        "help_4" to ("4. V Test Překlad projdi kontrolní seznam na stránce Domů." to "4. V Test Překlad prejdi kontrolný zoznam na stránke Domov."),
+        "help_5" to ("5. Spusť překlad, povol snímání celé obrazovky a přepni na HDMI s PlayStationem." to "5. Spusti preklad, povoľ snímanie celej obrazovky a prepni na HDMI s PlayStationom."),
+        "help_6" to ("6. Poprvé si v Oblastech titulků nastav modrý rámeček na titulky hry." to "6. Prvýkrát si v Oblastiach titulkov nastav modrý rámček na titulky hry."),
+        "help_tips" to ("Rady" to "Rady"),
+        "help_t1" to ("PlayStation i TV připoj kabelem – obraz bude ostřejší a čtení přesnější." to "PlayStation aj TV pripoj káblom – obraz bude ostrejší a čítanie presnejšie."),
+        "help_t2" to ("Když nic nenaskakuje, zapni Diagnostický režim a podívej se, co aplikace čte." to "Keď nič nenaskakuje, zapni Diagnostický režim a pozri sa, čo aplikácia číta."),
+        "help_t3" to ("Pozastavit a zastavit jde i z notifikace." to "Pozastaviť a zastaviť sa dá aj z notifikácie."),
+        "help_t4" to ("Překlad je offline a zdarma. Internet je potřeba jen jednou na stažení jazykového modelu." to "Preklad je offline a zadarmo. Internet treba len raz na stiahnutie jazykového modelu."),
+
+        // ---- notifikace ----
+        "n_running" to ("Test Překlad běží" to "Test Překlad beží"),
+        "n_paused" to ("Test Překlad – pozastaveno" to "Test Překlad – pozastavené"),
+        "n_text" to ("Anglické titulky se překládají." to "Anglické titulky sa prekladajú."),
+    )
+
+    fun t(lang: Lang, key: String): String {
+        val p = S[key] ?: return key
+        return if (lang == Lang.SK) p.second else p.first
+    }
+
+    /** Pro testy: všechny klíče. */
+    val keys: Set<String> get() = S.keys
+}

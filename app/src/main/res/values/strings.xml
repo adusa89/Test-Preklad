@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Test Překlad</string>
+    <string name="a11y_desc">Test Překlad zobrazuje české a slovenské titulky přes PS Remote Play. Služba jen pozná, která aplikace je na obrazovce, aby titulky ukazovala pouze ve hře. Nečte obsah obrazovky a nic neodesílá.</string>
+</resources>
