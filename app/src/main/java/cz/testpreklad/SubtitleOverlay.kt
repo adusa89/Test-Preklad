@@ -38,6 +38,8 @@ class SubtitleOverlay(
     opacityPercent: Int,
     private val showDebug: Boolean,
     private val coloredSpeaker: Boolean,
+    private val textColor: Int = Color.WHITE,
+    private val bold: Boolean = false,
 ) {
     companion object {
         private const val TAG = "TestPreklad"
@@ -74,9 +76,9 @@ class SubtitleOverlay(
     init {
         main.post {
             val tv = TextView(host).apply {
-                setTextColor(Color.WHITE)
+                setTextColor(textColor)
                 gravity = Gravity.CENTER
-                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                typeface = Typeface.create("sans-serif-medium", if (bold) Typeface.BOLD else Typeface.NORMAL)
                 setShadowLayer(3f, 0f, 1f, Color.BLACK)
                 setLineSpacing(0f, 1.08f)
                 setPadding(dp(28), dp(8), dp(28), dp(10))

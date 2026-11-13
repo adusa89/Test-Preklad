@@ -11,8 +11,17 @@ import cz.testpreklad.core.UsageStats
 
 /** Nastavení aplikace. */
 object Prefs {
-    val TEXT_SIZES = intArrayOf(20, 26, 32, 40)
-    val OPACITIES = intArrayOf(80, 90, 100)
+    val TEXT_SIZES = intArrayOf(18, 22, 26, 32, 40, 48)
+    val OPACITIES = intArrayOf(60, 80, 90, 100)
+    val BAR_WIDTHS = intArrayOf(50, 60, 70, 84, 100)
+
+    /** Barvy textu titulků: bílá, žlutá, světle zelená, světle modrá. */
+    val TEXT_COLORS = intArrayOf(0xFFFFFFFF.toInt(), 0xFFFFE066.toInt(), 0xFFA8F0A8.toInt(), 0xFF9FD8FF.toInt())
+    fun textColorIndex(c: Context): Int = p(c).getInt("text_color", 0).coerceIn(0, TEXT_COLORS.size - 1)
+    fun setTextColorIndex(c: Context, v: Int) = p(c).edit().putInt("text_color", v).apply()
+
+    fun boldText(c: Context) = bool(c, "bold_text", false)
+    fun setBoldText(c: Context, v: Boolean) = setBool(c, "bold_text", v)
 
     private fun p(c: Context): SharedPreferences =
         c.applicationContext.getSharedPreferences("test_preklad", Context.MODE_PRIVATE)

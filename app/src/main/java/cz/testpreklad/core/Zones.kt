@@ -89,6 +89,33 @@ data class ScreenLayout(
         }
     }
 
+    /** Přednastavené polohy pruhu s překladem. */
+    enum class Position { OVER, ABOVE, TOP, CUSTOM }
+
+    val position: Position
+        get() = when {
+            cover -> Position.OVER
+            isAuto -> Position.ABOVE
+            barCenterY <= TOP_CENTER + 0.01f -> Position.TOP
+            else -> Position.CUSTOM
+        }
+
+    fun withPosition(p: Position): ScreenLayout = when (p) {
+        Position.OVER -> copy(cover = true, barCenterY = AUTO)
+        Position.ABOVE -> copy(cover = false, barCenterY = AUTO)
+        Position.TOP -> copy(cover = false, barCenterY = TOP_CENTER)
+        Position.CUSTOM -> this
+    }
+
+    /** Další poloha v cyklu: přes titulky → nad titulky → nahoře → přes titulky. */
+    fun nextPosition(): ScreenLayout = withPosition(
+        when (position) {
+            Position.OVER -> Position.ABOVE
+            Position.ABOVE -> Position.TOP
+            else -> Position.OVER
+        }
+    )
+
     fun withBarWidth(w: Float) = copy(barWidth = w.coerceIn(0.3f, 1f))
     fun withBarCenter(y: Float) = copy(barCenterY = y.coerceIn(0.02f, 0.98f))
 
@@ -98,6 +125,8 @@ data class ScreenLayout(
 
     companion object {
         const val AUTO = -1f
+        /** Střed pruhu při poloze "nahoře obrazovky". */
+        const val TOP_CENTER = 0.08f
         val DEFAULT_READ = Zone(0.08f, 0.74f, 0.92f, 0.98f)
 
         fun parse(s: String?): ScreenLayout {

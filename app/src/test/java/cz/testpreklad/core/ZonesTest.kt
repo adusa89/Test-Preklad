@@ -81,4 +81,26 @@ class ZonesTest {
         assertEquals(0.98f, clamped.barCenterY, eps)
         assertEquals(1f, clamped.barWidth, eps)
     }
+
+    @Test fun positionPresetsCycle() {
+        var l = ScreenLayout()
+        assertEquals(ScreenLayout.Position.OVER, l.position)
+        l = l.nextPosition(); assertEquals(ScreenLayout.Position.ABOVE, l.position); assertFalse(l.cover)
+        l = l.nextPosition(); assertEquals(ScreenLayout.Position.TOP, l.position)
+        assertTrue("pruh je nahoře", l.barTop(0.1f) < 0.1f)
+        l = l.nextPosition(); assertEquals(ScreenLayout.Position.OVER, l.position); assertTrue(l.cover)
+    }
+
+    @Test fun customPositionFromCalibrationSurvivesAndCyclesBack() {
+        val l = ScreenLayout(cover = false, barCenterY = 0.4f)
+        assertEquals(ScreenLayout.Position.CUSTOM, l.position)
+        assertEquals(l, ScreenLayout.parse(l.serialize()))
+        assertEquals(ScreenLayout.Position.OVER, l.nextPosition().position)
+    }
+
+    @Test fun positionKeepsReadZoneAndWidth() {
+        val l = ScreenLayout(Zone(0.2f, 0.6f, 0.8f, 0.9f), barWidth = 0.6f).nextPosition().nextPosition()
+        assertEquals(Zone(0.2f, 0.6f, 0.8f, 0.9f), l.read)
+        assertEquals(0.6f, l.barWidth, 0.0001f)
+    }
 }

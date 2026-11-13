@@ -315,7 +315,7 @@ class MainActivity : Activity() {
     // ======================= VZHLED =======================
 
     private fun look() {
-        val sizeIdx = Prefs.TEXT_SIZES.indexOf(Prefs.textSize(this)).let { if (it < 0) 1 else it }
+        val sizeIdx = Prefs.TEXT_SIZES.indexOf(Prefs.textSize(this)).let { if (it < 0) 2 else it }
         add(tagged(ui.settingRow(t("l_lang"), Prefs.lang(this).label) {
             val next = if (Prefs.lang(this) == Lang.CS) Lang.SK else Lang.CS
             Prefs.setLang(this, next)
@@ -325,6 +325,21 @@ class MainActivity : Activity() {
         add(tagged(ui.settingRow(t("l_size"), t("size_$sizeIdx")) {
             Prefs.setTextSize(this, Prefs.nextOf(Prefs.TEXT_SIZES, Prefs.textSize(this))); applyToService(); render(true); showDemo()
         }, "size"), 8)
+        val lay = Prefs.layout(this)
+        add(tagged(ui.settingRow(t("l_pos"), t("pos_" + lay.position.name.lowercase())) {
+            Prefs.setLayout(this, lay.nextPosition()); applyToService(); render(true); showDemo()
+        }, "pos"), 8)
+        val widthPct = Math.round(lay.barWidth * 100)
+        add(tagged(ui.settingRow(t("l_width"), "$widthPct %") {
+            Prefs.setLayout(this, lay.withBarWidth(Prefs.nextOf(Prefs.BAR_WIDTHS, widthPct) / 100f)); applyToService(); render(true); showDemo()
+        }, "width"), 8)
+        val colorIdx = Prefs.textColorIndex(this)
+        add(tagged(ui.settingRow(t("l_color"), t("color_$colorIdx"), Prefs.TEXT_COLORS[colorIdx]) {
+            Prefs.setTextColorIndex(this, (colorIdx + 1) % Prefs.TEXT_COLORS.size); applyToService(); render(true); showDemo()
+        }, "color"), 8)
+        add(tagged(ui.settingRow(t("l_bold"), onOff(Prefs.boldText(this))) {
+            Prefs.setBoldText(this, !Prefs.boldText(this)); applyToService(); render(true); showDemo()
+        }, "bold"), 8)
         add(tagged(ui.settingRow(t("l_opacity"), "${Prefs.opacity(this)} %") {
             Prefs.setOpacity(this, Prefs.nextOf(Prefs.OPACITIES, Prefs.opacity(this))); applyToService(); render(true); showDemo()
         }, "opacity"), 8)
@@ -339,6 +354,13 @@ class MainActivity : Activity() {
             Prefs.setHoldMs(this, Prefs.nextOf(Prefs.HOLD_TIMES, hold)); applyToService(); render(true)
         }, "hold"), 8)
         add(tagged(ui.button(t("l_demo")) { showDemo() }, "demo"), 18)
+        add(tagged(ui.button(t("l_fine")) { startActivity(Intent(this, CalibrationActivity::class.java)) }, "fine"), 8)
+        add(tagged(ui.button(t("l_reset")) {
+            Prefs.setTextSize(this, 26); Prefs.setOpacity(this, 100); Prefs.setTextColorIndex(this, 0)
+            Prefs.setBoldText(this, false); Prefs.setHoldMs(this, 1000)
+            Prefs.setLayout(this, Prefs.layout(this).withPosition(cz.testpreklad.core.ScreenLayout.Position.OVER).withBarWidth(0.84f))
+            applyToService(); render(true); showDemo()
+        }, "lreset"), 8)
     }
 
     // ======================= PŘEKLAD =======================
@@ -717,7 +739,8 @@ class MainActivity : Activity() {
         val (w, h) = screenSize()
         val o = SubtitleOverlay(
             this, w, h, Prefs.layout(this), Prefs.textSize(this), Prefs.opacity(this),
-            false, Prefs.coloredSpeaker(this)
+            false, Prefs.coloredSpeaker(this),
+            Prefs.TEXT_COLORS[Prefs.textColorIndex(this)], Prefs.boldText(this)
         )
         demo = o
         o.show(
@@ -743,5 +766,5 @@ class MainActivity : Activity() {
 }
 
 object BuildInfo {
-    const val VERSION = "verze 0.6"
+    const val VERSION = "verze 0.7"
 }

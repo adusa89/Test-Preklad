@@ -246,7 +246,8 @@ class TranslatorService : Service() {
         overlay?.destroy()
         overlay = SubtitleOverlay(
             this, screenW, screenH, layout, Prefs.textSize(this), Prefs.opacity(this),
-            debug, Prefs.coloredSpeaker(this)
+            debug, Prefs.coloredSpeaker(this),
+            Prefs.TEXT_COLORS[Prefs.textColorIndex(this)], Prefs.boldText(this)
         )
         tracker.reset()
         lastSig = null
