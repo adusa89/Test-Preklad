@@ -1,0 +1,146 @@
+11-13 11:00:05.917 D/AndroidRuntime( 3338): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:00:05.923 I/AndroidRuntime( 3338): Using default boot image
+11-13 11:00:05.923 I/AndroidRuntime( 3338): Leaving lock profiling enabled
+11-13 11:00:06.032 D/AndroidRuntime( 3338): Calling main entry com.android.commands.input.Input
+11-13 11:00:06.048 D/AndroidRuntime( 3338): Shutting down VM
+11-13 11:00:09.740 D/AndroidRuntime( 3417): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:00:09.742 I/AndroidRuntime( 3417): Using default boot image
+11-13 11:00:09.742 I/AndroidRuntime( 3417): Leaving lock profiling enabled
+11-13 11:00:09.821 D/AndroidRuntime( 3417): Calling main entry com.android.commands.input.Input
+11-13 11:00:09.830 D/AndroidRuntime( 3417): Shutting down VM
+11-13 11:00:09.836 I/AndroidRuntime( 3417): NOTE: attach of thread 'Binder:3417_2' failed
+11-13 11:00:58.636 D/AndroidRuntime( 3668): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:00:58.637 I/AndroidRuntime( 3668): Using default boot image
+11-13 11:00:58.637 I/AndroidRuntime( 3668): Leaving lock profiling enabled
+11-13 11:00:58.679 D/AndroidRuntime( 3668): Calling main entry com.android.commands.input.Input
+11-13 11:00:58.691 D/AndroidRuntime( 3668): Shutting down VM
+11-13 11:01:02.341 D/AndroidRuntime( 3737): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:02.342 I/AndroidRuntime( 3737): Using default boot image
+11-13 11:01:02.342 I/AndroidRuntime( 3737): Leaving lock profiling enabled
+11-13 11:01:02.386 D/AndroidRuntime( 3737): Calling main entry com.android.commands.input.Input
+11-13 11:01:02.401 D/AndroidRuntime( 3737): Shutting down VM
+11-13 11:01:06.102 D/AndroidRuntime( 4077): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:06.104 I/AndroidRuntime( 4077): Using default boot image
+11-13 11:01:06.104 I/AndroidRuntime( 4077): Leaving lock profiling enabled
+11-13 11:01:06.150 D/AndroidRuntime( 4077): Calling main entry com.android.commands.input.Input
+11-13 11:01:06.156 D/AndroidRuntime( 4077): Shutting down VM
+11-13 11:01:07.617 D/AndroidRuntime( 4091): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:07.618 I/AndroidRuntime( 4091): Using default boot image
+11-13 11:01:07.618 I/AndroidRuntime( 4091): Leaving lock profiling enabled
+11-13 11:01:07.660 D/AndroidRuntime( 4091): Calling main entry com.android.commands.input.Input
+11-13 11:01:07.674 D/AndroidRuntime( 4091): Shutting down VM
+11-13 11:01:09.127 D/AndroidRuntime( 4105): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:09.135 I/AndroidRuntime( 4105): Using default boot image
+11-13 11:01:09.135 I/AndroidRuntime( 4105): Leaving lock profiling enabled
+11-13 11:01:09.186 D/AndroidRuntime( 4105): Calling main entry com.android.commands.input.Input
+11-13 11:01:09.219 D/AndroidRuntime( 4105): Shutting down VM
+11-13 11:01:13.839 D/AndroidRuntime( 4134): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:13.841 I/AndroidRuntime( 4134): Using default boot image
+11-13 11:01:13.841 I/AndroidRuntime( 4134): Leaving lock profiling enabled
+11-13 11:01:13.880 D/AndroidRuntime( 4134): Calling main entry com.android.commands.input.Input
+11-13 11:01:13.885 D/AndroidRuntime( 4134): Shutting down VM
+11-13 11:01:15.335 D/AndroidRuntime( 4151): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:15.336 I/AndroidRuntime( 4151): Using default boot image
+11-13 11:01:15.336 I/AndroidRuntime( 4151): Leaving lock profiling enabled
+11-13 11:01:15.375 D/AndroidRuntime( 4151): Calling main entry com.android.commands.input.Input
+11-13 11:01:15.389 D/AndroidRuntime( 4151): Shutting down VM
+11-13 11:01:19.028 D/AndroidRuntime( 4168): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:19.029 I/AndroidRuntime( 4168): Using default boot image
+11-13 11:01:19.029 I/AndroidRuntime( 4168): Leaving lock profiling enabled
+11-13 11:01:19.069 D/AndroidRuntime( 4168): Calling main entry com.android.commands.input.Input
+11-13 11:01:19.073 D/AndroidRuntime( 4168): Shutting down VM
+11-13 11:01:20.523 D/AndroidRuntime( 4182): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:20.524 I/AndroidRuntime( 4182): Using default boot image
+11-13 11:01:20.524 I/AndroidRuntime( 4182): Leaving lock profiling enabled
+11-13 11:01:20.563 D/AndroidRuntime( 4182): Calling main entry com.android.commands.input.Input
+11-13 11:01:20.589 D/AndroidRuntime( 4182): Shutting down VM
+11-13 11:01:24.241 D/AndroidRuntime( 4211): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:24.242 I/AndroidRuntime( 4211): Using default boot image
+11-13 11:01:24.242 I/AndroidRuntime( 4211): Leaving lock profiling enabled
+11-13 11:01:24.287 D/AndroidRuntime( 4211): Calling main entry com.android.commands.input.Input
+11-13 11:01:24.296 D/AndroidRuntime( 4211): Shutting down VM
+11-13 11:01:25.762 D/AndroidRuntime( 4225): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:25.770 I/AndroidRuntime( 4225): Using default boot image
+11-13 11:01:25.770 I/AndroidRuntime( 4225): Leaving lock profiling enabled
+11-13 11:01:25.819 D/AndroidRuntime( 4225): Calling main entry com.android.commands.input.Input
+11-13 11:01:25.830 D/AndroidRuntime( 4225): Shutting down VM
+11-13 11:01:29.662 D/AndroidRuntime( 4472): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:29.673 I/AndroidRuntime( 4472): Using default boot image
+11-13 11:01:29.673 I/AndroidRuntime( 4472): Leaving lock profiling enabled
+11-13 11:01:29.723 D/AndroidRuntime( 4472): Calling main entry com.android.commands.input.Input
+11-13 11:01:29.736 D/AndroidRuntime( 4472): Shutting down VM
+11-13 11:01:31.265 D/AndroidRuntime( 4544): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:31.277 I/AndroidRuntime( 4544): Using default boot image
+11-13 11:01:31.277 I/AndroidRuntime( 4544): Leaving lock profiling enabled
+11-13 11:01:31.355 D/AndroidRuntime( 4544): Calling main entry com.android.commands.input.Input
+11-13 11:01:31.381 D/AndroidRuntime( 4544): Shutting down VM
+11-13 11:01:35.026 D/AndroidRuntime( 4592): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:35.027 I/AndroidRuntime( 4592): Using default boot image
+11-13 11:01:35.027 I/AndroidRuntime( 4592): Leaving lock profiling enabled
+11-13 11:01:35.069 D/AndroidRuntime( 4592): Calling main entry com.android.commands.input.Input
+11-13 11:01:35.074 D/AndroidRuntime( 4592): Shutting down VM
+11-13 11:01:36.523 D/AndroidRuntime( 4609): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:36.524 I/AndroidRuntime( 4609): Using default boot image
+11-13 11:01:36.524 I/AndroidRuntime( 4609): Leaving lock profiling enabled
+11-13 11:01:36.563 D/AndroidRuntime( 4609): Calling main entry com.android.commands.input.Input
+11-13 11:01:36.577 D/AndroidRuntime( 4609): Shutting down VM
+11-13 11:01:40.206 D/AndroidRuntime( 4643): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:40.207 I/AndroidRuntime( 4643): Using default boot image
+11-13 11:01:40.207 I/AndroidRuntime( 4643): Leaving lock profiling enabled
+11-13 11:01:40.255 D/AndroidRuntime( 4643): Calling main entry com.android.commands.input.Input
+11-13 11:01:40.260 D/AndroidRuntime( 4643): Shutting down VM
+11-13 11:01:41.712 D/AndroidRuntime( 4660): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:41.718 I/AndroidRuntime( 4660): Using default boot image
+11-13 11:01:41.718 I/AndroidRuntime( 4660): Leaving lock profiling enabled
+11-13 11:01:41.761 D/AndroidRuntime( 4660): Calling main entry com.android.commands.input.Input
+11-13 11:01:41.777 D/AndroidRuntime( 4660): Shutting down VM
+11-13 11:01:45.416 D/AndroidRuntime( 4679): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:45.417 I/AndroidRuntime( 4679): Using default boot image
+11-13 11:01:45.417 I/AndroidRuntime( 4679): Leaving lock profiling enabled
+11-13 11:01:45.455 D/AndroidRuntime( 4679): Calling main entry com.android.commands.input.Input
+11-13 11:01:45.460 D/AndroidRuntime( 4679): Shutting down VM
+11-13 11:01:46.914 D/AndroidRuntime( 4697): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:01:46.915 I/AndroidRuntime( 4697): Using default boot image
+11-13 11:01:46.915 I/AndroidRuntime( 4697): Leaving lock profiling enabled
+11-13 11:01:46.955 D/AndroidRuntime( 4697): Calling main entry com.android.commands.input.Input
+11-13 11:01:46.966 D/AndroidRuntime( 4697): Shutting down VM
+11-13 11:01:57.207 I/TP_TEST ( 4738): A11Y|true|launchers=[com.google.android.tvlauncher, com.android.tv.settings]
+11-13 11:01:57.207 I/TP_TEST ( 4738): START|cap=1280x720|screen=1920x1080|eco=true|usb=false
+11-13 11:02:20.191 D/AndroidRuntime( 4842): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:02:20.193 I/AndroidRuntime( 4842): Using default boot image
+11-13 11:02:20.193 I/AndroidRuntime( 4842): Leaving lock profiling enabled
+11-13 11:02:20.231 D/AndroidRuntime( 4842): Calling main entry com.android.commands.input.Input
+11-13 11:02:20.234 D/AndroidRuntime( 4842): Shutting down VM
+11-13 11:02:21.682 D/AndroidRuntime( 4855): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:02:21.683 I/AndroidRuntime( 4855): Using default boot image
+11-13 11:02:21.683 I/AndroidRuntime( 4855): Leaving lock profiling enabled
+11-13 11:02:21.721 D/AndroidRuntime( 4855): Calling main entry com.android.commands.input.Input
+11-13 11:02:21.726 D/AndroidRuntime( 4855): Shutting down VM
+11-13 11:02:32.790 I/TP_TEST ( 4738): READ|norm|ocr=4054ms|zone=48%|
+11-13 11:02:36.089 I/TP_TEST ( 4738): READ|norm|ocr=3261ms|zone=48%|Dutch: We need money, Arthur.
+11-13 11:02:36.721 I/TP_TEST ( 4738): SHOW|Dutch: We need money, Arthur.|Dutch: Potřebujeme peníze, Arthur.
+11-13 11:02:40.011 I/TP_TEST ( 4738): READ|norm|ocr=3221ms|zone=48%|Arthur: I reckon we ain't gonna find not
+11-13 11:02:40.168 I/TP_TEST ( 4738): SHOW|Arthur: I reckon we ain't gonna find nothin' in Valentine.|Arthur: Myslím, že nebudeme nic najít v Valentine.
+11-13 11:02:40.168 I/TP_TEST ( 4738): ZONE|learned 0.7558334-0.93583333
+11-13 11:02:43.579 I/TP_TEST ( 4738): OWN|Dutch: Potřebujeme peníze, Arthur.
+11-13 11:02:46.664 I/TP_TEST ( 4738): READ|peek|ocr=3000ms|zone=17%|
+11-13 11:02:46.664 I/TP_TEST ( 4738): HIDE
+11-13 11:02:49.902 I/TP_TEST ( 4738): READ|peek|ocr=3154ms|zone=17%|Get on your horse, we ride at dawn.
+11-13 11:02:50.069 I/TP_TEST ( 4738): SHOW|Get on your horse, we ride at dawn.|Dostaňte se na koni, jezdíme za svítání.
+11-13 11:02:53.159 I/TP_TEST ( 4738): READ|peek|ocr=2984ms|zone=17%|Get on your horse, we ride at dawn.
+11-13 11:02:56.416 I/TP_TEST ( 4738): READ|peek|ocr=3167ms|zone=17%|Hosea: If we keep going like this, the P
+11-13 11:02:56.587 I/TP_TEST ( 4738): SHOW|Hosea: If we keep going like this, the Pinkertons will find us.|Hosea: Pokud budeme dělat takhle, Pinkertons nás najde.
+11-13 11:02:56.587 I/TP_TEST ( 4738): ZONE|learned 0.76361114-0.9752778
+11-13 11:03:00.172 I/TP_TEST ( 4738): READ|peek|ocr=3421ms|zone=21%|Hosea: If we keep going like this, the P
+11-13 11:03:03.200 I/TP_TEST ( 4738): READ|peek|ocr=2945ms|zone=21%|
+11-13 11:03:03.200 I/TP_TEST ( 4738): HIDE
+11-13 11:03:06.562 I/TP_TEST ( 4738): READ|peek|ocr=3239ms|zone=21%|Dutch: We need money, Arthur.
+11-13 11:03:06.563 I/TP_TEST ( 4738): SHOW|Dutch: We need money, Arthur.|Dutch: Potřebujeme peníze, Arthur.
+11-13 11:03:09.932 I/TP_TEST ( 4738): READ|peek|ocr=3224ms|zone=21%|
+11-13 11:03:09.932 I/TP_TEST ( 4738): HIDE
+11-13 11:03:13.396 I/TP_TEST ( 4738): READ|peek|ocr=3382ms|zone=21%|Arthur: I reckon we ain't gonna find not
+11-13 11:03:13.396 I/TP_TEST ( 4738): SHOW|Arthur: I reckon we ain't gonna find nothin' in Valentine.|Arthur: Myslím, že nebudeme nic najít v Valentine.
+11-13 11:03:16.983 I/TP_TEST ( 4738): READ|peek|ocr=3459ms|zone=21%|Arthur: I reckon we ain't gonna find not
+11-13 11:03:20.547 I/TP_TEST ( 4738): READ|peek|ocr=3438ms|zone=21%|Get on your horse, we ride at dawn.
+11-13 11:03:20.547 I/TP_TEST ( 4738): SHOW|Get on your horse, we ride at dawn.|Dostaňte se na koni, jezdíme za svítání.
+11-13 11:03:24.136 I/TP_TEST ( 4738): READ|peek|ocr=3459ms|zone=21%|Get on your horse, we ride at dawn.

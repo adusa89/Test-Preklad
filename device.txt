@@ -1,0 +1,4 @@
+11
+AOSP TV on x86
+Physical size: 1920x1080
+MemTotal:        2028624 kB

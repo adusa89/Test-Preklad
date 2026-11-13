@@ -1,0 +1,30 @@
+11-13 11:01:57.207 I/TP_TEST ( 4738): A11Y|true|launchers=[com.google.android.tvlauncher, com.android.tv.settings]
+11-13 11:01:57.207 I/TP_TEST ( 4738): START|cap=1280x720|screen=1920x1080|eco=true|usb=false
+11-13 11:02:32.790 I/TP_TEST ( 4738): READ|norm|ocr=4054ms|zone=48%|
+11-13 11:02:36.089 I/TP_TEST ( 4738): READ|norm|ocr=3261ms|zone=48%|Dutch: We need money, Arthur.
+11-13 11:02:36.721 I/TP_TEST ( 4738): SHOW|Dutch: We need money, Arthur.|Dutch: Potřebujeme peníze, Arthur.
+11-13 11:02:40.011 I/TP_TEST ( 4738): READ|norm|ocr=3221ms|zone=48%|Arthur: I reckon we ain't gonna find not
+11-13 11:02:40.168 I/TP_TEST ( 4738): SHOW|Arthur: I reckon we ain't gonna find nothin' in Valentine.|Arthur: Myslím, že nebudeme nic najít v Valentine.
+11-13 11:02:40.168 I/TP_TEST ( 4738): ZONE|learned 0.7558334-0.93583333
+11-13 11:02:43.579 I/TP_TEST ( 4738): OWN|Dutch: Potřebujeme peníze, Arthur.
+11-13 11:02:46.664 I/TP_TEST ( 4738): READ|peek|ocr=3000ms|zone=17%|
+11-13 11:02:46.664 I/TP_TEST ( 4738): HIDE
+11-13 11:02:49.902 I/TP_TEST ( 4738): READ|peek|ocr=3154ms|zone=17%|Get on your horse, we ride at dawn.
+11-13 11:02:50.069 I/TP_TEST ( 4738): SHOW|Get on your horse, we ride at dawn.|Dostaňte se na koni, jezdíme za svítání.
+11-13 11:02:53.159 I/TP_TEST ( 4738): READ|peek|ocr=2984ms|zone=17%|Get on your horse, we ride at dawn.
+11-13 11:02:56.416 I/TP_TEST ( 4738): READ|peek|ocr=3167ms|zone=17%|Hosea: If we keep going like this, the P
+11-13 11:02:56.587 I/TP_TEST ( 4738): SHOW|Hosea: If we keep going like this, the Pinkertons will find us.|Hosea: Pokud budeme dělat takhle, Pinkertons nás najde.
+11-13 11:02:56.587 I/TP_TEST ( 4738): ZONE|learned 0.76361114-0.9752778
+11-13 11:03:00.172 I/TP_TEST ( 4738): READ|peek|ocr=3421ms|zone=21%|Hosea: If we keep going like this, the P
+11-13 11:03:03.200 I/TP_TEST ( 4738): READ|peek|ocr=2945ms|zone=21%|
+11-13 11:03:03.200 I/TP_TEST ( 4738): HIDE
+11-13 11:03:06.562 I/TP_TEST ( 4738): READ|peek|ocr=3239ms|zone=21%|Dutch: We need money, Arthur.
+11-13 11:03:06.563 I/TP_TEST ( 4738): SHOW|Dutch: We need money, Arthur.|Dutch: Potřebujeme peníze, Arthur.
+11-13 11:03:09.932 I/TP_TEST ( 4738): READ|peek|ocr=3224ms|zone=21%|
+11-13 11:03:09.932 I/TP_TEST ( 4738): HIDE
+11-13 11:03:13.396 I/TP_TEST ( 4738): READ|peek|ocr=3382ms|zone=21%|Arthur: I reckon we ain't gonna find not
+11-13 11:03:13.396 I/TP_TEST ( 4738): SHOW|Arthur: I reckon we ain't gonna find nothin' in Valentine.|Arthur: Myslím, že nebudeme nic najít v Valentine.
+11-13 11:03:16.983 I/TP_TEST ( 4738): READ|peek|ocr=3459ms|zone=21%|Arthur: I reckon we ain't gonna find not
+11-13 11:03:20.547 I/TP_TEST ( 4738): READ|peek|ocr=3438ms|zone=21%|Get on your horse, we ride at dawn.
+11-13 11:03:20.547 I/TP_TEST ( 4738): SHOW|Get on your horse, we ride at dawn.|Dostaňte se na koni, jezdíme za svítání.
+11-13 11:03:24.136 I/TP_TEST ( 4738): READ|peek|ocr=3459ms|zone=21%|Get on your horse, we ride at dawn.
