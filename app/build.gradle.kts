@@ -13,6 +13,8 @@ android {
         targetSdk = 34
         versionCode = 5
         versionName = "0.5"
+        // televize a boxy mají procesory ARM – bez x86 je APK poloviční
+        ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
     }
 
     buildTypes {
