@@ -53,7 +53,8 @@ adb logcat -d -v time > $OUT/logcat_full.txt
 grep -E "TP_TEST|TestPreklad|AndroidRuntime|FATAL" $OUT/logcat_full.txt > $OUT/log.txt
 SHOWS=$(grep -c "TP_TEST.*SHOW|" $OUT/log.txt)
 adb shell dumpsys meminfo $PKG | grep -E "TOTAL|Native Heap|Dalvik Heap" | head -4 > $OUT/memory.txt
-CRASH=$(grep -c "FATAL EXCEPTION" $OUT/log.txt)
+# počítají se jen pády naší aplikace (na Androidu 9 padá vestavěná aplikace emulátoru, to není naše chyba)
+CRASH=$(grep -c "Process: cz.testpreklad" $OUT/log.txt)
 echo "prelozenych_titulku=$SHOWS pady=$CRASH" > $OUT/result.txt
 grep "TP_TEST" $OUT/log.txt | grep -v "READ|" >> $OUT/result.txt
 grep "TP_TEST" $OUT/log.txt > $OUT/reads.txt
