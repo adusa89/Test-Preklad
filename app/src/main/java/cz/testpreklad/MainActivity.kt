@@ -144,7 +144,7 @@ class MainActivity : Activity() {
         side.addView(logoRow)
 
         menu = ui.vbox()
-        side.addView(menu, ui.lp(top = 28))
+        side.addView(menu, ui.lp(top = 18))
         root.addView(side, LinearLayout.LayoutParams(ui.dp(280), LinearLayout.LayoutParams.MATCH_PARENT))
 
         val scroll = ScrollView(this).apply { isFillViewport = true }
@@ -162,7 +162,7 @@ class MainActivity : Activity() {
                 isFocusable = true
                 isClickable = true
                 background = ui.focusBg(if (active) Theme.CARD else Theme.SIDEBAR, radius = 10)
-                setPadding(ui.dp(14), ui.dp(12), ui.dp(14), ui.dp(12))
+                setPadding(ui.dp(14), ui.dp(9), ui.dp(14), ui.dp(9))
                 addView(View(this@MainActivity).apply {
                     background = GradientDrawable().apply {
                         setColor(if (active) Theme.ACCENT else Theme.SIDEBAR)

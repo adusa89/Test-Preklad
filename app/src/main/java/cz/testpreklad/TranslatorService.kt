@@ -398,7 +398,7 @@ class TranslatorService : Service() {
     private fun appAllowed(): Boolean {
         val pkg = TitulkyAccessibility.foregroundPackage
         // ve vlastní aplikaci nikdy nečti (jinak by se překládalo její menu)
-        val allowed = UiState.testCard || (!UiState.visible && pkg != packageName &&
+        val allowed = UiState.testCard || (!UiState.visible && pkg != packageName && (pkg == null || pkg !in launchers) &&
             // HDMI: hra běží ve vstupu televize (aplikace výrobce TV) → čte se všude mimo tuto aplikaci
             (source.direct || !onlyRemotePlay || pkg == null || TitulkyAccessibility.isRemotePlay(pkg)))
         if (!allowed && !hiddenForOtherApp) {
@@ -416,9 +416,18 @@ class TranslatorService : Service() {
             CaptureMonitor.Decision.NORMAL -> grabFrame() ?: return
             CaptureMonitor.Decision.PEEK -> {
                 // na zlomek sekundy skryj pruh, přečti, co je pod ním, a hned ho vrať
+                val rect = ov.barRect
                 ov.setPeekHidden(true)
                 delay(monitor.peekWaitMs)
-                val f = grabFrame()
+                var f = grabFrame()
+                // počkej, až snímek pruh opravdu neobsahuje (obraz se do snímání dostává se zpožděním)
+                if (rect != null && ov.isOpaque) {
+                    var waited = 0
+                    while (waited < 320 && (f == null || barInFrame(f, rect))) {
+                        delay(16); waited += 16
+                        f = grabFrame() ?: f
+                    }
+                }
                 ov.setPeekHidden(false)
                 lastSig = null
                 f ?: return
@@ -429,6 +438,23 @@ class TranslatorService : Service() {
         if (usb == null && countsForHdmiTest()) probeHdmi(frame)
         process(frame, ov, peek = decision == CaptureMonitor.Decision.PEEK)
         lastMs = SystemClock.uptimeMillis() - now
+    }
+
+    /** Je v místě našeho pruhu ve snímku čistě černá plocha (= pruh je ve snímku ještě vidět)? */
+    private fun barInFrame(frame: Bitmap, r: FloatArray): Boolean {
+        return try {
+            val l = (r[0] * capW).toInt(); val rr = (r[2] * capW).toInt()
+            val t = (r[1] * capH).toInt(); val b = (r[3] * capH).toInt()
+            val inset = 4
+            // okraje pruhu (tam není text): levý a pravý kraj ve třech výškách
+            for (y in intArrayOf(t + inset, (t + b) / 2, b - inset)) for (x in intArrayOf(l + inset, rr - inset)) {
+                if (x !in 0 until capW || y !in 0 until capH) continue
+                val c = frame.getPixel(x, y)
+                val lum = ((c shr 16 and 0xFF) + (c shr 8 and 0xFF) + (c and 0xFF)) / 3
+                if (lum > 6) return false
+            }
+            true
+        } catch (_: Exception) { false }
     }
 
     private suspend fun process(frame: Bitmap, ov: SubtitleOverlay, peek: Boolean) {
@@ -454,8 +480,36 @@ class TranslatorService : Service() {
         }
         ocrRuns++
 
+        var blocks = toBlocks(result)
+        // text v místě našeho vlastního pruhu oddělíme od textu hry
+        val rect = ov.barRect
+        if (ov.isShown && rect != null) {
+            val (inside, outside) = TextLogic.splitByRect(
+                blocks,
+                (rect[0] * capW).toInt() - x0, (rect[1] * capH).toInt() - y0,
+                (rect[2] * capW).toInt() - x0, (rect[3] * capH).toInt() - y0,
+            )
+            val own = TextLogic.assemble(inside, 0).text
+            val sawOwnBar = monitor.isOwnText(own, listOf(ov.displayedPlain), tracker.shown)
+            if (!layout.cover) {
+                // pruh leží mimo titulky → jeho text jen ignorujeme, nakukovat není potřeba
+                if (sawOwnBar) blocks = outside
+            } else if (sawOwnBar) {
+                if (!peek) { monitor.markCaptured(); return }
+                // nakouknutí se nepovedlo (pruh ve snímku zůstal)
+                monitor.onPeekResult(stillSawOwnBar = true)
+                if (monitor.needsReset) {
+                    // opakovaně → pruh schovej úplně a začni znovu, ať nikdy „nezamrzne“
+                    monitor.clearFailures()
+                    hideAt = 0; ov.hide(); tracker.reset(); lastSig = null
+                    Log.i("TP_TEST", "RESET|peek failed")
+                }
+                return
+            }
+        }
+
         val picked = TextLogic.assemble(
-            toBlocks(result),
+            blocks,
             minLineHeight = (capH * 0.016f).toInt(),
             subtitlesOnly = onlySubtitles || autoFind,   // automatika čte velkou plochu → vždy jen titulky
             screenCenterX = capW / 2 - x0,
@@ -463,12 +517,6 @@ class TranslatorService : Service() {
         )
         if (picked.text.isNotEmpty()) lastOcrText = picked.text
 
-        // přečetli jsme vlastní překlad = snímek obsahuje náš pruh → přejdi na nakukování
-        if (ov.isShown && monitor.isOwnText(picked.text, listOf(ov.displayedPlain), tracker.shown)) {
-            // při nakouknutí: pruh byl ve snímku ještě vidět → příště počkej o chvilku déle
-            if (peek) monitor.onPeekResult(stillSawOwnBar = true) else monitor.markCaptured()
-            return
-        }
         if (peek) monitor.onPeekResult(stillSawOwnBar = false)
 
         when (val action = tracker.onOcr(picked.text)) {
@@ -490,7 +538,10 @@ class TranslatorService : Service() {
                 })
             }
             // anglický titulek zmizel – překlad nech chvíli dočíst
-            SubtitleTracker.Action.Hide -> if (holdMs <= 0) ov.hide() else hideAt = SystemClock.uptimeMillis() + holdMs
+            SubtitleTracker.Action.Hide -> {
+                Log.i("TP_TEST", "HIDE")
+                if (holdMs <= 0) ov.hide() else hideAt = SystemClock.uptimeMillis() + holdMs
+            }
             SubtitleTracker.Action.None -> {
                 if (tracker.isChanging) monitor.hurry(SystemClock.uptimeMillis())
                 prefetch(tracker.pendingText)

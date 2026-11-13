@@ -65,6 +65,13 @@ class SubtitleOverlay(
     @Volatile private var textSize = textSizeSp
     @Volatile private var bgAlpha = (255 * opacityPercent / 100).coerceIn(0, 255)
 
+    /** Kde pruh na obrazovce leží (vlevo, nahoře, vpravo, dole; 0..1), nebo null, když není vidět. */
+    @Volatile var barRect: FloatArray? = null
+        private set
+
+    /** Je pruh úplně neprůhledný (čistě černý)? Pak jde ve snímku spolehlivě poznat. */
+    val isOpaque: Boolean get() = bgAlpha == 255
+
     /** Je pruh právě zobrazený (bez ohledu na krátké nakouknutí)? */
     @Volatile var isShown = false
         private set
@@ -190,6 +197,8 @@ class SubtitleOverlay(
             }
             lp.width = width
             lp.y = (top * screenH).toInt().coerceIn(0, max(0, screenH - h))
+            val left = (screenW - width) / 2f
+            barRect = floatArrayOf(left / screenW, lp.y.toFloat() / screenH, (left + width) / screenW, (lp.y + h).toFloat() / screenH)
             tv.visibility = View.VISIBLE
             try { wm.updateViewLayout(tv, lp) } catch (_: Exception) {}
         }
@@ -197,6 +206,7 @@ class SubtitleOverlay(
 
     fun hide() {
         isShown = false
+        barRect = null
         displayedPlain = ""
         main.post { bar?.visibility = View.GONE }
     }

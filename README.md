@@ -1,4 +1,7 @@
-# Test Překlad (verze 0.5 – offline, HDMI v plné kvalitě)
+# Test Překlad
+
+**Nejnovější APK ke stažení:** https://github.com/adusa89/Test-Preklad/releases/download/latest/TestPreklad.apk  
+Číslo verze je vidět v aplikaci v sekci Nápověda.
 
 Android TV aplikace: titulky ze hry přes PS Remote Play → čeština / slovenština v reálném čase, černý pruh přes anglické titulky.
 

@@ -7,8 +7,9 @@ package cz.testpreklad.core
 data class Perf(val captureWidth: Int, val intervalMs: Long, val eco: Boolean) {
     companion object {
         fun forDevice(totalRamMb: Long, lowRamFlag: Boolean): Perf = when {
-            lowRamFlag || totalRamMb in 1..1600 -> Perf(854, 220, true)     // ~1 GB: úsporný režim
-            totalRamMb in 1601..2600 -> Perf(1024, 150, true)               // ~2 GB
+            // menší obraz už nejde: při 1024 px se písmena v titulcích pletou (zkouška v emulátoru)
+            lowRamFlag || totalRamMb in 1..1600 -> Perf(1280, 250, true)    // ~1 GB: čte méně často
+            totalRamMb in 1601..2600 -> Perf(1280, 150, true)               // ~2 GB
             else -> Perf(1280, 100, false)                                  // 3 GB a víc (nebo neznámo)
         }
     }

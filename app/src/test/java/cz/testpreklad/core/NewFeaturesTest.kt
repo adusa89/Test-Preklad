@@ -176,7 +176,9 @@ class PeekBehaviourTest {
 
     @Test fun shortOrIdenticalTextIsNotOwnText() {
         val m = CaptureMonitor()
-        assertFalse(m.isOwnText("Arthur!", listOf("Arthur!")))                                   // krátké
+        assertFalse(m.isOwnText("Arthur!", listOf("Arthur!"), original = "Arthur!"))             // krátké, shodné s originálem
+        assertFalse(m.isOwnText("Top", listOf("Top videa"), original = "TOP VIDEOS"))            // krátké a neúplné
+        assertTrue(m.isOwnText("Jed dal", listOf("Jeď dál."), original = "Ride on."))            // krátký vlastní překlad
         assertFalse(m.isOwnText("Mister Strauss, Valentine.", listOf("Mister Strauss, Valentine."),
             original = "Mister Strauss, Valentine."))                                            // shodné s originálem
         assertTrue(m.isOwnText("Potrebujeme penize Arthure", listOf("Potřebujeme peníze, Arthure."),
@@ -271,9 +273,9 @@ class LatencyTest {
 
 class PerfTest {
     @Test fun weakTvGetsEcoMode() {
-        assertEquals(Perf(854, 220, true), Perf.forDevice(1024, false))
-        assertEquals(Perf(854, 220, true), Perf.forDevice(4096, true))      // systém hlásí "low RAM"
-        assertEquals(Perf(1024, 150, true), Perf.forDevice(2048, false))
+        assertEquals(Perf(1280, 250, true), Perf.forDevice(1024, false))
+        assertEquals(Perf(1280, 250, true), Perf.forDevice(4096, true))      // systém hlásí "low RAM"
+        assertEquals(Perf(1280, 150, true), Perf.forDevice(2048, false))
         assertEquals(Perf(1280, 100, false), Perf.forDevice(3072, false))
         assertEquals(Perf(1280, 100, false), Perf.forDevice(0, false))      // neznámá paměť
     }
@@ -303,5 +305,42 @@ class AllLanguagesTest {
         assertEquals("Ajustes", I18n.t(Lang.ES, "m_settings"))
         assertEquals("Réglages", I18n.t(Lang.FR, "m_settings"))
         assertEquals("Impostazioni", I18n.t(Lang.IT, "m_settings"))
+    }
+}
+
+
+/** Chyby nalezené zkouškou v emulátoru Android TV. */
+class EmulatorFindingsTest {
+    private fun l(t: String, left: Int, top: Int, right: Int, bottom: Int) = OcrLine(t, left, top, right, bottom)
+
+    @Test fun ownBarTextSeparatedFromGameText() {
+        val blocks = listOf(
+            OcrBlock(listOf(l("Top videa", 400, 300, 700, 330))),                       // náš pruh
+            OcrBlock(listOf(l("Dutch: We need money, Arthur.", 300, 500, 800, 530))),   // titulek hry
+        )
+        val (inside, outside) = TextLogic.splitByRect(blocks, 100, 280, 1000, 350)
+        assertEquals("Top videa", inside.single().lines.single().text)
+        assertEquals("Dutch: We need money, Arthur.", outside.single().lines.single().text)
+    }
+
+    @Test fun splitHandlesMixedBlockAndEmpty() {
+        val b = OcrBlock(listOf(l("a b c d", 0, 0, 100, 20), l("e f g h", 0, 200, 100, 220)))
+        val (i, o) = TextLogic.splitByRect(listOf(b), 0, 0, 200, 50)
+        assertEquals(1, i.single().lines.size); assertEquals(1, o.single().lines.size)
+        val (i2, o2) = TextLogic.splitByRect(emptyList(), 0, 0, 1, 1)
+        assertTrue(i2.isEmpty() && o2.isEmpty())
+    }
+
+    @Test fun repeatedPeekFailureForcesReset() {
+        val m = CaptureMonitor()
+        m.markCaptured()
+        m.onPeekResult(true); m.onPeekResult(true)
+        assertFalse(m.needsReset)
+        m.onPeekResult(true)
+        assertTrue("pruh nesmí zůstat viset navždy", m.needsReset)
+        m.clearFailures()
+        assertFalse(m.needsReset)
+        m.onPeekResult(true); m.onPeekResult(false)
+        assertEquals(0, m.peekFailures)
     }
 }

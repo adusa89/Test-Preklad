@@ -120,6 +120,25 @@ object TextLogic {
         return Picked(mergeSpeakerLines(parts).joinToString("\n").trim(), count, top, bottom)
     }
 
+    /**
+     * Rozdělí řádky podle toho, jestli jejich střed leží uvnitř obdélníku (v pixelech oblasti).
+     * Používá se k oddělení textu našeho vlastního pruhu od textu hry.
+     */
+    fun splitByRect(blocks: List<OcrBlock>, left: Int, top: Int, right: Int, bottom: Int): Pair<List<OcrBlock>, List<OcrBlock>> {
+        val inside = ArrayList<OcrBlock>()
+        val outside = ArrayList<OcrBlock>()
+        for (b in blocks) {
+            val (i, o) = b.lines.partition { l ->
+                val cx = (l.left + l.right) / 2
+                val cy = (l.top + l.bottom) / 2
+                cx in left..right && cy in top..bottom
+            }
+            if (i.isNotEmpty()) inside.add(OcrBlock(i))
+            if (o.isNotEmpty()) outside.add(OcrBlock(o))
+        }
+        return inside to outside
+    }
+
     /** Volné porovnání (bez diakritiky a interpunkce) – pozná vlastní překlad přečtený z obrazovky. */
     fun looselySimilar(a: String, b: String, threshold: Float = 0.6f): Boolean {
         val x = simplify(a)

@@ -111,7 +111,7 @@ class Ui(private val ctx: Context) {
                 LinearLayout.LayoutParams(dp(12), dp(12)).apply { rightMargin = dp(14) })
             addView(text(label, 17f), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
             if (ok || action == null || onAction == null) {
-                addView(text(okText, 15f, if (ok) Theme.OK else Theme.MUTED))
+                addView(text(if (ok || optional) okText else "✕", 15f, if (ok) Theme.OK else if (optional) Theme.MUTED else Theme.WARN))
             } else {
                 addView(button(action) { onAction() }.apply { textSize = 15f; setPadding(dp(18), dp(8), dp(18), dp(8)) })
             }

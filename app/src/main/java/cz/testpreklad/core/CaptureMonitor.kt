@@ -23,8 +23,11 @@ class CaptureMonitor(private val peekIntervalMs: Long = 500L) {
      * podle nich se nedá poznat, jestli snímek obsahuje náš pruh.
      */
     fun isOwnText(ocr: String, displayed: Collection<String>, original: String = ""): Boolean {
-        if (TextLogic.simplify(ocr).length < 10) return false
+        val so = TextLogic.simplify(ocr)
+        if (so.isEmpty()) return false
         if (original.isNotBlank() && TextLogic.looselySimilar(ocr, original, 0.8f)) return false
+        // krátký text: jen přesná shoda (jinak by se pletl s běžnými krátkými replikami)
+        if (so.length < 10) return original.isNotBlank() && displayed.any { TextLogic.simplify(it) == so }
         return displayed.any { it.isNotBlank() && TextLogic.looselySimilar(ocr, it) }
     }
 
@@ -46,7 +49,17 @@ class CaptureMonitor(private val peekIntervalMs: Long = 500L) {
     var peekWaitMs: Long = MIN_WAIT
         private set
 
+    /** Kolikrát po sobě nakouknutí selhalo (pruh byl ve snímku pořád vidět). */
+    var peekFailures = 0
+        private set
+
+    /** Nakukování opakovaně selhává → pruh je potřeba úplně schovat a začít znovu, ať „nezamrzne“. */
+    val needsReset: Boolean get() = peekFailures >= 3
+
+    fun clearFailures() { peekFailures = 0 }
+
     fun onPeekResult(stillSawOwnBar: Boolean) {
+        if (stillSawOwnBar) peekFailures++ else peekFailures = 0
         peekWaitMs = if (stillSawOwnBar) minOf(MAX_WAIT, peekWaitMs + 30)
         else maxOf(MIN_WAIT, peekWaitMs - 5)
     }

@@ -32,6 +32,10 @@ for i in 1 2 3 4 5 6 7; do key 20; key 23; sleep 2; shot "07_menu_$i"; done
 # 3) povolení a spuštění překladu (povolení snímání udělí test místo člověka)
 adb shell appops set $PKG SYSTEM_ALERT_WINDOW allow
 adb shell appops set $PKG PROJECT_MEDIA allow
+# Usnadnění zapnuté jako u skutečného uživatele (pruh přes Usnadnění, aplikace ví, co je na obrazovce)
+adb shell settings put secure enabled_accessibility_services $PKG/$PKG.TitulkyAccessibility
+adb shell settings put secure accessibility_enabled 1
+sleep 3
 adb shell am force-stop $PKG
 adb shell am start -n $PKG/.MainActivity --ez autostart true
 sleep 25; shot 08_po_spusteni
@@ -40,11 +44,12 @@ key 22; key 23; sleep 5; shot 08b_po_potvrzeni
 
 # 4) ukázková hra s titulky – aplikace je má přečíst, přeložit a zakrýt pruhem
 adb shell am start -n $PKG/.TestCardActivity
-for i in 1 2 3 4 5 6 7 8 9 10 11 12; do sleep 4; shot "09_hra_$i"; done
+for i in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16; do sleep 3; shot "09_hra_$i"; done
 
 adb logcat -d -v time > $OUT/logcat_full.txt
 grep -E "TP_TEST|TestPreklad|AndroidRuntime|FATAL" $OUT/logcat_full.txt > $OUT/log.txt
 SHOWS=$(grep -c "TP_TEST.*SHOW|" $OUT/log.txt)
+adb shell dumpsys meminfo $PKG | grep -E "TOTAL|Native Heap|Dalvik Heap" | head -4 > $OUT/memory.txt
 CRASH=$(grep -c "FATAL EXCEPTION" $OUT/log.txt)
 echo "prelozenych_titulku=$SHOWS pady=$CRASH" > $OUT/result.txt
 grep "TP_TEST" $OUT/log.txt >> $OUT/result.txt
