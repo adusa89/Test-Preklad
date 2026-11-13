@@ -66,6 +66,7 @@ internal val I18N_HU: Map<String, String> = mapOf(
     "hdmi_ok" to "✅ Működik! A tévéd engedi a HDMI-kép olvasását. Játssz a szokásos módon HDMI-n, teljes minőségben – a feliratok le lesznek fordítva.",
     "hdmi_blocked" to "❌ A tévé letiltja a HDMI-képet (az alkalmazás csak feketét lát). Megoldás minőségvesztés nélkül: olcsó HDMI-elosztó + USB-s rögzítő (lásd az útmutatót). Egyébként PS Remote Play.",
     "tip_hdmi" to "Hagyd a PS5-öt a szokásos módon HDMI-kábellel csatlakoztatva. A rögzítés engedélyezésekor válaszd a Teljes képernyő lehetőséget.",
+    "b_testcard" to "Próba mintaképen (játék nélkül)",
     "b_start" to "Fordítás indítása",
     "b_open_rp" to "PS Remote Play megnyitása",
     "b_pause" to "Szünet",

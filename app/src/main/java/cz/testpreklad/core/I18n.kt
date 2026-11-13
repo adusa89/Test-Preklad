@@ -71,6 +71,7 @@ object I18n {
         "hdmi_ok" to ("✅ Funguje! Tvoje televize dovolí číst obraz z HDMI. Hraj normálně přes HDMI v plné kvalitě – titulky se budou překládat." to "✅ Funguje! Tvoj televízor dovolí čítať obraz z HDMI. Hraj normálne cez HDMI v plnej kvalite – titulky sa budú prekladať."),
         "hdmi_blocked" to ("❌ Televize obraz z HDMI blokuje (aplikace vidí jen černo). Řešení bez ztráty kvality: levný HDMI splitter + USB klíčenka (viz manuál). Jinak PS Remote Play." to "❌ Televízor obraz z HDMI blokuje (aplikácia vidí len čierno). Riešenie bez straty kvality: lacný HDMI splitter + USB kľúčenka (pozri manuál). Inak PS Remote Play."),
         "tip_hdmi" to ("PS5 nech připojené kabelem HDMI jako obvykle. Při povolení snímání vyber Celá obrazovka." to "PS5 nechaj pripojené káblom HDMI ako obvykle. Pri povolení snímania vyber Celá obrazovka."),
+        "b_testcard" to ("Zkouška na ukázce (bez hry)" to "Skúška na ukážke (bez hry)"),
         "b_start" to ("Spustit překlad" to "Spustiť preklad"),
         "b_open_rp" to ("Otevřít PS Remote Play" to "Otvoriť PS Remote Play"),
         "b_pause" to ("Pozastavit" to "Pozastaviť"),

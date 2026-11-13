@@ -87,7 +87,11 @@ class MainActivity : Activity() {
         ui = Ui(this)
         buildShell()
         if (!Prefs.wizardDone(this)) wizard = 0
+        // pro automatický test: přeskočit průvodce a rovnou spustit překlad
+        val auto = intent?.getBooleanExtra("autostart", false) == true
+        if (auto) { Prefs.setWizardDone(this, true); wizard = -1 }
         render()
+        if (auto) main.postDelayed({ startFlow() }, 1500)
         OfflineTranslator.ensureModel(Prefs.lang(this)) { runOnUiThread { if (section == Section.HOME || wizard >= 0) render(true) } }
         // Android 13+: povolení notifikací (tlačítka Pozastavit / Zastavit v notifikaci)
         if (Build.VERSION.SDK_INT >= 33) {
@@ -346,6 +350,9 @@ class MainActivity : Activity() {
             buttons.addView(tagged(ui.button(t("b_stop")) { stopTranslation() }, "stop"), wrapLp())
         }
         add(buttons, 18)
+        if (running) add(tagged(ui.button(t("b_testcard")) {
+            startActivity(Intent(this, TestCardActivity::class.java))
+        }, "tcard"), 10)
         if (lic.kind == cz.testpreklad.core.License.Kind.TRIAL) {
             add(ui.text(t("lic_trial").replace("%d", lic.daysLeft.toString()), 14f, Theme.ACCENT), 10)
         }

@@ -232,6 +232,7 @@ class TranslatorService : Service() {
         if (running) return
         if (!Prefs.license(this).canRun) { startError = "licence"; stopSelf(); return }
         lastLicenseCheck = SystemClock.uptimeMillis()
+        Log.i("TP_TEST", "START|cap=${capW}x${capH}|screen=${screenW}x${screenH}|eco=${perf.eco}|usb=${usb != null}")
         lang = Prefs.lang(this)
         statsFor(this)
         loadCache()
@@ -397,9 +398,9 @@ class TranslatorService : Service() {
     private fun appAllowed(): Boolean {
         val pkg = TitulkyAccessibility.foregroundPackage
         // ve vlastní aplikaci nikdy nečti (jinak by se překládalo její menu)
-        val allowed = !UiState.visible && pkg != packageName &&
+        val allowed = UiState.testCard || (!UiState.visible && pkg != packageName &&
             // HDMI: hra běží ve vstupu televize (aplikace výrobce TV) → čte se všude mimo tuto aplikaci
-            (source.direct || !onlyRemotePlay || pkg == null || TitulkyAccessibility.isRemotePlay(pkg))
+            (source.direct || !onlyRemotePlay || pkg == null || TitulkyAccessibility.isRemotePlay(pkg)))
         if (!allowed && !hiddenForOtherApp) {
             hideAt = 0; overlay?.hide(); tracker.reset(); lastSig = null
         }
@@ -479,6 +480,7 @@ class TranslatorService : Service() {
                 val top = if (picked.top >= 0) (y0 + picked.top).toFloat() / capH else -1f
                 val bottom = if (picked.bottom >= 0) (y0 + picked.bottom).toFloat() / capH else -1f
                 hideAt = 0
+                Log.i("TP_TEST", "SHOW|" + action.text.replace('\n', ' ') + "|" + segs.joinToString(" ") { (it.speaker?.plus(": ") ?: "") + it.body })
                 ov.show(segs, if (showOriginal) action.text else null, top, bottom)
                 statsFor(this).line()
                 // automatika: zapamatuj si, kde na obrazovce titulky jsou
@@ -498,6 +500,7 @@ class TranslatorService : Service() {
 
     /** Automatika změnila oblast čtení (našla titulky, nebo se vrátila k hledání). */
     private fun zoneChanged() {
+        Log.i("TP_TEST", "ZONE|" + (autoZone.learned?.let { "learned ${it.top}-${it.bottom}" } ?: "scan"))
         layout = layout.copy(read = autoZone.current)
         overlay?.setLayout(layout)
         lastSig = null

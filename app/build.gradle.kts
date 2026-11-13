@@ -13,13 +13,13 @@ android {
         targetSdk = 34
         versionCode = 9
         versionName = "0.9"
-        // televize a boxy mají procesory ARM – bez x86 je APK poloviční
-        ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            // televize a boxy mají procesory ARM – bez x86 je APK poloviční
+            ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
             // pro jednoduchost podepsáno debug klíčem, aby šlo APK rovnou nainstalovat
             signingConfig = signingConfigs.getByName("debug")
         }

@@ -66,6 +66,7 @@ internal val I18N_PL: Map<String, String> = mapOf(
     "hdmi_ok" to "✅ Działa! Twój telewizor pozwala odczytywać obraz z HDMI. Graj normalnie przez HDMI w pełnej jakości – napisy będą tłumaczone.",
     "hdmi_blocked" to "❌ Telewizor blokuje obraz z HDMI (aplikacja widzi tylko czerń). Rozwiązanie bez utraty jakości: tani rozdzielacz HDMI + grabber USB (zobacz instrukcję). W przeciwnym razie PS Remote Play.",
     "tip_hdmi" to "Zostaw PS5 podłączone kablem HDMI jak zwykle. Przy zgodzie na przechwytywanie wybierz Cały ekran.",
+    "b_testcard" to "Test na przykładzie (bez gry)",
     "b_start" to "Uruchom tłumaczenie",
     "b_open_rp" to "Otwórz PS Remote Play",
     "b_pause" to "Wstrzymaj",

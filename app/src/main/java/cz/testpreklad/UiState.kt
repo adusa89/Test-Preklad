@@ -5,6 +5,9 @@ package cz.testpreklad
  * Služba pak obrazovku nečte – nepřekládala by vlastní menu a nepřepsala si snímek ze hry.
  */
 object UiState {
+    /** Je vidět ukázková „herní“ obrazovka? Tu aplikace čte jako hru. */
+    @Volatile var testCard = false
+
     @Volatile private var screens = 0
     val visible: Boolean get() = screens > 0
 

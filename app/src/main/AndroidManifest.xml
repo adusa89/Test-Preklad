@@ -59,6 +59,11 @@
             android:exported="false"
             android:theme="@style/FullScreen" />
 
+        <activity
+            android:name=".TestCardActivity"
+            android:exported="true"
+            android:theme="@style/FullScreen" />
+
         <service
             android:name=".TranslatorService"
             android:exported="false"
