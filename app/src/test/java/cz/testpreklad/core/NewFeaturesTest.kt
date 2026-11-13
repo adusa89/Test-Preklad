@@ -378,3 +378,29 @@ class SlowDeviceTest {
         assertFalse(TextLogic.looksComplete("No."))
     }
 }
+
+
+class FeedbackLoopTest {
+    @Test fun ownTranslationIsNeverEnglish() {
+        assertTrue(TextLogic.looksForeign("Dutch: Potřebujeme peníze, Arthur."))
+        assertTrue(TextLogic.looksForeign("Arthur: Myslím, že nebudeme nic najít v Valentine."))
+        assertTrue(TextLogic.looksForeign("Нам потрібні гроші"))
+        assertTrue(TextLogic.looksForeign("Wir brauchen Geld, und zwar schön schnell für später."))
+    }
+
+    @Test fun englishSubtitlesAreNotForeign() {
+        listOf(
+            "Dutch: We need money, Arthur.",
+            "Arthur: I reckon we ain't gonna find nothin' in Valentine.",
+            "Meet me at the café.",          // jedno písmeno s čárkou nevadí
+            "Press X to mount", "",
+        ).forEach { assertFalse(it, TextLogic.looksForeign(it)) }
+    }
+
+    @Test fun staleOwnTextRecognisedFromRecentHistory() {
+        val m = CaptureMonitor()
+        val recent = listOf("Dutch: Potrebujeme penize, Arthur.", "Arthur: Myslim, ze nebudeme nic najit v Valentine.")
+        // obrazovka už ukazuje nový překlad, ale snímek ještě obsahuje ten předchozí
+        assertTrue(m.isOwnText("Dutch: Potrebujeme penize, Arthur.", recent, original = "Arthur: I reckon we ain't gonna find nothin' in Valentine."))
+    }
+}

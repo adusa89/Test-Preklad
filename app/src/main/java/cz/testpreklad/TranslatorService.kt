@@ -155,6 +155,9 @@ class TranslatorService : Service() {
     private var lastMs = 0L
     private var lastOcrMs = 0L
     private var ticksLogged = 0
+
+    /** Naposledy zobrazené překlady (čas, text) – aby je aplikace nikdy nepřeložila znovu. */
+    private val recentShown = ArrayDeque<Pair<Long, String>>()
     @Volatile private var lastError: String? = null
 
     /** Jeden znovupoužívaný snímek obrazovky – žádné velké alokace 10× za sekundu. */
@@ -522,6 +525,21 @@ class TranslatorService : Service() {
         )
         if (picked.text.isNotEmpty()) lastOcrText = picked.text
 
+        // Pojistka proti smyčce: text, který není anglicky, nebo který jsme nedávno sami zobrazili,
+        // je náš vlastní pruh (snímek může být o chvilku starší než to, co je právě na obrazovce).
+        if (picked.text.isNotEmpty() &&
+            (TextLogic.looksForeign(picked.text) || monitor.isOwnText(picked.text, recentShown.map { it.second }, tracker.shown))
+        ) {
+            if (peek) {
+                monitor.onPeekResult(stillSawOwnBar = true)
+                if (monitor.needsReset) {
+                    monitor.clearFailures(); hideAt = 0; ov.hide(); tracker.reset(); lastSig = null
+                    Log.i("TP_TEST", "RESET|own text")
+                }
+            } else if (ov.isShown && layout.cover) monitor.markCaptured()
+            if (ticksLogged++ < 400) Log.i("TP_TEST", "OWN|" + picked.text.replace('\n', ' ').take(40))
+            return
+        }
         if (peek) monitor.onPeekResult(stillSawOwnBar = false)
         // záznam pro automatickou zkoušku (jen prvních pár set čtení)
         if (ticksLogged++ < 400) Log.i("TP_TEST", "READ|${if (peek) "peek" else "norm"}|ocr=${lastOcrMs}ms|zone=${(z.height * 100).toInt()}%|" + picked.text.replace('\n', ' ').take(40))
@@ -536,6 +554,10 @@ class TranslatorService : Service() {
                 val top = if (picked.top >= 0) (y0 + picked.top).toFloat() / capH else -1f
                 val bottom = if (picked.bottom >= 0) (y0 + picked.bottom).toFloat() / capH else -1f
                 hideAt = 0
+                val plain = segs.joinToString(" ") { (it.speaker?.plus(": ") ?: "") + it.body }
+                val nowMs = SystemClock.uptimeMillis()
+                recentShown.addLast(nowMs to plain)
+                while (recentShown.size > 4 || (recentShown.isNotEmpty() && nowMs - recentShown.first().first > 15_000)) recentShown.removeFirst()
                 Log.i("TP_TEST", "SHOW|" + action.text.replace('\n', ' ') + "|" + segs.joinToString(" ") { (it.speaker?.plus(": ") ?: "") + it.body })
                 ov.show(segs, if (showOriginal) action.text else null, top, bottom)
                 statsFor(this).line()

@@ -120,6 +120,16 @@ object TextLogic {
         return Picked(mergeSpeakerLines(parts).joinToString("\n").trim(), count, top, bottom)
     }
 
+    /**
+     * Není to angličtina? (Obsahuje písmena s diakritikou nebo jiné písmo, např. „Potřebujeme peníze“.)
+     * Takový text je skoro jistě náš vlastní překlad přečtený z obrazovky – nikdy se nepřekládá znovu.
+     */
+    fun looksForeign(text: String): Boolean {
+        var n = 0
+        for (c in text) if (c.isLetter() && c.code > 0x7F) { n++; if (n >= 2) return true }
+        return false
+    }
+
     /** Vypadá text jako celá věta (ne rozpracovaný nebo useknutý titulek)? */
     fun looksComplete(text: String): Boolean {
         val t = text.trim()
