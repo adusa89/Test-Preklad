@@ -23,7 +23,6 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.Toast
-import cz.testpreklad.core.Lang
 import cz.testpreklad.core.ScreenLayout
 import cz.testpreklad.core.Segment
 import cz.testpreklad.core.Source
@@ -68,6 +67,8 @@ class MainActivity : Activity() {
     private var busyText: String? = null
     private var lastRunning = false
     private var lastPaused = false
+    /** Krok průvodce prvním spuštěním; -1 = průvodce neběží. */
+    private var wizard = -1
     private var draftCode = ""
     private var codeError = false
     private var hdmiTestPending = false
@@ -85,8 +86,9 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         ui = Ui(this)
         buildShell()
+        if (!Prefs.wizardDone(this)) wizard = 0
         render()
-        OfflineTranslator.ensureModel(Prefs.lang(this)) { runOnUiThread { if (section == Section.HOME) render(true) } }
+        OfflineTranslator.ensureModel(Prefs.lang(this)) { runOnUiThread { if (section == Section.HOME || wizard >= 0) render(true) } }
         // Android 13+: povolení notifikací (tlačítka Pozastavit / Zastavit v notifikaci)
         if (Build.VERSION.SDK_INT >= 33) {
             try { requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), REQ_NOTIF) } catch (_: Exception) {}
@@ -176,6 +178,7 @@ class MainActivity : Activity() {
         val focusedTag = if (keepFocus) currentFocus?.tag else null
         lastRunning = TranslatorService.running
         lastPaused = TranslatorService.paused
+        if (wizard >= 0) { renderWizard(focusedTag); return }
         renderMenu()
         content.removeAllViews()
         content.addView(ui.text(t(section.key), 30f, Theme.TEXT, bold = true))
@@ -192,6 +195,99 @@ class MainActivity : Activity() {
         val target = focusedTag?.let { window.decorView.findViewWithTag<View>(it) }
             ?: menu.findViewWithTag<View>("menu_${section.name}")
         target?.requestFocus()
+    }
+
+    // ======================= PRŮVODCE PRVNÍM SPUŠTĚNÍM =======================
+
+    private val wizardSteps = listOf("wz_s0", "wz_s1", "wz_s2", "wz_s3", "wz_s4")
+
+    private fun renderWizard(focusedTag: Any?) {
+        menu.removeAllViews()
+        wizardSteps.forEachIndexed { i, key ->
+            val active = i == wizard
+            menu.addView(ui.hbox().apply {
+                setPadding(ui.dp(14), ui.dp(12), ui.dp(14), ui.dp(12))
+                addView(ui.text("${i + 1}", 15f, if (i <= wizard) Theme.ACCENT else Theme.MUTED, bold = true),
+                    LinearLayout.LayoutParams(ui.dp(24), LinearLayout.LayoutParams.WRAP_CONTENT))
+                addView(ui.text(t(key), 16f, if (active) Theme.ACCENT else if (i < wizard) Theme.TEXT else Theme.MUTED, bold = active))
+            }, ui.lp(top = 4))
+        }
+        content.removeAllViews()
+        content.addView(ui.text(t("wz_title"), 15f, Theme.ACCENT, bold = true))
+        content.addView(ui.text(t(wizardSteps[wizard]), 30f, Theme.TEXT, bold = true), ui.lp(top = 4))
+
+        val lang = Prefs.lang(this)
+        var nextLabel = t("wz_next")
+        when (wizard) {
+            0 -> {
+                add(ui.text(t("wz_welcome"), 17f, Theme.MUTED), 12)
+                add(tagged(ui.settingRow(t("l_lang"), lang.label) {
+                    val next = lang.next(); Prefs.setLang(this, next)
+                    OfflineTranslator.ensureModel(next) { runOnUiThread { if (wizard >= 0) render(true) } }
+                    render(true)
+                }, "wlang"), 20)
+            }
+            1 -> {
+                val ok = SubtitleOverlay.canShow(this)
+                add(ui.text(t("wz_perm"), 17f, Theme.MUTED), 12)
+                add(ui.card().apply { addView(ui.checkRow(ok, false, t("chk_overlay"), t("ok"), null, null)) }, 16)
+                if (!ok) {
+                    add(tagged(ui.button(t("wz_perm_open"), primary = true) { openAccessibility() }, "wperm"), 16)
+                    nextLabel = t("wz_skip_step")
+                }
+            }
+            2 -> {
+                val ok = OfflineTranslator.isReady(lang)
+                add(ui.text(t("wz_model"), 17f, Theme.MUTED), 12)
+                add(ui.card().apply {
+                    addView(ui.checkRow(ok, false, t("chk_model") + " (${lang.label})", t("ok"), null, null))
+                    if (!ok) addView(ui.text(busyText ?: t("prep_model"), 15f, Theme.WARN), ui.lp(top = 6))
+                }, 16)
+                if (!ok) {
+                    add(tagged(ui.button(t("download")) { downloadModel() }, "wdl"), 16)
+                    nextLabel = t("wz_skip_step")
+                }
+            }
+            3 -> {
+                val src = Prefs.source(this)
+                add(ui.text(t("wz_source"), 17f, Theme.MUTED), 12)
+                add(tagged(ui.settingRow(t("s_source_row"), t(when (src) { Source.HDMI -> "src_hdmi"; Source.USB -> "src_usb"; else -> "src_rp" })) {
+                    Prefs.setSource(this, src.next()); render(true)
+                }, "wsrc"), 20)
+                add(ui.text(t(when (src) { Source.HDMI -> "src_hdmi_desc"; Source.USB -> "src_usb_desc"; else -> "src_rp_desc" }), 15f, Theme.MUTED), 8)
+                if (!Prefs.isTv(this) && src.direct) add(ui.text(t("box_warn"), 14f, Theme.WARN), 8)
+            }
+            else -> {
+                val src = Prefs.source(this)
+                add(ui.text(t(if (src == Source.HDMI) "wz_done_hdmi" else "wz_done"), 17f, Theme.MUTED), 12)
+                add(ui.text(t("wz_done_auto"), 15f, Theme.MUTED), 12)
+                nextLabel = t(if (src == Source.HDMI) "hdmi_try" else "b_start")
+            }
+        }
+
+        val row = ui.hbox()
+        row.addView(tagged(ui.button(nextLabel, primary = true) {
+            if (wizard < wizardSteps.size - 1) { wizard++; render() }
+            else {
+                val hdmi = Prefs.source(this) == Source.HDMI
+                finishWizard()
+                if (hdmi) startHdmiTest() else startFlow()
+            }
+        }, "wnext"))
+        if (wizard > 0) row.addView(tagged(ui.button(t("wz_back")) { wizard--; render() }, "wback"), wrapLp())
+        row.addView(tagged(ui.button(t(if (wizard == wizardSteps.size - 1) "wz_finish" else "wz_skip")) { finishWizard() }, "wskip"), wrapLp())
+        add(row, 28)
+
+        val target = focusedTag?.let { window.decorView.findViewWithTag<View>(it) }
+            ?: window.decorView.findViewWithTag<View>("wnext")
+        target?.requestFocus()
+    }
+
+    private fun finishWizard() {
+        Prefs.setWizardDone(this, true)
+        wizard = -1
+        section = Section.HOME
+        render()
     }
 
     private fun add(v: View, top: Int = 12) = content.addView(v, ui.lp(top = top))
@@ -303,6 +399,10 @@ class MainActivity : Activity() {
         add(tagged(ui.settingRow(t("z_cover"), if (l.cover) t("z_cover_on") else t("z_cover_off")) {
             Prefs.setLayout(this, l.copy(cover = !l.cover)); applyToService(); render(true)
         }, "cover"), 0)
+        add(tagged(ui.settingRow(t("z_auto"), onOff(Prefs.autoZone(this))) {
+            Prefs.setAutoZone(this, !Prefs.autoZone(this)); applyToService(); render(true)
+        }, "zauto"), 8)
+        add(ui.text(t("z_auto_desc"), 14f, Theme.MUTED), 6)
         add(tagged(ui.settingRow(t("z_only_subs"), onOff(Prefs.onlySubtitles(this))) {
             Prefs.setOnlySubtitles(this, !Prefs.onlySubtitles(this)); applyToService(); render(true)
         }, "onlysubs"), 8)
@@ -317,7 +417,7 @@ class MainActivity : Activity() {
     private fun look() {
         val sizeIdx = Prefs.TEXT_SIZES.indexOf(Prefs.textSize(this)).let { if (it < 0) 2 else it }
         add(tagged(ui.settingRow(t("l_lang"), Prefs.lang(this).label) {
-            val next = if (Prefs.lang(this) == Lang.CS) Lang.SK else Lang.CS
+            val next = Prefs.lang(this).next()
             Prefs.setLang(this, next)
             OfflineTranslator.ensureModel(next) { }
             applyToService(); render(true)
@@ -523,6 +623,7 @@ class MainActivity : Activity() {
             addView(ui.text(t("adb_text"), 15f, Theme.MUTED))
             addView(ui.text("adb shell appops set $packageName SYSTEM_ALERT_WINDOW allow", 14f, Theme.ACCENT), ui.lp(top = 8))
         }, 0)
+        add(tagged(ui.button(t("wz_again")) { wizard = 0; render() }, "wagain"), 16)
         add(ui.text("Test Překlad · ${BuildInfo.VERSION}", 13f, Theme.MUTED), 24)
     }
 
@@ -766,5 +867,5 @@ class MainActivity : Activity() {
 }
 
 object BuildInfo {
-    const val VERSION = "verze 0.7"
+    const val VERSION = "verze 0.8"
 }

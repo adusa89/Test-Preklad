@@ -58,6 +58,7 @@ class CalibrationActivity : Activity() {
 
     private fun saveAndExit() {
         Prefs.setLayout(this, editor.layout)
+        Prefs.setAutoZone(this, false)   // ruční nastavení oblasti vypíná automatiku
         if (TranslatorService.running) {
             startService(Intent(this, TranslatorService::class.java).setAction(TranslatorService.ACTION_RELOAD))
         }

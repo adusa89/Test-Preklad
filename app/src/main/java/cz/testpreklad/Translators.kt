@@ -12,7 +12,7 @@ import kotlinx.coroutines.tasks.await
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Offline překlad Google ML Kit (angličtina → čeština / slovenština).
+ * Offline překlad Google ML Kit (angličtina → čeština, slovenština, polština, němčina…).
  * Zdarma a bez internetu. Jazykový model (cca 30 MB) se stáhne jen jednou při prvním použití.
  */
 object OfflineTranslator {
@@ -23,7 +23,7 @@ object OfflineTranslator {
         Translation.getClient(
             TranslatorOptions.Builder()
                 .setSourceLanguage(TranslateLanguage.ENGLISH)
-                .setTargetLanguage(if (lang == Lang.SK) TranslateLanguage.SLOVAK else TranslateLanguage.CZECH)
+                .setTargetLanguage(lang.code)
                 .build()
         )
     }

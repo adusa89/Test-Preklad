@@ -182,7 +182,12 @@ class SubtitleOverlay(
             )
             val h = tv.measuredHeight
             val hf = h.toFloat() / screenH
-            val top = if (l.cover) l.coverTop(tTop, tBottom, hf) else l.barTop(hf)
+            val top = when {
+                l.cover -> l.coverTop(tTop, tBottom, hf)
+                // automatika ještě hledá (čte se celá obrazovka) → pruh těsně nad nalezený text
+                l.isAuto && hasText && l.read.height > 0.6f -> (tTop - 0.006f - hf).coerceAtLeast(0f)
+                else -> l.barTop(hf)
+            }
             lp.width = width
             lp.y = (top * screenH).toInt().coerceIn(0, max(0, screenH - h))
             tv.visibility = View.VISIBLE

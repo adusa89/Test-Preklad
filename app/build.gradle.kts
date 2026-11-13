@@ -11,8 +11,8 @@ android {
         applicationId = "cz.testpreklad"
         minSdk = 26          // Android 8 a novější (prakticky všechny Android TV a boxy)
         targetSdk = 34
-        versionCode = 7
-        versionName = "0.7"
+        versionCode = 8
+        versionName = "0.8"
         // televize a boxy mají procesory ARM – bez x86 je APK poloviční
         ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
     }

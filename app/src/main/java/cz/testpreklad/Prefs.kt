@@ -86,6 +86,14 @@ object Prefs {
     fun stats(c: Context): UsageStats = UsageStats.parse(p(c).getString("stats", null))
     fun setStats(c: Context, v: UsageStats) = p(c).edit().putString("stats", v.serialize()).apply()
 
+    /** Hledat titulky na obrazovce automaticky (bez ručního nastavování oblasti). */
+    fun autoZone(c: Context) = bool(c, "auto_zone", true)
+    fun setAutoZone(c: Context, v: Boolean) = setBool(c, "auto_zone", v)
+
+    /** Průvodce prvním spuštěním už proběhl. */
+    fun wizardDone(c: Context) = bool(c, "wizard_done", false)
+    fun setWizardDone(c: Context, v: Boolean) = setBool(c, "wizard_done", v)
+
     // ---- licence ----
     fun unlocked(c: Context) = bool(c, "unlocked", false)
     fun setUnlocked(c: Context, v: Boolean) = setBool(c, "unlocked", v)

@@ -27,6 +27,7 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import cz.testpreklad.core.AutoZone
 import cz.testpreklad.core.CaptureMonitor
 import cz.testpreklad.core.FrameSignature
 import cz.testpreklad.core.HdmiProbe
@@ -123,6 +124,8 @@ class TranslatorService : Service() {
     private var capH = 0
     @Volatile private var debug = false
     @Volatile private var onlySubtitles = true
+    @Volatile private var autoFind = true
+    private val autoZone = AutoZone()
     @Volatile private var onlyRemotePlay = true
     @Volatile private var source = Source.HDMI
     private var usb: UsbCapture? = null
@@ -238,6 +241,10 @@ class TranslatorService : Service() {
         layout = Prefs.layout(this)
         debug = Prefs.debug(this)
         onlySubtitles = Prefs.onlySubtitles(this)
+        val wasAuto = autoFind
+        autoFind = Prefs.autoZone(this)
+        if (autoFind != wasAuto) autoZone.reset()
+        if (autoFind) layout = layout.copy(read = autoZone.current)
         onlyRemotePlay = Prefs.onlyRemotePlay(this)
         source = Prefs.source(this)
         holdMs = Prefs.holdMs(this).toLong()
@@ -358,6 +365,7 @@ class TranslatorService : Service() {
                 Log.w(TAG, "smyčka", e)
             }
             if (hideAt in 1..SystemClock.uptimeMillis()) { hideAt = 0; overlay?.hide() }
+            if (autoFind && !paused && autoZone.onTick(t0)) zoneChanged()
             if (clearCacheRequested) {
                 clearCacheRequested = false
                 cache.clear(); cacheFile().delete()
@@ -438,7 +446,7 @@ class TranslatorService : Service() {
         val picked = TextLogic.assemble(
             toBlocks(result),
             minLineHeight = (capH * 0.016f).toInt(),
-            subtitlesOnly = onlySubtitles,
+            subtitlesOnly = onlySubtitles || autoFind,   // automatika čte velkou plochu → vždy jen titulky
             screenCenterX = capW / 2 - x0,
             centerTolerance = (capW * 0.12f).toInt(),
         )
@@ -463,6 +471,8 @@ class TranslatorService : Service() {
                 hideAt = 0
                 ov.show(segs, if (showOriginal) action.text else null, top, bottom)
                 statsFor(this).line()
+                // automatika: zapamatuj si, kde na obrazovce titulky jsou
+                if (autoFind && autoZone.onSubtitle(top, bottom, SystemClock.uptimeMillis())) zoneChanged()
                 SubtitleHistory.add(action.text, segs.joinToString("\n") { s ->
                     if (s.speaker != null) "${s.speaker}: ${s.body}" else s.body
                 })
@@ -474,6 +484,13 @@ class TranslatorService : Service() {
                 prefetch(tracker.pendingText)
             }
         }
+    }
+
+    /** Automatika změnila oblast čtení (našla titulky, nebo se vrátila k hledání). */
+    private fun zoneChanged() {
+        layout = layout.copy(read = autoZone.current)
+        overlay?.setLayout(layout)
+        lastSig = null
     }
 
     private fun toBlocks(t: Text): List<OcrBlock> = t.textBlocks.map { block ->
@@ -587,7 +604,8 @@ class TranslatorService : Service() {
             monitor.overlayCaptured -> "celá obrazovka (nakukuje)"
             else -> "OK"
         }
-        val app = (TitulkyAccessibility.foregroundPackage ?: "?") + " · HDMI test: " + hdmiProbe.verdict
+        val zoneInfo = if (!autoFind) "ručně" else if (autoZone.learned != null) "auto – titulky nalezeny" else "auto – hledám"
+        val app = "oblast: $zoneInfo · " + (TitulkyAccessibility.foregroundPackage ?: "?") + " · HDMI test: " + hdmiProbe.verdict
         val err = lastError?.let { "\nchyba překladu: ${it.take(60)}" } ?: ""
         ov.debug(
             "snímky ${frames / secs}/s · OCR ${ocrRuns / secs}/s · ${lastMs} ms\n" +
