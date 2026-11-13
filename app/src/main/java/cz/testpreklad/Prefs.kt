@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import cz.testpreklad.core.I18n
 import cz.testpreklad.core.Lang
+import cz.testpreklad.core.License
 import cz.testpreklad.core.ScreenLayout
 import cz.testpreklad.core.Source
 import cz.testpreklad.core.UsageStats
@@ -75,6 +76,19 @@ object Prefs {
 
     fun stats(c: Context): UsageStats = UsageStats.parse(p(c).getString("stats", null))
     fun setStats(c: Context, v: UsageStats) = p(c).edit().putString("stats", v.serialize()).apply()
+
+    // ---- licence ----
+    fun unlocked(c: Context) = bool(c, "unlocked", false)
+    fun setUnlocked(c: Context, v: Boolean) = setBool(c, "unlocked", v)
+
+    /** Stav licence; při prvním spuštění si zapamatuje začátek zkušební doby. */
+    fun license(c: Context): License.State {
+        val now = System.currentTimeMillis()
+        val saved = p(c).getLong("first_run", 0L)
+        val first = License.firstRun(saved, now)
+        if (first != saved && first != 0L) p(c).edit().putLong("first_run", first).apply()
+        return License.state(unlocked(c), first, now)
+    }
 
     /** Další hodnota v cyklu (neznámá hodnota → první). */
     fun nextOf(values: IntArray, current: Int): Int {

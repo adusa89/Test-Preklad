@@ -12,10 +12,13 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.text.InputType
 import android.util.DisplayMetrics
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import android.view.inputmethod.EditorInfo
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -51,7 +54,7 @@ class MainActivity : Activity() {
 
     private enum class Section(val key: String) {
         HOME("m_home"), ZONES("m_zones"), LOOK("m_look"), TRANSLATE("m_translate"),
-        SETTINGS("m_settings"), HISTORY("m_history"), HELP("m_help")
+        SETTINGS("m_settings"), HISTORY("m_history"), LICENSE("m_license"), HELP("m_help")
     }
 
     private val main = Handler(Looper.getMainLooper())
@@ -65,6 +68,8 @@ class MainActivity : Activity() {
     private var busyText: String? = null
     private var lastRunning = false
     private var lastPaused = false
+    private var draftCode = ""
+    private var codeError = false
     private var hdmiTestPending = false
     private var hdmiWaitMsg = false
 
@@ -181,6 +186,7 @@ class MainActivity : Activity() {
             Section.TRANSLATE -> translate()
             Section.SETTINGS -> settings()
             Section.HISTORY -> history()
+            Section.LICENSE -> license()
             Section.HELP -> help()
         }
         val target = focusedTag?.let { window.decorView.findViewWithTag<View>(it) }
@@ -210,11 +216,13 @@ class MainActivity : Activity() {
         val rpOk = findRemotePlay() != null
         val hdmiRes = Prefs.hdmiResult(this)
         val ready = overlayOk && modelOk
+        val lic = Prefs.license(this)
 
         val title: String
         val sub: String
         val color: Int
         when {
+            !lic.canRun -> { title = t("lic_expired"); sub = t("lic_expired_sub"); color = Theme.BAD }
             running && paused -> { title = t("st_paused"); sub = t("st_paused_sub"); color = Theme.WARN }
             running -> { title = t("st_running"); sub = t(if (hdmi) "st_running_hdmi" else "st_running_sub"); color = Theme.OK }
             ready -> { title = t("st_ready"); sub = t(if (hdmi) "st_ready_hdmi" else "st_ready_sub"); color = Theme.ACCENT }
@@ -230,7 +238,9 @@ class MainActivity : Activity() {
         add(status, 18)
 
         val buttons = ui.hbox()
-        if (!running) {
+        if (!lic.canRun) {
+            buttons.addView(tagged(ui.button(t("lic_open"), primary = true) { section = Section.LICENSE; render() }, "start"))
+        } else if (!running) {
             buttons.addView(tagged(ui.button(t("b_start"), primary = true) { startFlow() }, "start"))
         } else {
             buttons.addView(tagged(ui.button(t(if (hdmi) "b_go_game" else "b_open_rp"), primary = true) {
@@ -240,6 +250,9 @@ class MainActivity : Activity() {
             buttons.addView(tagged(ui.button(t("b_stop")) { stopTranslation() }, "stop"), wrapLp())
         }
         add(buttons, 18)
+        if (lic.kind == cz.testpreklad.core.License.Kind.TRIAL) {
+            add(ui.text(t("lic_trial").replace("%d", lic.daysLeft.toString()), 14f, Theme.ACCENT), 10)
+        }
 
         content.addView(ui.section(t("check_title")))
         val check = ui.card()
@@ -424,6 +437,52 @@ class MainActivity : Activity() {
         }
     }
 
+    // ======================= LICENCE =======================
+
+    private fun license() {
+        val lic = Prefs.license(this)
+        val card = ui.card()
+        val (title, sub, color) = when (lic.kind) {
+            cz.testpreklad.core.License.Kind.UNLOCKED -> Triple(t("lic_unlocked"), t("lic_unlocked_sub"), Theme.OK)
+            cz.testpreklad.core.License.Kind.TRIAL ->
+                Triple(t("lic_trial").replace("%d", lic.daysLeft.toString()), t("lic_trial_sub"), Theme.ACCENT)
+            cz.testpreklad.core.License.Kind.EXPIRED -> Triple(t("lic_expired"), t("lic_expired_sub"), Theme.BAD)
+        }
+        card.addView(ui.text(title, 22f, color, bold = true))
+        card.addView(ui.text(sub, 16f, Theme.MUTED), ui.lp(top = 6))
+        add(card, 16)
+        if (lic.kind == cz.testpreklad.core.License.Kind.UNLOCKED) return
+
+        content.addView(ui.section(t("lic_pay")))
+        add(ui.card().apply { addView(ui.text(t("lic_pay_soon"), 16f, Theme.MUTED)) }, 0)
+
+        content.addView(ui.section(t("lic_code")))
+        val code = EditText(this).apply {
+            setText(draftCode)
+            hint = t("lic_code_hint")
+            setSingleLine(true)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            imeOptions = EditorInfo.IME_ACTION_DONE
+            setTextColor(Theme.TEXT)
+            setHintTextColor(Theme.MUTED)
+            textSize = 18f
+            background = ui.focusBg(Theme.CARD)
+            setPadding(ui.dp(18), ui.dp(14), ui.dp(18), ui.dp(14))
+            tag = "code"
+        }
+        add(code, 0)
+        add(tagged(ui.button(t("lic_enter"), primary = true) {
+            draftCode = code.text.toString()
+            if (cz.testpreklad.core.License.checkCode(draftCode)) {
+                Prefs.setUnlocked(this, true); draftCode = ""
+                toast(t("lic_ok")); render()
+            } else {
+                codeError = true; render(true)
+            }
+        }, "codeok"), 12)
+        if (codeError) { add(ui.text(t("lic_bad"), 15f, Theme.BAD), 10); codeError = false }
+    }
+
     // ======================= NÁPOVĚDA =======================
 
     private fun help() {
@@ -457,6 +516,7 @@ class MainActivity : Activity() {
     }
 
     private fun startFlow() {
+        if (!Prefs.license(this).canRun) { section = Section.LICENSE; render(); return }
         if (TranslatorService.running) { if (Prefs.source(this).direct) moveTaskToBack(true) else launchRemotePlay(); return }
         if (!SubtitleOverlay.canShow(this)) { toast(t("need_overlay")); section = Section.SETTINGS; render(); return }
         if (Prefs.source(this) == Source.USB && !hasCameraPermission()) {
@@ -683,5 +743,5 @@ class MainActivity : Activity() {
 }
 
 object BuildInfo {
-    const val VERSION = "verze 0.5"
+    const val VERSION = "verze 0.6"
 }

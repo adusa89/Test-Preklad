@@ -128,6 +128,7 @@ class TranslatorService : Service() {
     private var usb: UsbCapture? = null
 
     /** Kdy schovat pruh (překlad zůstane chvíli po zmizení angličtiny, ať se dá dočíst). 0 = nic. */
+    private var lastLicenseCheck = 0L
     private var hideAt = 0L
     @Volatile private var holdMs = 1000L
     @Volatile private var showOriginal = false
@@ -216,6 +217,8 @@ class TranslatorService : Service() {
     /** Společný start po připravení zdroje obrazu (obrazovka nebo USB klíčenka). */
     private fun beginRunning() {
         if (running) return
+        if (!Prefs.license(this).canRun) { startError = "licence"; stopSelf(); return }
+        lastLicenseCheck = SystemClock.uptimeMillis()
         lang = Prefs.lang(this)
         statsFor(this)
         loadCache()
@@ -361,6 +364,11 @@ class TranslatorService : Service() {
             val ov = overlay
             if (debug && ov != null) publishDebug(ov)
             if (cache.dirty >= 20) saveCache()
+            // jednou za minutu: neskončila zkušební doba během hraní?
+            if (t0 - lastLicenseCheck > 60_000) {
+                lastLicenseCheck = t0
+                if (!Prefs.license(this).canRun) { stopSelf(); return }
+            }
             val spent = SystemClock.uptimeMillis() - t0
             delay(max(20L, INTERVAL_MS - spent))
         }
