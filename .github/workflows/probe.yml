@@ -1,0 +1,15 @@
+name: Zkouška služeb pro přihlášení
+on:
+  push:
+    paths: [.github/workflows/probe.yml]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          for base in https://psn.flipscreen.games https://psn.psgo.eu.org; do
+            for u in Hakoom Roughdawg4; do
+              echo "== $base $u"; curl -sS -m 25 -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36" -H "Referer: $base/" -w "\nhttp %{http_code}\n" "$base/search.php?username=$u" | head -c 500
+            done
+          done
+          echo "== mirror page"; curl -sS -m 25 -A "Mozilla/5.0" https://psn.psgo.eu.org/ | grep -oE '(src|action)="[^"]+"|fetch\([^)]*\)' | head
