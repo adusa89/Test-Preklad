@@ -15,7 +15,15 @@ import cz.testpreklad.core.Yuv
  * do čtečky úplně stejnou cestou, jakou chodí video z PlayStationu. Díky tomu jde celá
  * aplikace vyzkoušet bez konzole (uživatelem i automaticky v emulátoru).
  */
-class DemoFeeder(private val width: Int, private val height: Int, private val sink: (ByteArray) -> Boolean) {
+class DemoFeeder(
+    private val width: Int,
+    private val height: Int,
+    private val sink: (ByteArray) -> Boolean,
+    /** Záloha bez videa: hotový obrázek (jas) rovnou do čtečky. */
+    private val rawSink: (ByteArray, Int, Int) -> Unit,
+    /** Kolik obrázků už čtečka z videa dekódovala (aby se poznalo, že dekódování nejde). */
+    private val decodedCount: () -> Long,
+) {
 
     companion object {
         private const val TAG = "TestPreklad"
@@ -31,6 +39,9 @@ class DemoFeeder(private val width: Int, private val height: Int, private val si
     @Volatile var error: String? = null
         private set
     @Volatile var sent = 0L
+        private set
+    /** Jede ukázka bez kódování videa (zařízení neumí video zakódovat)? */
+    @Volatile var raw = false
         private set
 
     fun start() {
@@ -67,8 +78,13 @@ class DemoFeeder(private val width: Int, private val height: Int, private val si
             val info = MediaCodec.BufferInfo()
             var frame = 0L
 
+            val began = SystemClock.uptimeMillis()
             while (running) {
                 val t0 = SystemClock.uptimeMillis()
+                // kodér do 4 s nic nevydal → toto zařízení video zakódovat neumí, jeď bez něj
+                if (sent == 0L && t0 - began > 4000) throw IllegalStateException("kodér nevydal žádné video")
+                // video odchází, ale ani po 25 s se nic nedekódovalo → ukázka pojede bez videa
+                if (t0 - began > 25_000 && decodedCount() == 0L) throw IllegalStateException("video se nedaří dekódovat")
                 val sub = DemoGame.subtitleAt(t0 - epoch)
                 if (sub != drawn) {
                     TestCard.draw(canvas, width.toFloat(), height.toFloat(), sub)
@@ -111,6 +127,36 @@ class DemoFeeder(private val width: Int, private val height: Int, private val si
         } finally {
             try { enc?.stop() } catch (_: Exception) {}
             try { enc?.release() } catch (_: Exception) {}
+        }
+        if (running) runRaw()
+    }
+
+    /** Ukázka bez kódování videa: obrázky jdou rovnou do čtečky. */
+    private fun runRaw() {
+        raw = true
+        try {
+            val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bmp)
+            val argb = IntArray(width * height)
+            val y = ByteArray(width * height)
+            val u = ByteArray(width * height / 4)
+            val v = ByteArray(width * height / 4)
+            var drawn: String? = null
+            while (running) {
+                val sub = DemoGame.subtitleAt(SystemClock.uptimeMillis() - epoch)
+                if (sub != drawn) {
+                    TestCard.draw(canvas, width.toFloat(), height.toFloat(), sub)
+                    bmp.getPixels(argb, 0, width, 0, 0, width, height)
+                    Yuv.fromArgb(argb, width, height, y, u, v)
+                    drawn = sub
+                }
+                rawSink(y, width, height)
+                sent++
+                Thread.sleep(1000L / FPS)
+            }
+        } catch (e: Exception) {
+            error = "raw " + e.javaClass.simpleName + ": " + (e.message ?: "")
+            Log.e(TAG, "ukázka bez videa", e)
         }
     }
 

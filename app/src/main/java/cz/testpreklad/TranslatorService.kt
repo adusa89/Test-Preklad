@@ -218,7 +218,7 @@ class TranslatorService : Service() {
         demo = wantDemo
         overlay?.hide(); tracker.reset(); lastSig = null
         if (wantDemo) {
-            feeder = DemoFeeder(VIDEO_W, VIDEO_H) { r.feed(it) }.also { it.start() }
+            feeder = DemoFeeder(VIDEO_W, VIDEO_H, { r.feed(it) }, { y, w, h -> r.feedRaw(y, w, h, null) }, { r.decoded }).also { it.start() }
             tp("SOURCE|demo")
         } else {
             val host = Prefs.ps5Host(this) ?: return
@@ -362,7 +362,8 @@ class TranslatorService : Service() {
         val r = reader ?: return
         if (now - lastVideoLog > 5000) {
             lastVideoLog = now
-            if (ticksLogged < 400) tp("VIDEO|fed=${r.fed}|decoded=${r.decoded}|${r.frameWidth}x${r.frameHeight}|err=${r.lastError}")
+            if (ticksLogged < 400) tp("VIDEO|fed=${r.fed}|decoded=${r.decoded}|${r.frameWidth}x${r.frameHeight}|dec=${r.decoderName}|err=${r.lastError}" +
+                (feeder?.let { "|demo sent=${it.sent} raw=${it.raw} err=${it.error}" } ?: ""))
         }
         if (demo) return
         val st = Ps5Link.state

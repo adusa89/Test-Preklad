@@ -5,6 +5,8 @@ import android.graphics.ImageFormat
 import android.media.Image
 import android.media.ImageReader
 import android.media.MediaCodec
+import android.media.MediaCodecInfo
+import android.media.MediaCodecList
 import android.media.MediaFormat
 import android.os.Build
 import android.os.Handler
@@ -82,17 +84,66 @@ class StreamReader(private val width: Int, private val height: Int) {
         }
     }
 
+    /** Způsob, kterým se dekodér podařilo spustit (zapamatuje se pro případnou obnovu). */
+    private var workingPlan: Plan? = null
+    /** Dekodér vrací obrázky přímo (bez plochy ImageReaderu) – záloha pro zařízení, kde to jinak nejde. */
+    private var bufferMode = false
+
+    /** Způsoby, které se sice spustily, ale nevydaly žádný obraz. */
+    private val badPlans = HashSet<Plan>()
+    private var fedAtOpen = 0L
+    private var decodedAtOpen = 0L
+
+    private data class Plan(val codecName: String?, val surface: Boolean, val lowLatency: Boolean)
+
+    /** Všechny dekodéry H.264 v zařízení (hardwarové i softwarové). */
+    private fun decoderNames(): List<String> = try {
+        MediaCodecList(MediaCodecList.ALL_CODECS).codecInfos
+            .filter { !it.isEncoder && it.supportedTypes.any { t -> t.equals(MIME, ignoreCase = true) } }
+            .map { it.name }
+    } catch (_: Exception) { emptyList() }
+
+    /**
+     * Spustí dekodér. Televize a boxy se liší, proto se zkouší několik způsobů po sobě:
+     * výchozí dekodér zařízení, pak ostatní; nejdřív s výstupem do plochy, pak s přímým výstupem.
+     */
     private fun openCodec() {
-        val r = reader ?: throw IllegalStateException("reader")
-        val c = MediaCodec.createDecoderByType(MIME)
-        val f = MediaFormat.createVideoFormat(MIME, width, height)
-        f.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, width * height)
-        if (Build.VERSION.SDK_INT >= 30) f.setInteger(MediaFormat.KEY_LOW_LATENCY, 1)
-        c.configure(f, r.surface, null, 0)
-        c.start()
-        codec = c
-        decoderName = try { c.name } catch (_: Exception) { "?" }
-        pts = 0
+        val plans = ArrayList<Plan>()
+        workingPlan?.let { plans.add(it) }
+        if (Build.VERSION.SDK_INT >= 30) plans.add(Plan(null, surface = true, lowLatency = true))
+        plans.add(Plan(null, surface = true, lowLatency = false))
+        plans.add(Plan(null, surface = false, lowLatency = false))
+        for (n in decoderNames()) { plans.add(Plan(n, true, false)); plans.add(Plan(n, false, false)) }
+        var last: Exception? = null
+        val tried = StringBuilder()
+        if (plans.distinct().all { it in badPlans }) badPlans.clear()
+        for (pl in plans.distinct()) {
+            if (pl in badPlans) continue
+            var c: MediaCodec? = null
+            try {
+                c = if (pl.codecName == null) MediaCodec.createDecoderByType(MIME) else MediaCodec.createByCodecName(pl.codecName)
+                val f = MediaFormat.createVideoFormat(MIME, width, height)
+                f.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, width * height)
+                if (pl.lowLatency) f.setInteger(MediaFormat.KEY_LOW_LATENCY, 1)
+                if (!pl.surface) f.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible)
+                c.configure(f, if (pl.surface) (reader ?: throw IllegalStateException("reader")).surface else null, null, 0)
+                c.start()
+                codec = c
+                bufferMode = !pl.surface
+                workingPlan = pl
+                decoderName = (try { c.name } catch (_: Exception) { "?" }) + if (pl.surface) "" else " (přímý výstup)"
+                pts = 0
+                fedAtOpen = fed; decodedAtOpen = decoded
+                if (tried.isNotEmpty()) Log.i(TAG, "dekodér: nešlo $tried→ jde $decoderName")
+                return
+            } catch (e: Exception) {
+                last = e
+                tried.append(pl.codecName ?: "výchozí").append(if (pl.surface) "/plocha " else "/přímo ")
+                try { c?.release() } catch (_: Exception) {}
+            }
+        }
+        workingPlan = null
+        throw last ?: IllegalStateException("žádný dekodér H.264")
     }
 
     private fun closeCodec() {
@@ -111,6 +162,13 @@ class StreamReader(private val width: Int, private val height: Int) {
         if (header == null) header = buf
         fed++
         try {
+            // dekodér běží, dostal už přes 90 snímků a nevydal ani jeden obrázek → zkus jiný způsob
+            if (codec != null && fed - fedAtOpen > 90 && decoded == decodedAtOpen) {
+                workingPlan?.let { badPlans.add(it) }
+                Log.w(TAG, "dekodér $decoderName nevydává obraz, zkouším jiný")
+                workingPlan = null
+                closeCodec()
+            }
             val c = codec ?: run { openCodec(); val h = header; if (h != null && h !== buf) push(codec!!, h); codec!! }
             val ok = push(c, buf)
             drain(c)
@@ -145,7 +203,12 @@ class StreamReader(private val width: Int, private val height: Int) {
         while (true) {
             val o = c.dequeueOutputBuffer(info, 0)
             when {
-                o >= 0 -> c.releaseOutputBuffer(o, info.size != 0)
+                o >= 0 -> {
+                    if (bufferMode) {
+                        if (info.size != 0) try { c.getOutputImage(o)?.let { handleImage(it) } } catch (e: Exception) { lastError = "obraz: " + e.javaClass.simpleName }
+                        c.releaseOutputBuffer(o, false)
+                    } else c.releaseOutputBuffer(o, info.size != 0)
+                }
                 o == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {}
                 @Suppress("DEPRECATION")
                 o == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED -> {}
@@ -158,11 +221,22 @@ class StreamReader(private val width: Int, private val height: Int) {
     private fun onImage(r: ImageReader) {
         val img = try { r.acquireLatestImage() } catch (_: Exception) { null } ?: return
         try {
+            handleImage(img)
+        } catch (e: Exception) {
+            lastError = "obraz: " + e.javaClass.simpleName
+        } finally {
+            img.close()
+        }
+    }
+
+    /** Zkopíruje jas z dekódovaného obrázku a občas uloží barevný náhled. */
+    private fun handleImage(img: Image) {
+        run {
             val w = img.width
             val h = img.height
             val p = img.planes[0]
             val stride = p.rowStride
-            val buf = p.buffer
+            val buf = p.buffer.duplicate()
             val need = min(buf.remaining(), stride * h)
             synchronized(frameLock) {
                 if (yBuf.size < stride * h) yBuf = ByteArray(stride * h)
@@ -179,11 +253,22 @@ class StreamReader(private val width: Int, private val height: Int) {
                 lastColorAt = now
                 colorSnapshot = colorHalf(img)
             }
-        } catch (e: Exception) {
-            lastError = "obraz: " + e.javaClass.simpleName
-        } finally {
-            img.close()
         }
+    }
+
+    /**
+     * Hotový obrázek bez dekódování (jen ukázka na zařízeních, která neumí video zakódovat).
+     * [y] = jas, w×h bajtů.
+     */
+    fun feedRaw(y: ByteArray, w: Int, h: Int, color: Bitmap?) {
+        synchronized(frameLock) {
+            if (yBuf.size < w * h) yBuf = ByteArray(w * h)
+            System.arraycopy(y, 0, yBuf, 0, w * h)
+            yStride = w; frameW = w; frameH = h; frameSerial++
+        }
+        decoded++
+        lastFrameAt = SystemClock.uptimeMillis()
+        if (color != null) colorSnapshot = color
     }
 
     /** Barevný náhled v poloviční velikosti. */
