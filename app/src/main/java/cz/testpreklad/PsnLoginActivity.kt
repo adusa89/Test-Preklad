@@ -111,6 +111,9 @@ class PsnLoginActivity : Activity() {
     private var done = false
     private var loadStarted = 0L
     private var loaded = false
+    private var httpLogged = 0
+    private var errLogged = 0
+    private var consoleLogged = 0
 
     /** Hlídá, že se stránka Sony vůbec načetla. */
     private val poll = object : Runnable {
@@ -153,13 +156,27 @@ class PsnLoginActivity : Activity() {
         w.webViewClient = object : WebViewClient() {
             @Deprecated("Deprecated in Java")
             override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean = intercept(url)
-            override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) { intercept(url) }
+            override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
+                if (!intercept(url)) log("start " + url.substringBefore('?').substringBefore('#').takeLast(70))
+            }
             override fun onPageFinished(view: WebView, url: String) {
                 loaded = true
                 log("page " + url.substringBefore('?').takeLast(60) + " title=" + (view.title ?: "").take(40))
             }
+            override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: android.webkit.WebResourceResponse) {
+                // odmítnuté dotazy stránky Sony (jen adresa bez údajů) – pomůže najít, kde přihlášení selhalo
+                if (httpLogged++ < 25) log("http " + response.statusCode + " " + (request.url.host ?: "") + (request.url.path ?: "").take(60))
+            }
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+                if (!request.isForMainFrame && errLogged++ < 15) log("neterr " + error.errorCode + " " + (request.url.host ?: "") + (request.url.path ?: "").take(50))
                 if (request.isForMainFrame) showProblem(error.errorCode.toString() + " " + error.description)
+            }
+        }
+        w.webChromeClient = object : android.webkit.WebChromeClient() {
+            override fun onConsoleMessage(m: android.webkit.ConsoleMessage): Boolean {
+                if (m.messageLevel() == android.webkit.ConsoleMessage.MessageLevel.ERROR && consoleLogged++ < 15)
+                    log("js " + m.message().take(140) + " @" + m.sourceId().substringAfterLast('/').take(30) + ":" + m.lineNumber())
+                return true
             }
         }
         root.addView(w, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))

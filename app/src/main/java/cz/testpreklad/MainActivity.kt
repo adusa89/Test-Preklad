@@ -1025,7 +1025,11 @@ class MainActivity : Activity() {
             f.writeText(text, Charsets.UTF_8)
             f.absolutePath
         } catch (e: Exception) { "?" }
-        reportText = t("rep_saved") + " " + where + "\n\n" + text.take(1500)
+        // na obrazovce (kvůli fotce) nejdřív hlavička a pak to podstatné: přihlášení, párování a spojení
+        val key = DiagLog.dump().split('\n').filter { l ->
+            listOf("PSN|", "PAIR|", "PS5|", "LINK|", "ERROR", "SOURCE|", "START|").any { l.contains(it) }
+        }.takeLast(45).joinToString("\n")
+        reportText = t("rep_saved") + " " + where + "\n\n" + text.substringBefore("--- poslední události ---").take(900) + "---\n" + key
         render(true)
     }
 
