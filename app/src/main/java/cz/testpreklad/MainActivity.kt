@@ -112,12 +112,36 @@ class MainActivity : Activity() {
         if (auto) { Prefs.setWizardDone(this, true); wizard = -1 }
         render()
         if (auto) main.postDelayed({ startDemo() }, 1500)
+        ps5SelfTest(intent)
         checkForUpdate()
         OfflineTranslator.ensureModel(Prefs.lang(this)) { runOnUiThread { if (section == Section.HOME || wizard >= 0) render(true) } }
         // Android 13+: povolení notifikací (tlačítka Pozastavit / Zastavit v notifikaci)
         if (Build.VERSION.SDK_INT >= 33) {
             try { requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), REQ_NOTIF) } catch (_: Exception) {}
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        ps5SelfTest(intent)
+    }
+
+    /**
+     * Jen ve zkušebním sestavení (automatická zkouška v emulátoru): vyzkouší hledání konzole,
+     * párování a spojení proti adrese, kde žádný PlayStation není – nic nesmí spadnout.
+     */
+    private fun ps5SelfTest(i: Intent?) {
+        val ip = i?.getStringExtra("ps5test") ?: return
+        if (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE == 0) return
+        Prefs.setWizardDone(this, true); wizard = -1
+        Thread({
+            Ps5Pairing.discover(2000)
+            Ps5Pairing.pair(ip, ByteArray(8) { (it + 1).toByte() }, 12345678) {
+                val key = "1a2b3c4d".toByteArray() + ByteArray(8)
+                Prefs.setPs5Host(this, Ps5Host(ip, "Zkouška", key, ByteArray(16) { 7 }, ByteArray(6)))
+                runOnUiThread { section = Section.HOME; startFlow() }
+            }
+        }, "tp-selftest").start()
     }
 
     override fun onResume() {

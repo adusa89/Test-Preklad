@@ -12,42 +12,77 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          submodules: recursive
 
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
 
+      - name: Nástroje pro nativní část (spojení s PlayStationem)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq protobuf-compiler python3-protobuf ninja-build
+          pip3 install --user --break-system-packages protobuf grpcio-tools || true
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" "ndk;28.2.13676358" "cmake;3.22.1" "platforms;android-35" "build-tools;35.0.0" | tail -3
+
       - name: Testy logiky
         run: chmod +x gradlew && ./gradlew testDebugUnitTest --no-daemon
 
-      - name: Sestavení APK
+      - name: Sestavení APK pro televize (ARM)
         run: ./gradlew assembleRelease --no-daemon
 
       - name: Přejmenovat APK
-        run: cp app/build/outputs/apk/release/app-release.apk TestPreklad.apk
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk TestPreklad.apk
+          unzip -l TestPreklad.apk | grep -E "classes.*dex|\.so$"
+          unzip -l TestPreklad.apk | grep -q "lib/arm64-v8a/libchiaki-jni.so"
+          unzip -l TestPreklad.apk | grep -q "lib/armeabi-v7a/libchiaki-jni.so"
+          ls -la TestPreklad.apk
 
       - uses: actions/upload-artifact@v4
         with:
           name: TestPreklad-APK
           path: TestPreklad.apk
 
-      - name: Vydat APK ke stažení
-        if: github.ref == 'refs/heads/main'
+      - name: Sestavení zkušební verze pro emulátor (x86)
+        run: |
+          ./gradlew assembleDebug --no-daemon -Pabis=x86
+          cp app/build/outputs/apk/debug/app-debug.apk TestPreklad-emulator.apk
+          unzip -l TestPreklad-emulator.apk | grep "\.so$"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: emulator-apk
+          path: TestPreklad-emulator.apk
+
+  publish:
+    name: Vydat APK ke stažení
+    needs: [build, emulator]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: TestPreklad-APK
+      - name: Vydat
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          unzip -l TestPreklad.apk | grep -E "classes.*dex|\.so$" | head -20
-          ls -la TestPreklad.apk
           CODE=$(grep -oE 'versionCode = [0-9]+' app/build.gradle.kts | grep -oE '[0-9]+')
           NAME=$(grep -oE 'versionName = "[^"]+"' app/build.gradle.kts | cut -d'"' -f2)
           echo "$CODE $NAME" > version.txt
           cat version.txt
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest TestPreklad.apk version.txt --title "Test Překlad – nejnovější APK" --notes "Automaticky sestaveno z posledního kódu."
+          gh release create latest TestPreklad.apk version.txt --title "Test Překlad – nejnovější APK" --notes "Automaticky sestaveno z posledního kódu a vyzkoušeno v emulátoru Android TV (Android 9, 11, 13, 14). Spojení s PlayStationem používá otevřenou knihovnu chiaki-ng (AGPL-3.0); zdrojový kód je v tomto repozitáři."
 
   emulator:
     name: Emulátor Android TV (API ${{ matrix.api }})
+    needs: build
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -56,13 +91,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v5
+      - uses: actions/download-artifact@v4
         with:
-          distribution: temurin
-          java-version: 17
-
-      - name: Sestavení zkušební verze
-        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+          name: emulator-apk
 
       - name: Povolit KVM
         run: |
@@ -91,3 +122,8 @@ jobs:
           git add -A
           git commit -q -m "Výsledky zkoušky v emulátoru"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" test-results-api${{ matrix.api }}
+
+      - name: Vyhodnocení
+        run: |
+          cat test-results/result.txt
+          grep -q "^VYSLEDEK=OK" test-results/result.txt

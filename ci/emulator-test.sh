@@ -8,7 +8,7 @@ PKG=cz.testpreklad
 shot() { adb exec-out screencap -p > "$OUT/$1.png"; }
 key() { adb shell input keyevent "$1"; sleep 1; }
 
-adb install -r app/build/outputs/apk/debug/app-debug.apk || { echo "INSTALL FAILED" > $OUT/result.txt; exit 1; }
+adb install -r TestPreklad-emulator.apk || { echo "INSTALL FAILED" > $OUT/result.txt; exit 1; }
 adb shell getprop ro.build.version.release > $OUT/device.txt
 adb shell getprop ro.product.model >> $OUT/device.txt
 adb shell wm size >> $OUT/device.txt
@@ -33,7 +33,6 @@ for i in 1 2 3 4 5 6 7; do key 20; key 23; sleep 2; shot "07_menu_$i"; done
 
 # 3) povolení a spuštění překladu (povolení snímání udělí test místo člověka)
 adb shell appops set $PKG SYSTEM_ALERT_WINDOW allow
-adb shell appops set $PKG PROJECT_MEDIA allow
 # Usnadnění zapnuté jako u skutečného uživatele (pruh přes Usnadnění, aplikace ví, co je na obrazovce)
 adb shell am force-stop $PKG
 # (vynucené zastavení aplikace Usnadnění vypíná, proto se zapíná až po něm)
@@ -41,21 +40,36 @@ adb shell settings put secure enabled_accessibility_services $PKG/$PKG.TitulkyAc
 adb shell settings put secure accessibility_enabled 1
 sleep 4
 adb shell am start -n $PKG/.MainActivity --ez autostart true
-sleep 25; shot 08_po_spusteni
-# kdyby se přesto ukázal dotaz na snímání, potvrď ho
-key 22; key 23; sleep 5; shot 08b_po_potvrzeni
+sleep 12; shot 08_po_spusteni
 
-# 4) ukázková hra s titulky – aplikace je má přečíst, přeložit a zakrýt pruhem
+# 4) ukázková hra s titulky – jde do aplikace jako video (stejná cesta jako z PlayStationu);
+#    aplikace ji má dekódovat, přečíst, přeložit a zakrýt pruhem
 adb shell am start -n $PKG/.TestCardActivity
 for i in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16; do sleep 3; shot "09_hra_$i"; done
 
+# 5) spojení s PlayStationem: konzole tu není, ale ověří se, že se nativní část načte,
+#    hledání v síti a párování skončí slušně a spojení se zkouší znovu – bez pádu
+key 4; sleep 2
+adb shell am start -n $PKG/.MainActivity --es ps5test 10.0.2.2
+sleep 45; shot 10_ps5_nedostupna
+key 20; key 23; sleep 3; shot 11_stranka_playstation
+
 adb logcat -d -v time > $OUT/logcat_full.txt
-grep -E "TP_TEST|TestPreklad|AndroidRuntime|FATAL" $OUT/logcat_full.txt > $OUT/log.txt
+grep -E "TP_TEST|TestPreklad|AndroidRuntime|FATAL|libchiaki|DEBUG   :" $OUT/logcat_full.txt > $OUT/log.txt
 SHOWS=$(grep -c "TP_TEST.*SHOW|" $OUT/log.txt)
 adb shell dumpsys meminfo $PKG | grep -E "TOTAL|Native Heap|Dalvik Heap" | head -4 > $OUT/memory.txt
 # počítají se jen pády naší aplikace (na Androidu 9 padá vestavěná aplikace emulátoru, to není naše chyba)
 CRASH=$(grep -c "Process: cz.testpreklad" $OUT/log.txt)
-echo "prelozenych_titulku=$SHOWS pady=$CRASH" > $OUT/result.txt
+LIB=$(grep -c "TP_TEST.*START|.*lib=ok" $OUT/log.txt)
+DECODED=$(grep "TP_TEST.*VIDEO|" $OUT/log.txt | grep -oE "decoded=[0-9]+" | cut -d= -f2 | sort -n | tail -1)
+LINK=$(grep -c "TP_TEST.*LINK|\(WAITING\|FAILED\)" $OUT/log.txt)
+PAIR=$(grep -c "TP_TEST.*PAIR|\(failed\|timeout\|error\)" $OUT/log.txt)
+echo "prelozenych_titulku=$SHOWS pady=$CRASH knihovna_ps5=$LIB dekodovano_snimku=${DECODED:-0} pokusy_o_spojeni=$LINK parovani_bez_konzole=$PAIR" > $OUT/result.txt
+if [ "$SHOWS" -ge 3 ] && [ "$CRASH" -eq 0 ] && [ "$LIB" -ge 1 ] && [ "${DECODED:-0}" -ge 20 ] && [ "$LINK" -ge 1 ] && [ "$PAIR" -ge 1 ]; then
+  echo "VYSLEDEK=OK" >> $OUT/result.txt
+else
+  echo "VYSLEDEK=CHYBA" >> $OUT/result.txt
+fi
 grep "TP_TEST" $OUT/log.txt | grep -v "READ|" >> $OUT/result.txt
 grep "TP_TEST" $OUT/log.txt > $OUT/reads.txt
 tail -c 400000 $OUT/logcat_full.txt > $OUT/logcat_tail.txt; rm $OUT/logcat_full.txt
