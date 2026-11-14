@@ -9,7 +9,7 @@ import cz.testpreklad.core.I18n
 import cz.testpreklad.core.Lang
 import cz.testpreklad.core.License
 import cz.testpreklad.core.ScreenLayout
-import cz.testpreklad.core.Source
+import cz.testpreklad.core.Ps5Host
 import cz.testpreklad.core.UsageStats
 
 /** Nastavení aplikace. */
@@ -44,14 +44,8 @@ object Prefs {
     fun debug(c: Context) = bool(c, "debug", false)
     fun setDebug(c: Context, v: Boolean) = setBool(c, "debug", v)
 
-    fun autoLaunch(c: Context) = bool(c, "auto_launch", true)
-    fun setAutoLaunch(c: Context, v: Boolean) = setBool(c, "auto_launch", v)
-
     fun onlySubtitles(c: Context) = bool(c, "only_subs", true)
     fun setOnlySubtitles(c: Context, v: Boolean) = setBool(c, "only_subs", v)
-
-    fun onlyRemotePlay(c: Context) = bool(c, "only_rp", true)
-    fun setOnlyRemotePlay(c: Context, v: Boolean) = setBool(c, "only_rp", v)
 
     fun showOriginal(c: Context) = bool(c, "show_original", false)
     fun setShowOriginal(c: Context, v: Boolean) = setBool(c, "show_original", v)
@@ -59,29 +53,10 @@ object Prefs {
     fun coloredSpeaker(c: Context) = bool(c, "colored_speaker", true)
     fun setColoredSpeaker(c: Context, v: Boolean) = setBool(c, "colored_speaker", v)
 
-    /** Odkud se bere obraz hry (HDMI, USB klíčenka, PS Remote Play). */
-    fun source(c: Context): Source {
-        val saved = p(c).getString("source", null)
-        if (saved != null) return Source.of(saved)
-        // výchozí podle zařízení: televize s Androidem (má vstupy/tuner) → HDMI v plné kvalitě,
-        // Android box / Chromecast (nemá HDMI vstup) → PS Remote Play
-        return if (isTv(c)) Source.HDMI else Source.REMOTE_PLAY
-    }
-
-    /** Je to televize s vestavěným Androidem (ne samostatný box nebo Chromecast)? */
-    fun isTv(c: Context): Boolean = try {
-        c.packageManager.hasSystemFeature("android.software.live_tv")
-    } catch (_: Exception) { false }
-    fun setSource(c: Context, v: Source) = p(c).edit().putString("source", v.code).apply()
-
     /** Jak dlouho nechat překlad na obrazovce po zmizení anglického titulku (ms). */
     val HOLD_TIMES = intArrayOf(0, 1000, 2000)
     fun holdMs(c: Context): Int = p(c).getInt("hold_ms", 1000)
     fun setHoldMs(c: Context, v: Int) = p(c).edit().putInt("hold_ms", v).apply()
-
-    /** Výsledek testu HDMI: 1 = funguje, 0 = blokováno, -1 = netestováno. */
-    fun hdmiResult(c: Context): Int = p(c).getInt("hdmi_result", -1)
-    fun setHdmiResult(c: Context, v: Int) = p(c).edit().putInt("hdmi_result", v).apply()
 
     fun layout(c: Context): ScreenLayout = ScreenLayout.parse(p(c).getString("layout", null))
     fun setLayout(c: Context, v: ScreenLayout) = p(c).edit().putString("layout", v.serialize()).apply()
@@ -96,6 +71,26 @@ object Prefs {
     /** Průvodce prvním spuštěním už proběhl. */
     fun wizardDone(c: Context) = bool(c, "wizard_done", false)
     fun setWizardDone(c: Context, v: Boolean) = setBool(c, "wizard_done", v)
+
+    // ---- PlayStation ----
+    /** Spárovaná konzole (null = ještě nespárováno). */
+    fun ps5Host(c: Context): Ps5Host? = Ps5Host.parse(p(c).getString("ps5_host", null))
+    fun setPs5Host(c: Context, v: Ps5Host?) = p(c).edit().putString("ps5_host", v?.serialize()).apply()
+
+    /** Naposledy zadané údaje pro párování (ať se nemusí psát znovu). */
+    fun ps5Ip(c: Context): String = p(c).getString("ps5_ip", "") ?: ""
+    fun setPs5Ip(c: Context, v: String) = p(c).edit().putString("ps5_ip", v).apply()
+    fun psnId(c: Context): String = p(c).getString("psn_id", "") ?: ""
+    fun setPsnId(c: Context, v: String) = p(c).edit().putString("psn_id", v).apply()
+
+    /** Čtyřmístný přihlašovací kód účtu na konzoli (jen pokud ho uživatel na PS5 má zapnutý). */
+    fun ps5LoginPin(c: Context): String = p(c).getString("ps5_login_pin", "") ?: ""
+    fun setPs5LoginPin(c: Context, v: String) = p(c).edit().putString("ps5_login_pin", v).apply()
+
+    /** Je to televize s vestavěným Androidem (ne samostatný box nebo Chromecast)? */
+    fun isTv(c: Context): Boolean = try {
+        c.packageManager.hasSystemFeature("android.software.live_tv")
+    } catch (_: Exception) { false }
 
     // ---- hra a slovník ----
     fun gameId(c: Context): String = p(c).getString("game", "all") ?: "all"

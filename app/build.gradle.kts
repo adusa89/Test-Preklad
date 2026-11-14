@@ -11,15 +11,41 @@ android {
         applicationId = "cz.testpreklad"
         minSdk = 26          // Android 8 a novější (prakticky všechny Android TV a boxy)
         targetSdk = 34
-        versionCode = 10
-        versionName = "0.10"
+        versionCode = 11
+        versionName = "0.11"
+
+        // televize a boxy mají procesory ARM; emulátor při zkoušce x86 (-Pabis=x86)
+        val abis = ((project.findProperty("abis") as String?) ?: "armeabi-v7a,arm64-v8a").split(",")
+        ndk { abiFilters += abis }
+
+        // spojení s PlayStationem: otevřená knihovna chiaki-ng (third_party/chiaki-ng)
+        externalNativeBuild {
+            cmake {
+                arguments += listOf(
+                    "-DCHIAKI_ENABLE_TESTS=OFF", "-DCHIAKI_ENABLE_CLI=OFF", "-DCHIAKI_ENABLE_GUI=OFF",
+                    "-DCHIAKI_ENABLE_SETSU=OFF", "-DCHIAKI_ENABLE_ANDROID=ON",
+                    "-DCHIAKI_ENABLE_FFMPEG_DECODER=OFF", "-DCHIAKI_ENABLE_PI_DECODER=OFF",
+                    "-DCHIAKI_LIB_ENABLE_OPUS=OFF", "-DCHIAKI_LIB_OPENSSL_EXTERNAL_PROJECT=ON",
+                    "-DCHIAKI_LIB_JSONC_EXTERNAL_PROJECT=ON", "-DCHIAKI_LIB_MINIUPNPC_EXTERNAL_PROJECT=ON",
+                    "-DCHIAKI_ENABLE_STEAM_SHORTCUT=OFF", "-DCHIAKI_ENABLE_STEAMDECK_NATIVE=OFF",
+                    "-DANDROID_STL=c++_shared", "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON",
+                    "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384",
+                )
+            }
+        }
+    }
+
+    ndkVersion = "28.2.13676358"
+    externalNativeBuild {
+        cmake {
+            version = "3.22.1"
+            path = file("../third_party/chiaki-ng/CMakeLists.txt")
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            // televize a boxy mají procesory ARM – bez x86 je APK poloviční
-            ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
             // pro jednoduchost podepsáno debug klíčem, aby šlo APK rovnou nainstalovat
             signingConfig = signingConfigs.getByName("debug")
         }
@@ -36,6 +62,14 @@ android {
         checkReleaseBuilds = false
     }
 }
+
+// Naše úprava nativní části (bez zvuku a bez nativního dekodéru videa) se před sestavením
+// zkopíruje na místo původní android/app v knihovně chiaki-ng.
+val patchChiaki by tasks.registering(Copy::class) {
+    from("src/main/cpp")
+    into("../third_party/chiaki-ng/android/app")
+}
+tasks.named("preBuild") { dependsOn(patchChiaki) }
 
 dependencies {
     implementation("com.google.mlkit:text-recognition:16.0.1")

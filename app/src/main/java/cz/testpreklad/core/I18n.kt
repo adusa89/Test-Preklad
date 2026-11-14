@@ -241,18 +241,19 @@ object I18n {
     )
 
     fun t(lang: Lang, key: String): String {
-        val p = S[key] ?: return key
+        val p = PS5_S[key] ?: S[key] ?: return key
         return when (lang) {
             Lang.CS -> p.first
             Lang.SK -> p.second
-            else -> EXTRA[lang]?.get(key) ?: p.first
+            else -> PS5_X[lang]?.get(key) ?: (if (PS5_S.containsKey(key)) null else EXTRA[lang]?.get(key)) ?: p.first
         }
     }
 
     /** Pro testy: má jazyk vlastní překlad daného textu? */
-    fun hasOwn(lang: Lang, key: String): Boolean = EXTRA[lang]?.containsKey(key) == true
-    fun ownKeys(lang: Lang): Set<String> = EXTRA[lang]?.keys ?: emptySet()
+    fun hasOwn(lang: Lang, key: String): Boolean =
+        if (PS5_S.containsKey(key)) PS5_X[lang]?.containsKey(key) == true else EXTRA[lang]?.containsKey(key) == true
+    fun ownKeys(lang: Lang): Set<String> = (EXTRA[lang]?.keys ?: emptySet()) + (PS5_X[lang]?.keys ?: emptySet())
 
     /** Pro testy: všechny klíče. */
-    val keys: Set<String> get() = S.keys
+    val keys: Set<String> get() = S.keys + PS5_S.keys
 }

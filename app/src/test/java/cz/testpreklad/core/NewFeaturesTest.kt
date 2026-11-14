@@ -1,6 +1,5 @@
 package cz.testpreklad.core
 
-import cz.testpreklad.core.CaptureMonitor.Decision
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -64,29 +63,6 @@ class SubtitleOnlyTest {
         assertTrue(TextLogic.looselySimilar("Dutch: Potrebujerne penize Arthurc", shown)) // chyby OCR
         assertFalse(TextLogic.looselySimilar("Dutch: We need money, Arthur.", shown))    // originál ≠ překlad
         assertFalse(TextLogic.looselySimilar("", shown))
-    }
-}
-
-class CaptureMonitorTest {
-    @Test fun normalUntilOwnTextSeen() {
-        val m = CaptureMonitor(900)
-        assertEquals(Decision.NORMAL, m.decide(0, barVisible = true))
-        assertTrue(m.isOwnText("Potrebujeme penize Arthure", listOf("Potřebujeme peníze, Arthure.")))
-        assertFalse(m.isOwnText("We need money, Arthur.", listOf("Potřebujeme peníze, Arthure.")))
-        assertFalse(m.isOwnText("", listOf("x")))
-        m.markCaptured()
-        assertTrue(m.overlayCaptured)
-    }
-
-    @Test fun peeksAtIntervalOnlyWhenBarVisible() {
-        val m = CaptureMonitor(900)
-        m.markCaptured()
-        assertEquals(Decision.NORMAL, m.decide(100, barVisible = false))
-        assertEquals(Decision.PEEK, m.decide(1000, true))
-        assertEquals(Decision.SKIP, m.decide(1300, true))
-        assertEquals(Decision.SKIP, m.decide(1899, true))
-        assertEquals(Decision.PEEK, m.decide(1900, true))
-        assertEquals(Decision.NORMAL, m.decide(2000, false))
     }
 }
 
@@ -158,71 +134,6 @@ class I18nTest {
     }
 }
 
-class PeekBehaviourTest {
-    @Test fun hurryShortensWaitForNextPeek() {
-        val m = CaptureMonitor(900)
-        m.markCaptured()
-        assertEquals(CaptureMonitor.Decision.PEEK, m.decide(1000, true))
-        m.hurry(1100, quickMs = 250)
-        assertEquals(CaptureMonitor.Decision.SKIP, m.decide(1200, true))
-        assertEquals(CaptureMonitor.Decision.PEEK, m.decide(1350, true))   // 250 ms místo 900 ms
-    }
-
-    @Test fun hurryDoesNothingWithoutCapture() {
-        val m = CaptureMonitor(900)
-        m.hurry(0)
-        assertEquals(CaptureMonitor.Decision.NORMAL, m.decide(10, true))
-    }
-
-    @Test fun shortOrIdenticalTextIsNotOwnText() {
-        val m = CaptureMonitor()
-        assertFalse(m.isOwnText("Arthur!", listOf("Arthur!"), original = "Arthur!"))             // krátké, shodné s originálem
-        assertFalse(m.isOwnText("Top", listOf("Top videa"), original = "TOP VIDEOS"))            // krátké a neúplné
-        assertTrue(m.isOwnText("Jed dal", listOf("Jeď dál."), original = "Ride on."))            // krátký vlastní překlad
-        assertFalse(m.isOwnText("Mister Strauss, Valentine.", listOf("Mister Strauss, Valentine."),
-            original = "Mister Strauss, Valentine."))                                            // shodné s originálem
-        assertTrue(m.isOwnText("Potrebujeme penize Arthure", listOf("Potřebujeme peníze, Arthure."),
-            original = "We need money, Arthur."))
-    }
-
-    /** Celý cyklus režimu "celá obrazovka": pruh přes titulky, nakukování, výměna repliky, konec. */
-    @Test fun fullScreenCaptureCycle() {
-        val m = CaptureMonitor(900)
-        val t = SubtitleTracker()
-        var shownCz = ""
-        var now = 0L
-        val decisions = ArrayList<CaptureMonitor.Decision>()
-        // co OCR uvidí: pod pruhem originál, když pruh není skrytý (a snímek ho obsahuje) → náš český text
-        var underBar = "We need money, Arthur."
-        fun step() {
-            val d = m.decide(now, shownCz.isNotEmpty())
-            decisions += d
-            if (d != CaptureMonitor.Decision.SKIP) {
-                val ocr = if (shownCz.isNotEmpty() && d == CaptureMonitor.Decision.NORMAL) shownCz else underBar
-                if (shownCz.isNotEmpty() && m.isOwnText(ocr, listOf(shownCz), t.shown)) m.markCaptured()
-                else when (val a = t.onOcr(ocr)) {
-                    is SubtitleTracker.Action.Show -> { t.confirmShown(a.text); shownCz = "CZ: přeloženo – ${a.text.length} znaků textu" }
-                    SubtitleTracker.Action.Hide -> shownCz = ""
-                    SubtitleTracker.Action.None -> if (t.isChanging) m.hurry(now)
-                }
-            }
-            now += 300
-        }
-        repeat(3) { step() }                      // 2 snímky → zobrazení, 3. snímek přečte náš pruh
-        assertTrue("pozná, že snímek obsahuje pruh", m.overlayCaptured)
-        underBar = "Get on your horse, we ride now."
-        val before = t.shown
-        repeat(12) { step() }
-        assertNotEquals(before, t.shown)
-        assertEquals("Get on your horse, we ride now.", t.shown)
-        underBar = ""
-        repeat(12) { step() }
-        assertEquals("", shownCz)                 // pruh zmizel, když titulek skončil
-        assertTrue(decisions.contains(CaptureMonitor.Decision.PEEK))
-        assertTrue(decisions.contains(CaptureMonitor.Decision.SKIP))
-    }
-}
-
 
 class LatencyTest {
     @Test fun newSubtitleCanBePrefetchedAfterFirstRead() {
@@ -244,16 +155,6 @@ class LatencyTest {
         assertEquals("", t.pendingText)
     }
 
-    @Test fun peekWaitAdaptsToTv() {
-        val m = CaptureMonitor()
-        assertEquals(CaptureMonitor.MIN_WAIT, m.peekWaitMs)
-        repeat(3) { m.onPeekResult(stillSawOwnBar = true) }
-        assertEquals(CaptureMonitor.MIN_WAIT + 90, m.peekWaitMs)
-        repeat(100) { m.onPeekResult(stillSawOwnBar = true) }
-        assertEquals(CaptureMonitor.MAX_WAIT, m.peekWaitMs)
-        repeat(100) { m.onPeekResult(stillSawOwnBar = false) }
-        assertEquals(CaptureMonitor.MIN_WAIT, m.peekWaitMs)
-    }
 
     /** Simulace časové osy: kontrola každých 100 ms, titulek se objeví v čase 1000 ms. */
     @Test fun subtitleShownWithin250ms() {
@@ -331,18 +232,6 @@ class EmulatorFindingsTest {
         assertTrue(i2.isEmpty() && o2.isEmpty())
     }
 
-    @Test fun repeatedPeekFailureForcesReset() {
-        val m = CaptureMonitor()
-        m.markCaptured()
-        m.onPeekResult(true); m.onPeekResult(true)
-        assertFalse(m.needsReset)
-        m.onPeekResult(true)
-        assertTrue("pruh nesmí zůstat viset navždy", m.needsReset)
-        m.clearFailures()
-        assertFalse(m.needsReset)
-        m.onPeekResult(true); m.onPeekResult(false)
-        assertEquals(0, m.peekFailures)
-    }
 }
 
 
@@ -397,10 +286,4 @@ class FeedbackLoopTest {
         ).forEach { assertFalse(it, TextLogic.looksForeign(it)) }
     }
 
-    @Test fun staleOwnTextRecognisedFromRecentHistory() {
-        val m = CaptureMonitor()
-        val recent = listOf("Dutch: Potrebujeme penize, Arthur.", "Arthur: Myslim, ze nebudeme nic najit v Valentine.")
-        // obrazovka už ukazuje nový překlad, ale snímek ještě obsahuje ten předchozí
-        assertTrue(m.isOwnText("Dutch: Potrebujeme penize, Arthur.", recent, original = "Arthur: I reckon we ain't gonna find nothin' in Valentine."))
-    }
 }

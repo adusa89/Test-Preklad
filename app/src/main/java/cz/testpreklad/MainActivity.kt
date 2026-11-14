@@ -2,10 +2,8 @@ package cz.testpreklad
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.drawable.GradientDrawable
-import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -27,7 +25,8 @@ import cz.testpreklad.core.ScreenLayout
 import cz.testpreklad.core.Segment
 import cz.testpreklad.core.DiagLog
 import cz.testpreklad.core.GameProfiles
-import cz.testpreklad.core.Source
+import cz.testpreklad.core.Ps5
+import cz.testpreklad.core.Ps5Host
 import cz.testpreklad.core.UpdateCheck
 import cz.testpreklad.core.SubtitleHistory
 import kotlinx.coroutines.CoroutineScope
@@ -46,16 +45,13 @@ import java.util.Locale
 class MainActivity : Activity() {
 
     companion object {
-        private const val REQ_CAPTURE = 1001
         private const val REQ_NOTIF = 1002
-        private const val REQ_CAMERA = 1003
-        const val REMOTE_PLAY_PKG = "com.playstation.remoteplay"
 
 
     }
 
     private enum class Section(val key: String) {
-        HOME("m_home"), ZONES("m_zones"), LOOK("m_look"), TRANSLATE("m_translate"),
+        HOME("m_home"), PS5("m_ps5"), ZONES("m_zones"), LOOK("m_look"), TRANSLATE("m_translate"),
         SETTINGS("m_settings"), HISTORY("m_history"), LICENSE("m_license"), HELP("m_help")
     }
 
@@ -78,13 +74,30 @@ class MainActivity : Activity() {
     private var reportText: String? = null
     private var draftCode = ""
     private var codeError = false
-    private var hdmiTestPending = false
-    private var hdmiWaitMsg = false
+    // párování s PlayStationem
+    private var draftIp = ""
+    private var draftPsn = ""
+    private var draftPin = ""
+    private var draftLogin = ""
+    private var pairMsg: String? = null
+    private var pairMsgColor = Theme.MUTED
+    private var pairBusy = false
+    private var skipDraftSave = false
+    private var lastLink = Ps5.Link.OFF
+    private var lastFrames = 0L
+    private var ticks = 0
 
     private val ticker = object : Runnable {
         override fun run() {
             // obnov obrazovku, když se změnil stav překladu (např. zastavení z notifikace)
-            if (lastRunning != TranslatorService.running || lastPaused != TranslatorService.paused) render(keepFocus = true)
+            ticks++
+            val typing = currentFocus is EditText
+            val changed = lastRunning != TranslatorService.running || lastPaused != TranslatorService.paused ||
+                lastLink != Ps5Link.state || (lastFrames == 0L) != (TranslatorService.framesDecoded == 0L)
+            // náhled obrazu z PlayStationu se obnovuje každé 3 s (ne když uživatel zrovna píše)
+            val preview = TranslatorService.running && ticks % 3 == 0 && wizard < 0 &&
+                (section == Section.HOME || section == Section.PS5)
+            if ((changed || preview) && !typing && !pairBusy) render(keepFocus = true)
             main.postDelayed(this, 1000)
         }
     }
@@ -98,7 +111,7 @@ class MainActivity : Activity() {
         val auto = intent?.getBooleanExtra("autostart", false) == true
         if (auto) { Prefs.setWizardDone(this, true); wizard = -1 }
         render()
-        if (auto) main.postDelayed({ startFlow() }, 1500)
+        if (auto) main.postDelayed({ startDemo() }, 1500)
         checkForUpdate()
         OfflineTranslator.ensureModel(Prefs.lang(this)) { runOnUiThread { if (section == Section.HOME || wizard >= 0) render(true) } }
         // Android 13+: povolení notifikací (tlačítka Pozastavit / Zastavit v notifikaci)
@@ -110,7 +123,6 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         UiState.shown()
-        checkHdmiTest()
         render(keepFocus = true)
         main.removeCallbacks(ticker)
         main.postDelayed(ticker, 1000)
@@ -165,7 +177,8 @@ class MainActivity : Activity() {
     private fun renderMenu() {
         menu.removeAllViews()
         for (s in Section.values()) {
-            val active = s == section
+            if (s == Section.HISTORY) continue
+            val active = s == section || (s == Section.TRANSLATE && section == Section.HISTORY)
             val item = ui.hbox().apply {
                 isFocusable = true
                 isClickable = true
@@ -188,14 +201,18 @@ class MainActivity : Activity() {
     /** Překreslí menu i obsah (po každé změně – je to rychlé a nic se nerozsynchronizuje). */
     private fun render(keepFocus: Boolean = false) {
         val focusedTag = if (keepFocus) currentFocus?.tag else null
+        if (!skipDraftSave) saveDrafts()
         lastRunning = TranslatorService.running
         lastPaused = TranslatorService.paused
+        lastLink = Ps5Link.state
+        lastFrames = TranslatorService.framesDecoded
         if (wizard >= 0) { renderWizard(focusedTag); return }
         renderMenu()
         content.removeAllViews()
         content.addView(ui.text(t(section.key), 30f, Theme.TEXT, bold = true))
         when (section) {
             Section.HOME -> home()
+            Section.PS5 -> ps5()
             Section.ZONES -> zones()
             Section.LOOK -> look()
             Section.TRANSLATE -> translate()
@@ -261,19 +278,14 @@ class MainActivity : Activity() {
                 }
             }
             3 -> {
-                val src = Prefs.source(this)
-                add(ui.text(t("wz_source"), 17f, Theme.MUTED), 12)
-                add(tagged(ui.settingRow(t("s_source_row"), t(when (src) { Source.HDMI -> "src_hdmi"; Source.USB -> "src_usb"; else -> "src_rp" })) {
-                    Prefs.setSource(this, src.next()); render(true)
-                }, "wsrc"), 20)
-                add(ui.text(t(when (src) { Source.HDMI -> "src_hdmi_desc"; Source.USB -> "src_usb_desc"; else -> "src_rp_desc" }), 15f, Theme.MUTED), 8)
-                if (!Prefs.isTv(this) && src.direct) add(ui.text(t("box_warn"), 14f, Theme.WARN), 8)
+                add(ui.text(t("wz_ps5"), 17f, Theme.MUTED), 12)
+                ps5Form()
+                if (Prefs.ps5Host(this) == null) nextLabel = t("wz_skip_step")
             }
             else -> {
-                val src = Prefs.source(this)
-                add(ui.text(t(if (src == Source.HDMI) "wz_done_hdmi" else "wz_done"), 17f, Theme.MUTED), 12)
+                add(ui.text(t("wz_done"), 17f, Theme.MUTED), 12)
                 add(ui.text(t("wz_done_auto"), 15f, Theme.MUTED), 12)
-                nextLabel = t(if (src == Source.HDMI) "hdmi_try" else "b_start")
+                if (Prefs.ps5Host(this) != null) nextLabel = t("b_start")
             }
         }
 
@@ -281,9 +293,9 @@ class MainActivity : Activity() {
         row.addView(tagged(ui.button(nextLabel, primary = true) {
             if (wizard < wizardSteps.size - 1) { wizard++; render() }
             else {
-                val hdmi = Prefs.source(this) == Source.HDMI
+                val paired = Prefs.ps5Host(this) != null
                 finishWizard()
-                if (hdmi) startHdmiTest() else startFlow()
+                if (paired) startFlow()
             }
         }, "wnext"))
         if (wizard > 0) row.addView(tagged(ui.button(t("wz_back")) { wizard--; render() }, "wback"), wrapLp())
@@ -316,26 +328,35 @@ class MainActivity : Activity() {
     private fun home() {
         val running = TranslatorService.running
         val paused = TranslatorService.paused
+        val demoRun = running && TranslatorService.demo
         val overlayOk = SubtitleOverlay.canShow(this)
         val lang = Prefs.lang(this)
         val modelOk = OfflineTranslator.isReady(lang)
-        val src = Prefs.source(this)
-        val hdmi = src.direct          // hra jde do TV kabelem (HDMI nebo USB režim)
-        val rpOk = findRemotePlay() != null
-        val hdmiRes = Prefs.hdmiResult(this)
-        val ready = overlayOk && modelOk
+        val host = Prefs.ps5Host(this)
+        val ready = overlayOk && modelOk && host != null
         val lic = Prefs.license(this)
+        val link = Ps5Link.state
 
         val title: String
-        val sub: String
+        var sub: String
         val color: Int
         when {
             !lic.canRun -> { title = t("lic_expired"); sub = t("lic_expired_sub"); color = Theme.BAD }
             running && paused -> { title = t("st_paused"); sub = t("st_paused_sub"); color = Theme.WARN }
-            running -> { title = t("st_running"); sub = t(if (hdmi) "st_running_hdmi" else "st_running_sub"); color = Theme.OK }
-            ready -> { title = t("st_ready"); sub = t(if (hdmi) "st_ready_hdmi" else "st_ready_sub"); color = Theme.ACCENT }
+            demoRun -> { title = t("st_running"); sub = t("st_demo"); color = Theme.OK }
+            running && link == Ps5.Link.CONNECTED -> { title = t("st_running"); sub = t("st_running_sub"); color = Theme.OK }
+            running && link == Ps5.Link.FAILED -> {
+                title = t("m_ps5")
+                sub = t(if (Ps5Link.needsLoginPin) "ps5_login_fail" else "st_failed")
+                color = Theme.BAD
+            }
+            running && link == Ps5.Link.WAITING -> { title = t("m_ps5"); sub = t("st_waiting"); color = Theme.WARN }
+            running -> { title = t("m_ps5"); sub = t("st_connecting"); color = Theme.WARN }
+            ready -> { title = t("st_ready"); sub = t("st_ready_sub"); color = Theme.ACCENT }
+            host == null && overlayOk && modelOk -> { title = t("st_setup"); sub = t("st_nops5"); color = Theme.WARN }
             else -> { title = t("st_setup"); sub = t("st_setup_sub"); color = Theme.WARN }
         }
+        if (running && !demoRun && link != Ps5.Link.CONNECTED) Ps5Link.reason?.let { sub += "\n($it)" }
         val status = ui.card()
         val head = ui.hbox()
         head.addView(View(this).apply { background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(color) } },
@@ -356,57 +377,164 @@ class MainActivity : Activity() {
         if (!lic.canRun) {
             buttons.addView(tagged(ui.button(t("lic_open"), primary = true) { section = Section.LICENSE; render() }, "start"))
         } else if (!running) {
-            buttons.addView(tagged(ui.button(t("b_start"), primary = true) { startFlow() }, "start"))
+            buttons.addView(tagged(ui.button(t(if (host == null) "ps5_pair" else "b_start"), primary = true) { startFlow() }, "start"))
+            buttons.addView(tagged(ui.button(t("b_demo")) { startDemo() }, "demo"), wrapLp())
         } else {
-            buttons.addView(tagged(ui.button(t(if (hdmi) "b_go_game" else "b_open_rp"), primary = true) {
-                if (hdmi) moveTaskToBack(true) else launchRemotePlay()
-            }, "start"))
-            buttons.addView(tagged(ui.button(t(if (paused) "b_resume" else "b_pause")) { togglePause() }, "pause"), wrapLp())
+            if (demoRun) {
+                buttons.addView(tagged(ui.button(t("b_testcard"), primary = true) {
+                    startActivity(Intent(this, TestCardActivity::class.java))
+                }, "start"))
+            } else {
+                buttons.addView(tagged(ui.button(t("b_go_game"), primary = true) { moveTaskToBack(true) }, "start"))
+                buttons.addView(tagged(ui.button(t(if (paused) "b_resume" else "b_pause")) { togglePause() }, "pause"), wrapLp())
+            }
             buttons.addView(tagged(ui.button(t("b_stop")) { stopTranslation() }, "stop"), wrapLp())
         }
         add(buttons, 18)
-        if (running) add(tagged(ui.button(t("b_testcard")) {
-            startActivity(Intent(this, TestCardActivity::class.java))
-        }, "tcard"), 10)
         if (lic.kind == cz.testpreklad.core.License.Kind.TRIAL) {
             add(ui.text(t("lic_trial").replace("%d", lic.daysLeft.toString()), 14f, Theme.ACCENT), 10)
         }
+
+        if (running && !demoRun) preview()
 
         content.addView(ui.section(t("check_title")))
         val check = ui.card()
         check.addView(ui.checkRow(overlayOk, false, t("chk_overlay"), t("ok"), t("fix")) { section = Section.SETTINGS; render() })
         check.addView(ui.checkRow(modelOk, false, t("chk_model") + " (${lang.label})", t("ok"), t("download")) { downloadModel() })
-        if (src == Source.USB) {
-            val us = UsbCapture.status(this)
-            check.addView(ui.checkRow(us == UsbCapture.Companion.Status.READY, false, t("chk_usb"), t("ok"), t("usb_check")) { render(true) })
-            if (us != UsbCapture.Companion.Status.READY) {
-                add(check, 0)
-                add(ui.card().apply {
-                    addView(ui.text(t(if (us == UsbCapture.Companion.Status.NO_USB_VIDEO) "usb_none" else "usb_nocam"), 16f, Theme.WARN))
-                }, 12)
-                add(ui.text(t("tip_usb"), 14f, Theme.MUTED), 16)
-                return
-            }
-        } else if (hdmi) {
-            check.addView(ui.checkRow(hdmiRes == 1, false, t("chk_hdmi"), t("ok"), t("hdmi_try")) { startHdmiTest() })
-        } else {
-            check.addView(ui.checkRow(rpOk, false, t("chk_rp"), t("ok"), t("set_up")) { openStore(REMOTE_PLAY_PKG) })
-        }
+        check.addView(ui.checkRow(host != null, false, t("chk_ps5") + (host?.let { " (${it.name})" } ?: ""), t("ok"), t("set_up")) { section = Section.PS5; render() })
         add(check, 0)
-        if (src == Source.HDMI && (hdmiRes != -1 || hdmiWaitMsg)) {
-            val (msg, col) = when {
-                hdmiWaitMsg -> t("hdmi_wait") to Theme.WARN
-                hdmiRes == 1 -> t("hdmi_ok") to Theme.OK
-                else -> t("hdmi_blocked") to Theme.WARN
-            }
-            val r = ui.card()
-            r.addView(ui.text(msg, 16f, col))
-            if (hdmiRes == 0 && !hdmiWaitMsg) {
-                r.addView(tagged(ui.button(t("hdmi_retry")) { startHdmiTest() }, "hretry"), ui.lp(top = 12))
-            }
-            add(r, 12)
+        add(ui.text(t("tip_ps5"), 14f, Theme.MUTED), 16)
+    }
+
+    /** Náhled: co aplikace z PlayStationu právě vidí (důkaz, že spojení funguje). */
+    private fun preview() {
+        val snap = TranslatorService.snapshot ?: return
+        content.addView(ui.section(t("ps5_preview")))
+        val w = ui.dp(420)
+        val h = w * snap.height / maxOf(1, snap.width)
+        content.addView(ImageView(this).apply {
+            setImageBitmap(snap)
+            scaleType = ImageView.ScaleType.FIT_XY
+        }, LinearLayout.LayoutParams(w, h))
+    }
+
+    // ======================= PLAYSTATION =======================
+
+    private fun ps5() {
+        ps5Form()
+        if (TranslatorService.running && !TranslatorService.demo) preview()
+    }
+
+    private fun input(hintKey: String, value: String, tagName: String, number: Boolean) = EditText(this).apply {
+        setText(value)
+        hint = t(hintKey)
+        setSingleLine(true)
+        inputType = if (number) InputType.TYPE_CLASS_PHONE
+            else InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        imeOptions = EditorInfo.IME_ACTION_DONE
+        setTextColor(Theme.TEXT)
+        setHintTextColor(Theme.MUTED)
+        textSize = 17f
+        background = ui.focusBg(Theme.CARD)
+        setPadding(ui.dp(18), ui.dp(12), ui.dp(18), ui.dp(12))
+        tag = tagName
+    }
+
+    /** Uloží rozepsané údaje z políček, než se obrazovka překreslí. */
+    private fun saveDrafts() {
+        fun read(tagName: String): String? = window.decorView.findViewWithTag<View>(tagName)?.let { (it as? EditText)?.text?.toString() }
+        read("pip")?.let { draftIp = it.trim() }
+        read("ppsn")?.let { draftPsn = it.trim() }
+        read("ppin")?.let { draftPin = it.trim() }
+        read("plogin")?.let {
+            draftLogin = it.trim()
+            if (draftLogin.isEmpty() || (draftLogin.length == 4 && draftLogin.all(Char::isDigit))) Prefs.setPs5LoginPin(this, draftLogin)
         }
-        add(ui.text(t(when (src) { Source.HDMI -> "tip_hdmi"; Source.USB -> "tip_usb"; else -> "tip_share" }), 14f, Theme.MUTED), 16)
+        read("dicten")?.let { draftEn = it }
+        read("dicttr")?.let { draftTr = it }
+        read("code")?.let { draftCode = it }
+    }
+
+    /** Spárování s PlayStationem (stránka PlayStation i krok průvodce). */
+    private fun ps5Form() {
+        val host = Prefs.ps5Host(this)
+        if (draftLogin.isEmpty()) draftLogin = Prefs.ps5LoginPin(this)
+        if (host != null) {
+            val c = ui.card()
+            c.addView(ui.text(t("ps5_paired") + ": " + host.name, 20f, Theme.OK, bold = true))
+            c.addView(ui.text(host.ip, 15f, Theme.MUTED), ui.lp(top = 4))
+            add(c, 16)
+            pairMsg?.let { add(ui.text(it, 15f, pairMsgColor), 10) }
+            add(input("ps5_login", draftLogin, "plogin", number = true), 12)
+            add(tagged(ui.button(t("ps5_forget")) {
+                if (TranslatorService.running && !TranslatorService.demo) stopService(Intent(this, TranslatorService::class.java))
+                Prefs.setPs5Host(this, null); pairMsg = null; render(true)
+            }, "pforget"), 12)
+            return
+        }
+        if (draftIp.isEmpty()) draftIp = Prefs.ps5Ip(this)
+        if (draftPsn.isEmpty()) draftPsn = Prefs.psnId(this)
+        add(ui.card().apply { addView(ui.text(t("ps5_steps"), 16f, Theme.TEXT)) }, 16)
+        add(tagged(ui.button(t("ps5_find")) { findPs5() }, "pfind"), 12)
+        add(input("ps5_ip", draftIp, "pip", number = true), 10)
+        add(input("ps5_psn", draftPsn, "ppsn", number = false), 8)
+        add(input("ps5_pin", draftPin, "ppin", number = true), 8)
+        add(input("ps5_login", draftLogin, "plogin", number = true), 8)
+        pairMsg?.let { add(ui.text(it, 15f, pairMsgColor), 10) }
+        add(tagged(ui.button(t(if (pairBusy) "ps5_pairing" else "ps5_pair"), primary = true) { if (!pairBusy) pairPs5() }, "ppair"), 12)
+    }
+
+    /** Zpráva u párování; [change] upraví rozepsané údaje (až po uložení toho, co je v políčkách). */
+    private fun pairNote(msg: String?, color: Int = Theme.MUTED, busy: Boolean = false, change: (() -> Unit)? = null) {
+        runOnUiThread {
+            if (isFinishing) return@runOnUiThread
+            saveDrafts()
+            change?.invoke()
+            pairMsg = msg; pairMsgColor = color; pairBusy = busy
+            skipDraftSave = true
+            try { render(true) } finally { skipDraftSave = false }
+        }
+    }
+
+    private fun findPs5() {
+        if (pairBusy) return
+        saveDrafts()
+        pairNote(t("ps5_finding"), busy = true)
+        Thread({
+            val list = Ps5Pairing.discover()
+            val first = list.firstOrNull()
+            if (first != null) {
+                Prefs.setPs5Ip(this, first.ip)
+                pairNote(t("ps5_found") + " " + list.joinToString { it.name + " (" + it.ip + ")" }, Theme.OK) { draftIp = first.ip }
+            } else pairNote(t("ps5_notfound"), Theme.WARN)
+        }, "tp-find").start()
+    }
+
+    private fun pairPs5() {
+        saveDrafts()
+        val ip = draftIp
+        if (!Ps5.validHost(ip)) { pairNote(t("ps5_bad_ip"), Theme.BAD); return }
+        val pin = Ps5.parsePin(draftPin)
+        if (pin == null) { pairNote(t("ps5_bad_pin"), Theme.BAD); return }
+        Prefs.setPs5Ip(this, ip); Prefs.setPsnId(this, draftPsn)
+        val psn = draftPsn
+        pairNote(t("ps5_looking"), busy = true)
+        Thread({
+            var account = Ps5.parseAccountId(psn)
+            if (account == null) {
+                val enc = Ps5Pairing.lookupAccountId(psn)
+                account = enc?.let { Ps5.parseAccountId(it) }
+                if (enc != null) Prefs.setPsnId(this, enc)
+            }
+            if (account == null) { pairNote(t("ps5_bad_psn"), Theme.BAD); return@Thread }
+            pairNote(t("ps5_pairing"), busy = true)
+            Ps5Pairing.pair(ip, account, pin) { h: Ps5Host? ->
+                if (h != null) {
+                    Prefs.setPs5Host(this, h)
+                    pairNote(t("ps5_ok"), Theme.OK) { draftPin = "" }
+                } else pairNote(t("ps5_fail"), Theme.BAD)
+            }
+        }, "tp-pair").start()
     }
 
     // ======================= OBLASTI =======================
@@ -564,6 +692,7 @@ class MainActivity : Activity() {
         }, "rstats"))
         row2.addView(tagged(ui.button(t("t_clear_memory")) { clearMemory() }, "clrmem"), wrapLp())
         add(row2, 12)
+        add(tagged(ui.button(t("m_history")) { section = Section.HISTORY; render() }, "hist"), 12)
     }
 
     // ======================= NASTAVENÍ =======================
@@ -579,28 +708,7 @@ class MainActivity : Activity() {
             openOverlaySettings()
         }, "overlay"), 8)
 
-        content.addView(ui.section(t("s_source")))
-        val src = Prefs.source(this)
-        val hdmi = src.direct
-        add(tagged(ui.settingRow(t("s_source_row"), t(when (src) { Source.HDMI -> "src_hdmi"; Source.USB -> "src_usb"; else -> "src_rp" })) {
-            Prefs.setSource(this, src.next())
-            // jiný zdroj obrazu = překlad je potřeba spustit znovu
-            if (TranslatorService.running) { stopService(Intent(this, TranslatorService::class.java)); toast(t("src_restart")) }
-            render(true)
-        }, "source"), 0)
-        add(ui.text(t(when (src) { Source.HDMI -> "src_hdmi_desc"; Source.USB -> "src_usb_desc"; else -> "src_rp_desc" }), 14f, Theme.MUTED), 8)
-        // Android box / Chromecast nemůže kreslit přes HDMI vstup televize, kde je PS5
-        if (!Prefs.isTv(this) && src.direct) add(ui.text(t("box_warn"), 14f, Theme.WARN), 8)
-
         content.addView(ui.section(t("s_behavior")))
-        if (!hdmi) {
-            add(tagged(ui.settingRow(t("s_only_rp"), onOff(Prefs.onlyRemotePlay(this))) {
-                Prefs.setOnlyRemotePlay(this, !Prefs.onlyRemotePlay(this)); applyToService(); render(true)
-            }, "onlyrp"), 0)
-            add(tagged(ui.settingRow(t("s_auto"), onOff(Prefs.autoLaunch(this))) {
-                Prefs.setAutoLaunch(this, !Prefs.autoLaunch(this)); render(true)
-            }, "auto"), 8)
-        }
         add(tagged(ui.settingRow(t("s_debug"), onOff(Prefs.debug(this))) {
             Prefs.setDebug(this, !Prefs.debug(this)); applyToService(); render(true)
         }, "debug"), 8)
@@ -707,22 +815,46 @@ class MainActivity : Activity() {
 
     private fun startFlow() {
         if (!Prefs.license(this).canRun) { section = Section.LICENSE; render(); return }
-        if (TranslatorService.running) { if (Prefs.source(this).direct) moveTaskToBack(true) else launchRemotePlay(); return }
+        if (TranslatorService.running && !TranslatorService.demo) { moveTaskToBack(true); return }
         if (!SubtitleOverlay.canShow(this)) { toast(t("need_overlay")); section = Section.SETTINGS; render(); return }
-        if (Prefs.source(this) == Source.USB && !hasCameraPermission()) {
-            requestPermissions(arrayOf("android.permission.CAMERA"), REQ_CAMERA); return
-        }
+        if (Prefs.ps5Host(this) == null) { section = Section.PS5; render(); return }
         busyText = t("prep_model"); render(true)
         OfflineTranslator.ensureModel(Prefs.lang(this)) { ok ->
             runOnUiThread {
                 if (!ok) {
                     busyText = t("model_fail"); render(true); busyText = null
                 } else {
-                    busyText = null; render(true)
-                    if (Prefs.source(this) == Source.USB) startUsb() else requestCapture()
+                    busyText = null
+                    launchService(null)
                 }
             }
         }
+    }
+
+    /** Zkouška bez PlayStationu: ukázková hra jde do aplikace stejnou cestou jako video z konzole. */
+    private fun startDemo() {
+        if (!Prefs.license(this).canRun) { section = Section.LICENSE; render(); return }
+        if (!SubtitleOverlay.canShow(this)) { toast(t("need_overlay")); section = Section.SETTINGS; render(); return }
+        OfflineTranslator.ensureModel(Prefs.lang(this)) { }
+        launchService(TranslatorService.ACTION_START_DEMO)
+        main.postDelayed({
+            if (TranslatorService.running) startActivity(Intent(this, TestCardActivity::class.java))
+        }, 1200)
+    }
+
+    private fun launchService(action: String?) {
+        try {
+            startForegroundService(Intent(this, TranslatorService::class.java).setAction(action))
+        } catch (e: Exception) {
+            busyText = e.javaClass.simpleName; render(true); busyText = null; return
+        }
+        main.postDelayed({
+            val err = TranslatorService.startError
+            if (!TranslatorService.running && err != null) {
+                busyText = if (err.startsWith("video")) t("err_video") + " ($err)" else err
+                render(true); busyText = null
+            } else render(true)
+        }, 1000)
     }
 
     private fun downloadModel() {
@@ -730,89 +862,6 @@ class MainActivity : Activity() {
         OfflineTranslator.ensureModel(Prefs.lang(this)) { ok ->
             runOnUiThread { busyText = if (ok) null else t("model_fail"); render(true); busyText = null }
         }
-    }
-
-    private fun requestCapture() {
-        val mpm = getSystemService(MediaProjectionManager::class.java)
-        try {
-            toast(t("share_whole"))
-            @Suppress("DEPRECATION")
-            startActivityForResult(mpm.createScreenCaptureIntent(), REQ_CAPTURE)
-        } catch (e: ActivityNotFoundException) {
-            busyText = t("no_capture"); render(true); busyText = null
-        }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        @Suppress("DEPRECATION")
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode != REQ_CAPTURE) return
-        if (resultCode != RESULT_OK || data == null) { toast(t("capture_denied")); return }
-        val i = Intent(this, TranslatorService::class.java)
-            .putExtra(TranslatorService.EXTRA_CODE, resultCode)
-            .putExtra(TranslatorService.EXTRA_DATA, data)
-        startForegroundService(i)
-        main.postDelayed({
-            render(true)
-            when {
-                // HDMI: vrať se do hry (na vstup HDMI, odkud byla aplikace otevřená)
-                Prefs.source(this).direct -> { toast(t(if (hdmiTestPending) "hdmi_test_go" else "go_hdmi")); moveTaskToBack(true) }
-                Prefs.autoLaunch(this) -> launchRemotePlay()
-            }
-        }, 1200)
-    }
-
-    /** Spustí test HDMI: překlad běží, uživatel přepne na HDMI s hrou a za chvíli se vrátí. */
-    private fun startHdmiTest() {
-        // test potřebuje vědět, která aplikace je na obrazovce (vstup HDMI vs. domovská obrazovka)
-        if (TitulkyAccessibility.instance == null) {
-            toast(t("hdmi_need_a11y")); section = Section.SETTINGS; render(); return
-        }
-        TranslatorService.hdmiProbe.reset()
-        hdmiTestPending = true
-        hdmiWaitMsg = false
-        if (TranslatorService.running) {
-            toast(t("hdmi_test_go"))
-            moveTaskToBack(true)
-        } else {
-            startFlow()
-        }
-    }
-
-    /** Po návratu do aplikace vyhodnotí test HDMI. */
-    private fun checkHdmiTest() {
-        if (!hdmiTestPending) return
-        when (TranslatorService.hdmiProbe.verdict) {
-            cz.testpreklad.core.HdmiProbe.Verdict.WORKS -> { Prefs.setHdmiResult(this, 1); hdmiTestPending = false; hdmiWaitMsg = false }
-            cz.testpreklad.core.HdmiProbe.Verdict.BLOCKED -> { Prefs.setHdmiResult(this, 0); hdmiTestPending = false; hdmiWaitMsg = false }
-            cz.testpreklad.core.HdmiProbe.Verdict.UNKNOWN -> hdmiWaitMsg = TranslatorService.running
-        }
-        section = Section.HOME
-    }
-
-    private fun hasCameraPermission(): Boolean =
-        Build.VERSION.SDK_INT < 23 || checkSelfPermission("android.permission.CAMERA") == android.content.pm.PackageManager.PERMISSION_GRANTED
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQ_CAMERA) {
-            if (hasCameraPermission()) startFlow() else toast(t("usb_perm"))
-        }
-    }
-
-    /** Režim USB: spustí čtení z klíčenky – bez dotazu na sdílení obrazovky. */
-    private fun startUsb() {
-        startForegroundService(Intent(this, TranslatorService::class.java).setAction(TranslatorService.ACTION_START_USB))
-        main.postDelayed({
-            val err = TranslatorService.startError
-            if (!TranslatorService.running && err != null) {
-                busyText = t("usb_fail") + " ($err)"; render(true); busyText = null
-            } else {
-                render(true)
-                toast(t("go_hdmi")); moveTaskToBack(true)
-            }
-        }, 2500)
     }
 
     /** Na pozadí zjistí, jestli není ke stažení novější verze. */
@@ -841,12 +890,22 @@ class MainActivity : Activity() {
         sb.append("Zařízení: ").append(Build.MANUFACTURER).append(' ').append(Build.MODEL).append(", Android ").append(Build.VERSION.RELEASE).append(" (API ").append(Build.VERSION.SDK_INT).append(")\n")
         val (w, h) = screenSize()
         sb.append("Obrazovka: ").append(w).append('×').append(h).append(", televize: ").append(Prefs.isTv(this)).append("\n")
-        sb.append("Jazyk: ").append(Prefs.lang(this).code).append(", zdroj: ").append(Prefs.source(this).code).append(", hra: ").append(Prefs.gameId(this)).append("\n")
+        sb.append("Jazyk: ").append(Prefs.lang(this).code).append(", hra: ").append(Prefs.gameId(this)).append("\n")
         sb.append("Usnadnění: ").append(TitulkyAccessibility.instance != null).append(", překryv: ").append(Settings.canDrawOverlays(this))
-            .append(", model: ").append(OfflineTranslator.isReady(Prefs.lang(this))).append(", HDMI test: ").append(Prefs.hdmiResult(this)).append("\n")
+            .append(", model: ").append(OfflineTranslator.isReady(Prefs.lang(this))).append("\n")
         sb.append("Automatika: ").append(Prefs.autoZone(this)).append(", oblast: ").append(Prefs.layout(this).serialize()).append("\n")
         sb.append("Licence: ").append(Prefs.license(this).kind).append(", překlad běží: ").append(TranslatorService.running).append("\n")
+        val host = Prefs.ps5Host(this)
+        sb.append("PlayStation: ").append(if (host != null) "spárováno (${host.name}, ${host.ip})" else "nespárováno")
+            .append(", spojení: ").append(Ps5Link.state).append(Ps5Link.reason?.let { " ($it)" } ?: "")
+            .append(", ukázka: ").append(TranslatorService.demo).append(", snímků: ").append(TranslatorService.framesDecoded)
+            .append(", knihovna: ").append(Ps5Link.selfTest()).append("\n")
         sb.append("--- poslední události ---\n").append(DiagLog.dump())
+        // konec záznamu spojení s konzolí (pomůže najít, proč se nepřipojila)
+        try {
+            val f = Ps5Link.logFile(this)
+            if (f.exists()) sb.append("\n--- spojení s PlayStationem ---\n").append(f.readText().takeLast(6000))
+        } catch (_: Exception) {}
         val text = sb.toString()
         val where = try {
             val dir = getExternalFilesDir(null) ?: filesDir
@@ -866,41 +925,6 @@ class MainActivity : Activity() {
     private fun stopTranslation() {
         stopService(Intent(this, TranslatorService::class.java))
         main.postDelayed({ render(true) }, 400)
-    }
-
-    private fun launchRemotePlay() {
-        val intent = findRemotePlay()
-        if (intent != null) {
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            try { startActivity(intent); return } catch (_: Exception) {}
-        }
-        toast(t("rp_missing"))
-        moveTaskToBack(true)
-    }
-
-    @Suppress("DEPRECATION")
-    private fun findRemotePlay(): Intent? {
-        val pm = packageManager
-        pm.getLeanbackLaunchIntentForPackage(REMOTE_PLAY_PKG)?.let { return it }
-        pm.getLaunchIntentForPackage(REMOTE_PLAY_PKG)?.let { return it }
-        // záloha: hledej podle názvu (jiná verze balíčku nebo open-source klient)
-        for (cat in arrayOf(Intent.CATEGORY_LEANBACK_LAUNCHER, Intent.CATEGORY_LAUNCHER)) {
-            val q = Intent(Intent.ACTION_MAIN).addCategory(cat)
-            val list = try { pm.queryIntentActivities(q, 0) } catch (_: Exception) { emptyList() }
-            for (ri in list) {
-                val pkg = ri.activityInfo.packageName
-                val label = ri.loadLabel(pm).toString()
-                if (pkg != packageName && (label.contains("Remote Play", ignoreCase = true) || TitulkyAccessibility.isRemotePlay(pkg))) {
-                    return Intent(Intent.ACTION_MAIN).addCategory(cat).setClassName(pkg, ri.activityInfo.name)
-                }
-            }
-        }
-        return null
-    }
-
-    private fun openStore(pkg: String) {
-        try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$pkg"))) }
-        catch (_: Exception) { toast("Google Play → PS Remote Play") }
     }
 
     private fun openAccessibility() {
@@ -977,8 +1001,8 @@ class MainActivity : Activity() {
 }
 
 object BuildInfo {
-    const val VERSION = "verze 0.10"
-    const val VERSION_CODE = 10
+    const val VERSION = "verze 0.11"
+    const val VERSION_CODE = 11
     const val DOWNLOAD_URL = "https://github.com/adusa89/Test-Preklad/releases/download/latest/TestPreklad.apk"
     const val VERSION_URL = "https://github.com/adusa89/Test-Preklad/releases/download/latest/version.txt"
 }

@@ -9,16 +9,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
-import android.graphics.PixelFormat
-import android.hardware.display.DisplayManager
-import android.hardware.display.VirtualDisplay
-import android.media.ImageReader
-import android.media.projection.MediaProjection
-import android.media.projection.MediaProjectionManager
 import android.os.Build
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.os.SystemClock
 import android.util.DisplayMetrics
 import android.util.Log
@@ -28,19 +20,17 @@ import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import cz.testpreklad.core.AutoZone
-import cz.testpreklad.core.CaptureMonitor
 import cz.testpreklad.core.DiagLog
 import cz.testpreklad.core.FrameSignature
 import cz.testpreklad.core.Glossary
-import cz.testpreklad.core.HdmiProbe
 import cz.testpreklad.core.I18n
 import cz.testpreklad.core.Lang
 import cz.testpreklad.core.OcrBlock
-import cz.testpreklad.core.Perf
 import cz.testpreklad.core.OcrLine
+import cz.testpreklad.core.Perf
+import cz.testpreklad.core.Ps5
 import cz.testpreklad.core.ScreenLayout
 import cz.testpreklad.core.Segment
-import cz.testpreklad.core.Source
 import cz.testpreklad.core.SubtitleHistory
 import cz.testpreklad.core.SubtitleTracker
 import cz.testpreklad.core.TextLogic
@@ -49,9 +39,9 @@ import cz.testpreklad.core.UsageStats
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -60,23 +50,26 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import kotlin.math.max
-import kotlin.math.min
 
 /**
- * Srdce aplikace: běží na pozadí, několikrát za sekundu vezme snímek obrazovky,
- * v oblasti titulků přečte anglický text, přeloží ho a položí přes něj černý pruh s překladem.
+ * Srdce aplikace. Připojí se k PlayStationu po domácí síti (stejně jako Remote Play), z kopie
+ * obrazu několikrát za sekundu přečte anglické titulky, přeloží je a položí přes obraz
+ * televize černý pruh s překladem. Hra samotná běží do televize kabelem HDMI v plné kvalitě.
  */
 class TranslatorService : Service() {
 
     companion object {
-        const val EXTRA_CODE = "code"
-        const val EXTRA_DATA = "data"
         const val ACTION_STOP = "cz.testpreklad.STOP"
         const val ACTION_PAUSE = "cz.testpreklad.PAUSE"
         const val ACTION_RELOAD = "cz.testpreklad.RELOAD"
-        const val ACTION_START_USB = "cz.testpreklad.START_USB"
+        /** Spustit nad ukázkovým videem místo PlayStationu (zkouška bez konzole). */
+        const val ACTION_START_DEMO = "cz.testpreklad.START_DEMO"
 
-        /** Poslední chyba při spuštění (např. klíčenka nenalezena) – pro obrazovku aplikace. */
+        /** Šířka a výška videa, které aplikace čte (na titulky bohatě stačí, šetří síť i výkon). */
+        const val VIDEO_W = 1280
+        const val VIDEO_H = 720
+
+        /** Poslední chyba při spuštění – pro obrazovku aplikace. */
         @Volatile var startError: String? = null
             private set
 
@@ -84,16 +77,20 @@ class TranslatorService : Service() {
             private set
         @Volatile var paused = false
             private set
-
-        /** Poslední snímek ze hry (zmenšený) – pro nastavení oblastí nad skutečným obrazem. */
-        @Volatile var snapshot: Bitmap? = null
+        /** Běží nad ukázkovým videem (ne nad PlayStationem)? */
+        @Volatile var demo = false
             private set
+
+        @Volatile private var activeReader: StreamReader? = null
+
+        /** Poslední obrázek ze hry (zmenšený, barevný) – pro náhled a nastavení oblastí. */
+        val snapshot: Bitmap? get() = activeReader?.colorSnapshot
+
+        /** Kolik snímků videa už aplikace dostala a dekódovala (pro obrazovku aplikace). */
+        val framesDecoded: Long get() = activeReader?.decoded ?: 0
 
         /** Statistika sdílená s obrazovkou aplikace. */
         @Volatile private var stats: UsageStats? = null
-
-        /** Automatický test, jestli televize dovolí číst obraz z HDMI. */
-        val hdmiProbe = HdmiProbe()
 
         fun statsFor(c: Context): UsageStats = stats ?: Prefs.stats(c).also { stats = it }
 
@@ -110,32 +107,27 @@ class TranslatorService : Service() {
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private var projection: MediaProjection? = null
-    private var virtualDisplay: VirtualDisplay? = null
-    private var reader: ImageReader? = null
+    private var reader: StreamReader? = null
+    private var link: Ps5Link? = null
+    private var feeder: DemoFeeder? = null
     @Volatile private var overlay: SubtitleOverlay? = null
     private val recognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
     private val cache = TranslationCache()
     private val tracker = SubtitleTracker()
-    private val monitor = CaptureMonitor()
     @Volatile private var layout = ScreenLayout()
     @Volatile private var lang = Lang.CS
     private var screenW = 0
     private var screenH = 0
-    private var capW = 0
-    private var capH = 0
+    private var capW = VIDEO_W
+    private var capH = VIDEO_H
     @Volatile private var debug = false
     @Volatile private var onlySubtitles = true
     @Volatile private var autoFind = true
     private val autoZone = AutoZone()
-    @Volatile private var onlyRemotePlay = true
-    @Volatile private var source = Source.HDMI
-    private var usb: UsbCapture? = null
 
-    /** Kdy schovat pruh (překlad zůstane chvíli po zmizení angličtiny, ať se dá dočíst). 0 = nic. */
     private var lastLicenseCheck = 0L
 
-    /** Výkon podle paměti zařízení – slabší televize čtou menší obraz a méně často. */
+    /** Výkon podle paměti zařízení – slabší televize čtou méně často. */
     private val perf: Perf by lazy {
         try {
             val am = getSystemService(android.app.ActivityManager::class.java)
@@ -144,6 +136,8 @@ class TranslatorService : Service() {
             Perf.forDevice(mi.totalMem / (1024 * 1024), am.isLowRamDevice)
         } catch (_: Exception) { Perf.forDevice(0, false) }
     }
+
+    /** Kdy schovat pruh (překlad zůstane chvíli po zmizení angličtiny, ať se dá dočíst). 0 = nic. */
     private var hideAt = 0L
     @Volatile private var holdMs = 1000L
     @Volatile private var showOriginal = false
@@ -157,19 +151,16 @@ class TranslatorService : Service() {
     private var lastMs = 0L
     private var lastOcrMs = 0L
     private var ticksLogged = 0
+    private var lastLinkLogged: Ps5.Link? = null
+    private var lastVideoLog = 0L
 
-    /** Naposledy zobrazené překlady (čas, text) – aby je aplikace nikdy nepřeložila znovu. */
     /** Slovník: jména podle hry, předpřipravené hlášky a vlastní slovník uživatele. */
     @Volatile private var glossary: Glossary? = null
 
     /** Záznam pro automatickou zkoušku i pro hlášení chyby. */
     private fun tp(msg: String) { Log.i("TP_TEST", msg); DiagLog.add(msg) }
 
-    private val recentShown = ArrayDeque<Pair<Long, String>>()
     @Volatile private var lastError: String? = null
-
-    /** Jeden znovupoužívaný snímek obrazovky – žádné velké alokace 10× za sekundu. */
-    private var frameBmp: Bitmap? = null
 
     /** Překlady spuštěné dopředu, hned po prvním přečtení titulku (text → běžící překlad). */
     private val inflight = java.util.concurrent.ConcurrentHashMap<String, Deferred<List<Segment>?>>()
@@ -194,59 +185,53 @@ class TranslatorService : Service() {
             }
         }
 
-        if (intent?.action == ACTION_START_USB) {
-            // ---- režim USB klíčenky: žádné snímání obrazovky, čte se kopie obrazu z HDMI splitteru ----
-            startForegroundCompat(buildNotification(), camera = true)
-            if (running || usb != null) return START_NOT_STICKY
-            startError = null
-            setupScreenSize()
-            val u = UsbCapture(this)
-            usb = u
-            u.open { ok ->
-                if (!ok) {
-                    startError = u.error ?: "USB"
-                    stopSelf()
-                } else {
-                    capW = u.width; capH = u.height
-                    Handler(Looper.getMainLooper()).post { beginRunning() }
-                }
-            }
+        val wantDemo = intent?.action == ACTION_START_DEMO
+        startForegroundCompat(buildNotification())
+        if (running) {
+            // už běží → jen případně přepni zdroj (ukázka ↔ PlayStation)
+            if (wantDemo != demo) startSource(wantDemo)
             return START_NOT_STICKY
         }
+        startError = null
+        if (!Prefs.license(this).canRun) { startError = "licence"; stopSelf(); return START_NOT_STICKY }
+        if (!wantDemo && Prefs.ps5Host(this) == null) { startError = "ps5"; stopSelf(); return START_NOT_STICKY }
 
-        // Android vyžaduje, aby služba se snímáním obrazovky hned běžela v popředí
-        startForegroundCompat(buildNotification(), camera = false)
-        if (projection != null || running) return START_NOT_STICKY   // už běží
-
-        val code = intent?.getIntExtra(EXTRA_CODE, 0) ?: 0
-        val data = intent?.let { parcelIntent(it) }
-        if (data == null) { stopSelf(); return START_NOT_STICKY }
-
-        val mpm = getSystemService(MediaProjectionManager::class.java)
-        val mp = try { mpm.getMediaProjection(code, data) } catch (e: Exception) { Log.e(TAG, "projection", e); null }
-        if (mp == null) { stopSelf(); return START_NOT_STICKY }
-        projection = mp
-        // Android 14+: callback musí být registrovaný před vytvořením virtuálního displeje
-        mp.registerCallback(object : MediaProjection.Callback() {
-            override fun onStop() { stopSelf() }
-        }, Handler(Looper.getMainLooper()))
-
-        try {
-            setupCapture(mp)
-        } catch (e: Exception) {
-            Log.e(TAG, "capture", e); stopSelf(); return START_NOT_STICKY
+        setupScreenSize()
+        val r = StreamReader(VIDEO_W, VIDEO_H)
+        if (!r.start()) {
+            startError = "video: " + (r.lastError ?: "?")
+            tp("ERROR|decoder|" + r.lastError)
+            r.stop(); stopSelf(); return START_NOT_STICKY
         }
+        reader = r
+        activeReader = r
         beginRunning()
+        startSource(wantDemo)
         return START_NOT_STICKY
     }
 
-    /** Společný start po připravení zdroje obrazu (obrazovka nebo USB klíčenka). */
+    /** Zapne zdroj videa: PlayStation po síti, nebo ukázkové video. */
+    private fun startSource(wantDemo: Boolean) {
+        val r = reader ?: return
+        link?.stop(); link = null
+        feeder?.stop(); feeder = null
+        demo = wantDemo
+        overlay?.hide(); tracker.reset(); lastSig = null
+        if (wantDemo) {
+            feeder = DemoFeeder(VIDEO_W, VIDEO_H) { r.feed(it) }.also { it.start() }
+            tp("SOURCE|demo")
+        } else {
+            val host = Prefs.ps5Host(this) ?: return
+            link = Ps5Link(applicationContext, host) { r.feed(it) }.also { it.start() }
+            tp("SOURCE|ps5 ${host.ip}")
+        }
+        updateNotification()
+    }
+
     private fun beginRunning() {
-        if (running) return
-        if (!Prefs.license(this).canRun) { startError = "licence"; stopSelf(); return }
         lastLicenseCheck = SystemClock.uptimeMillis()
         tp("A11Y|" + (TitulkyAccessibility.instance != null) + "|launchers=" + launchers)
-        tp("START|cap=${capW}x${capH}|screen=${screenW}x${screenH}|eco=${perf.eco}|usb=${usb != null}")
+        tp("START|video=${VIDEO_W}x${VIDEO_H}|screen=${screenW}x${screenH}|eco=${perf.eco}|decoder=${reader?.decoderName}|lib=${Ps5Link.selfTest()}")
         lang = Prefs.lang(this)
         statsFor(this)
         loadCache()
@@ -270,7 +255,6 @@ class TranslatorService : Service() {
         autoFind = Prefs.autoZone(this)
         if (autoFind != wasAuto) autoZone.reset()
         if (autoFind) layout = layout.copy(read = autoZone.current)
-        onlyRemotePlay = Prefs.onlyRemotePlay(this)
         glossary = Prefs.glossary(this)
         // změna hry nebo slovníku → dřívější překlady už neplatí
         val sig = Prefs.glossarySignature(this)
@@ -278,7 +262,6 @@ class TranslatorService : Service() {
             cache.clear(); try { cacheFile().delete() } catch (_: Exception) {}
             Prefs.setSavedGlossarySignature(this, sig)
         }
-        source = Prefs.source(this)
         holdMs = Prefs.holdMs(this).toLong()
         showOriginal = Prefs.showOriginal(this)
         hideAt = 0
@@ -293,11 +276,6 @@ class TranslatorService : Service() {
         OfflineTranslator.ensureModel(lang) { }
         updateNotification()
     }
-
-    @Suppress("DEPRECATION")
-    private fun parcelIntent(i: Intent): Intent? =
-        if (Build.VERSION.SDK_INT >= 33) i.getParcelableExtra(EXTRA_DATA, Intent::class.java)
-        else i.getParcelableExtra(EXTRA_DATA)
 
     // ---------------- notifikace ----------------
 
@@ -325,15 +303,12 @@ class TranslatorService : Service() {
         try { getSystemService(NotificationManager::class.java).notify(NOTIF_ID, buildNotification()) } catch (_: Exception) {}
     }
 
-    private fun startForegroundCompat(n: Notification, camera: Boolean) {
-        when {
-            camera && Build.VERSION.SDK_INT >= 30 -> startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA)
-            !camera && Build.VERSION.SDK_INT >= 29 -> startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
-            else -> startForeground(NOTIF_ID, n)
-        }
+    private fun startForegroundCompat(n: Notification) {
+        if (Build.VERSION.SDK_INT >= 29) startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+        else startForeground(NOTIF_ID, n)
     }
 
-    // ---------------- snímání obrazovky ----------------
+    // ---------------- obrazovka ----------------
 
     @Suppress("DEPRECATION")
     private fun setupScreenSize() {
@@ -349,40 +324,6 @@ class TranslatorService : Service() {
         if (screenW <= 0 || screenH <= 0) { screenW = 1920; screenH = 1080 }
     }
 
-    private fun setupCapture(mp: MediaProjection) {
-        setupScreenSize()
-        capW = min(perf.captureWidth, screenW)
-        capH = max(2, ((screenH.toLong() * capW) / screenW).toInt() and 1.inv())
-        val r = ImageReader.newInstance(capW, capH, PixelFormat.RGBA_8888, 2)
-        reader = r
-        virtualDisplay = mp.createVirtualDisplay(
-            "test-preklad", capW, capH, resources.displayMetrics.densityDpi,
-            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, r.surface, null, null
-        )
-    }
-
-    private fun grabFrame(): Bitmap? {
-        usb?.let { return it.latest() }
-        val img = try { reader?.acquireLatestImage() } catch (e: Exception) { null } ?: return null
-        return try {
-            val plane = img.planes[0]
-            val pixelStride = plane.pixelStride
-            val rowStride = plane.rowStride
-            val rowPadding = rowStride - pixelStride * img.width
-            val bmpW = img.width + rowPadding / pixelStride
-            var bmp = frameBmp
-            if (bmp == null || bmp.width != bmpW || bmp.height != img.height) {
-                bmp = Bitmap.createBitmap(bmpW, img.height, Bitmap.Config.ARGB_8888)
-                frameBmp = bmp
-            }
-            bmp.copyPixelsFromBuffer(plane.buffer)
-            bmp
-        } catch (e: Exception) {
-            Log.w(TAG, "frame", e); null
-        } finally {
-            img.close()
-        }
-    }
 
     // ---------------- hlavní smyčka ----------------
 
@@ -390,6 +331,7 @@ class TranslatorService : Service() {
         while (currentCoroutineContext().isActive) {
             val t0 = SystemClock.uptimeMillis()
             try {
+                watchLink(t0)
                 if (!paused && appAllowed()) tick(t0)
             } catch (e: CancellationException) {
                 throw e
@@ -415,13 +357,33 @@ class TranslatorService : Service() {
         }
     }
 
-    /** Titulky jen v PS Remote Play – v jiných aplikacích (menu TV, YouTube…) se schovají. */
+    /** Hlídá spojení s konzolí: zapisuje změny stavu a obnoví spojení, když video přestane chodit. */
+    private fun watchLink(now: Long) {
+        val r = reader ?: return
+        if (now - lastVideoLog > 5000) {
+            lastVideoLog = now
+            if (ticksLogged < 400) tp("VIDEO|fed=${r.fed}|decoded=${r.decoded}|${r.frameWidth}x${r.frameHeight}|err=${r.lastError}")
+        }
+        if (demo) return
+        val st = Ps5Link.state
+        if (st != lastLinkLogged) {
+            lastLinkLogged = st
+            tp("LINK|$st|" + (Ps5Link.reason ?: ""))
+            // spojení spadlo → starý překlad nenechávej viset na obrazovce
+            if (st != Ps5.Link.CONNECTED) { hideAt = 0; overlay?.hide(); tracker.reset(); lastSig = null }
+            updateNotification()
+        }
+        val l = link ?: return
+        if (st == Ps5.Link.CONNECTED && l.connectedForMs > 12_000 && now - r.lastFrameAt > 12_000) {
+            l.restart("no video")
+        }
+    }
+
+    /** Pruh se ukazuje jen nad hrou – ne v menu této aplikace ani na domovské obrazovce televize. */
     private fun appAllowed(): Boolean {
         val pkg = TitulkyAccessibility.foregroundPackage
-        // ve vlastní aplikaci nikdy nečti (jinak by se překládalo její menu)
-        val allowed = UiState.testCard || (!UiState.visible && pkg != packageName && (pkg == null || pkg !in launchers) &&
-            // HDMI: hra běží ve vstupu televize (aplikace výrobce TV) → čte se všude mimo tuto aplikaci
-            (source.direct || !onlyRemotePlay || pkg == null || TitulkyAccessibility.isRemotePlay(pkg)))
+        val allowed = if (demo) UiState.testCard
+            else !UiState.visible && pkg != packageName && (pkg == null || pkg !in launchers)
         if (!allowed && !hiddenForOtherApp) {
             hideAt = 0; overlay?.hide(); tracker.reset(); lastSig = null
         }
@@ -431,54 +393,15 @@ class TranslatorService : Service() {
 
     private suspend fun tick(now: Long) {
         val ov = overlay ?: return
-        val decision = monitor.decide(now, ov.isShown)
-        val frame: Bitmap = when (decision) {
-            CaptureMonitor.Decision.SKIP -> return
-            CaptureMonitor.Decision.NORMAL -> grabFrame() ?: return
-            CaptureMonitor.Decision.PEEK -> {
-                // na zlomek sekundy skryj pruh, přečti, co je pod ním, a hned ho vrať
-                val rect = ov.barRect
-                ov.setPeekHidden(true)
-                delay(monitor.peekWaitMs)
-                var f = grabFrame()
-                // počkej, až snímek pruh opravdu neobsahuje (obraz se do snímání dostává se zpožděním)
-                if (rect != null && ov.isOpaque) {
-                    var waited = 0
-                    while (waited < 320 && (f == null || barInFrame(f, rect))) {
-                        delay(16); waited += 16
-                        f = grabFrame() ?: f
-                    }
-                }
-                ov.setPeekHidden(false)
-                lastSig = null
-                f ?: return
-            }
-        }
+        val frame = reader?.grab() ?: return      // žádný nový snímek videa
+        capW = frame.width
+        capH = frame.height
         frames++
-        if (frames % 30 == 1) takeSnapshot(frame)
-        if (usb == null && countsForHdmiTest()) probeHdmi(frame)
-        process(frame, ov, peek = decision == CaptureMonitor.Decision.PEEK)
+        process(frame, ov)
         lastMs = SystemClock.uptimeMillis() - now
     }
 
-    /** Je v místě našeho pruhu ve snímku čistě černá plocha (= pruh je ve snímku ještě vidět)? */
-    private fun barInFrame(frame: Bitmap, r: FloatArray): Boolean {
-        return try {
-            val l = (r[0] * capW).toInt(); val rr = (r[2] * capW).toInt()
-            val t = (r[1] * capH).toInt(); val b = (r[3] * capH).toInt()
-            val inset = 4
-            // okraje pruhu (tam není text): levý a pravý kraj ve třech výškách
-            for (y in intArrayOf(t + inset, (t + b) / 2, b - inset)) for (x in intArrayOf(l + inset, rr - inset)) {
-                if (x !in 0 until capW || y !in 0 until capH) continue
-                val c = frame.getPixel(x, y)
-                val lum = ((c shr 16 and 0xFF) + (c shr 8 and 0xFF) + (c and 0xFF)) / 3
-                if (lum > 6) return false
-            }
-            true
-        } catch (_: Exception) { false }
-    }
-
-    private suspend fun process(frame: Bitmap, ov: SubtitleOverlay, peek: Boolean) {
+    private suspend fun process(frame: Bitmap, ov: SubtitleOverlay) {
         val z = layout.read
         val x0 = (capW * z.left).toInt().coerceIn(0, capW - 1)
         val x1 = (capW * z.right).toInt().coerceIn(x0 + 1, capW)
@@ -486,7 +409,7 @@ class TranslatorService : Service() {
         val y1 = (capH * z.bottom).toInt().coerceIn(y0 + 1, capH)
         val crop = Bitmap.createBitmap(frame, x0, y0, x1 - x0, y1 - y0)
 
-        // přeskoč OCR, když se oblast od posledního čtení nezměnila
+        // přeskoč čtení, když se oblast od posledního čtení nezměnila
         val sig = signature(crop)
         val prev = lastSig
         if (prev != null && tracker.isSettled && FrameSignature.diff(prev, sig) < 1.5f) {
@@ -503,36 +426,8 @@ class TranslatorService : Service() {
         ocrRuns++
         lastOcrMs = SystemClock.uptimeMillis() - ocrStart
 
-        var blocks = toBlocks(result)
-        // text v místě našeho vlastního pruhu oddělíme od textu hry
-        val rect = ov.barRect
-        if (ov.isShown && rect != null) {
-            val (inside, outside) = TextLogic.splitByRect(
-                blocks,
-                (rect[0] * capW).toInt() - x0, (rect[1] * capH).toInt() - y0,
-                (rect[2] * capW).toInt() - x0, (rect[3] * capH).toInt() - y0,
-            )
-            val own = TextLogic.assemble(inside, 0).text
-            val sawOwnBar = monitor.isOwnText(own, listOf(ov.displayedPlain), tracker.shown)
-            if (!layout.cover) {
-                // pruh leží mimo titulky → jeho text jen ignorujeme, nakukovat není potřeba
-                if (sawOwnBar) blocks = outside
-            } else if (sawOwnBar) {
-                if (!peek) { monitor.markCaptured(); return }
-                // nakouknutí se nepovedlo (pruh ve snímku zůstal)
-                monitor.onPeekResult(stillSawOwnBar = true)
-                if (monitor.needsReset) {
-                    // opakovaně → pruh schovej úplně a začni znovu, ať nikdy „nezamrzne“
-                    monitor.clearFailures()
-                    hideAt = 0; ov.hide(); tracker.reset(); lastSig = null
-                    tp("RESET|peek failed")
-                }
-                return
-            }
-        }
-
         val picked = TextLogic.assemble(
-            blocks,
+            toBlocks(result),
             minLineHeight = (capH * 0.016f).toInt(),
             subtitlesOnly = onlySubtitles || autoFind,   // automatika čte velkou plochu → vždy jen titulky
             screenCenterX = capW / 2 - x0,
@@ -540,24 +435,13 @@ class TranslatorService : Service() {
         )
         if (picked.text.isNotEmpty()) lastOcrText = picked.text
 
-        // Pojistka proti smyčce: text, který není anglicky, nebo který jsme nedávno sami zobrazili,
-        // je náš vlastní pruh (snímek může být o chvilku starší než to, co je právě na obrazovce).
-        if (picked.text.isNotEmpty() &&
-            (TextLogic.looksForeign(picked.text) || monitor.isOwnText(picked.text, recentShown.map { it.second }, tracker.shown))
-        ) {
-            if (peek) {
-                monitor.onPeekResult(stillSawOwnBar = true)
-                if (monitor.needsReset) {
-                    monitor.clearFailures(); hideAt = 0; ov.hide(); tracker.reset(); lastSig = null
-                    tp("RESET|own text")
-                }
-            } else if (ov.isShown && layout.cover) monitor.markCaptured()
-            if (ticksLogged++ < 400) tp("OWN|" + picked.text.replace('\n', ' ').take(40))
+        // text, který není anglicky (hra už je v jiném jazyce, nebo je to šum), se nepřekládá
+        if (picked.text.isNotEmpty() && TextLogic.looksForeign(picked.text)) {
+            if (ticksLogged++ < 400) tp("SKIP|" + picked.text.replace('\n', ' ').take(40))
             return
         }
-        if (peek) monitor.onPeekResult(stillSawOwnBar = false)
         // záznam pro automatickou zkoušku (jen prvních pár set čtení)
-        if (ticksLogged++ < 400) tp("READ|${if (peek) "peek" else "norm"}|ocr=${lastOcrMs}ms|zone=${(z.height * 100).toInt()}%|" + picked.text.replace('\n', ' ').take(40))
+        if (ticksLogged++ < 400) tp("READ|ocr=${lastOcrMs}ms|zone=${(z.height * 100).toInt()}%|" + picked.text.replace('\n', ' ').take(40))
 
         // slabé zařízení: jedno čtení trvá déle než půl sekundy → nečekej na druhé potvrzení
         when (val action = tracker.onOcr(picked.text, slowDevice = lastOcrMs > 500)) {
@@ -569,10 +453,6 @@ class TranslatorService : Service() {
                 val top = if (picked.top >= 0) (y0 + picked.top).toFloat() / capH else -1f
                 val bottom = if (picked.bottom >= 0) (y0 + picked.bottom).toFloat() / capH else -1f
                 hideAt = 0
-                val plain = segs.joinToString(" ") { (it.speaker?.plus(": ") ?: "") + it.body }
-                val nowMs = SystemClock.uptimeMillis()
-                recentShown.addLast(nowMs to plain)
-                while (recentShown.size > 4 || (recentShown.isNotEmpty() && nowMs - recentShown.first().first > 15_000)) recentShown.removeFirst()
                 tp("SHOW|" + action.text.replace('\n', ' ') + "|" + segs.joinToString(" ") { (it.speaker?.plus(": ") ?: "") + it.body })
                 ov.show(segs, if (showOriginal) action.text else null, top, bottom)
                 statsFor(this).line()
@@ -588,9 +468,8 @@ class TranslatorService : Service() {
                 if (holdMs <= 0) ov.hide() else hideAt = SystemClock.uptimeMillis() + holdMs
             }
             SubtitleTracker.Action.None -> {
-                // pod pruhem je už jiný titulek → starý překlad hned schovej a čti naplno (bez nakukování)
-                if (peek && tracker.isChanging && picked.text.isNotEmpty()) { hideAt = 0; ov.hide(); lastSig = null }
-                if (tracker.isChanging) monitor.hurry(SystemClock.uptimeMillis())
+                // na obrazovce je už jiný titulek → starý překlad hned schovej
+                if (tracker.isChanging && picked.text.isNotEmpty() && ov.isShown) { hideAt = 0; ov.hide() }
                 prefetch(tracker.pendingText)
             }
         }
@@ -627,33 +506,6 @@ class TranslatorService : Service() {
             packageManager.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), 0)
                 .map { it.activityInfo.packageName }.toSet()
         } catch (_: Exception) { emptySet() }
-    }
-
-    /** Počítat snímek do testu HDMI jen když je na obrazovce vstup TV (ne launcher, ne neznámo). */
-    private fun countsForHdmiTest(): Boolean {
-        val pkg = TitulkyAccessibility.foregroundPackage ?: return false
-        return pkg != packageName && pkg !in launchers && !TitulkyAccessibility.isRemotePlay(pkg)
-    }
-
-    /** Je ve snímku skutečný obraz, nebo jen černo (televize HDMI blokuje)? */
-    private fun probeHdmi(frame: Bitmap) {
-        try {
-            val small = Bitmap.createScaledBitmap(Bitmap.createBitmap(frame, 0, 0, capW, capH), 32, 18, true)
-            val px = IntArray(32 * 18)
-            small.getPixels(px, 0, 32, 0, 0, 32, 18)
-            small.recycle()
-            hdmiProbe.add(HdmiProbe.contentRatio(FrameSignature.luminance(px)))
-        } catch (_: Exception) {}
-    }
-
-    private fun takeSnapshot(frame: Bitmap) {
-        try {
-            val w = 960
-            val h = max(1, (capH.toLong() * w / capW).toInt())
-            val exact = Bitmap.createBitmap(frame, 0, 0, capW, capH)   // bez případného zarovnání řádků
-            snapshot = Bitmap.createScaledBitmap(exact, w, h, true)
-            if (exact !== frame) exact.recycle()
-        } catch (_: Exception) {}
     }
 
     // ---------------- překlad ----------------
@@ -710,19 +562,15 @@ class TranslatorService : Service() {
     private fun publishDebug(ov: SubtitleOverlay) {
         val secs = max(1L, (SystemClock.uptimeMillis() - statsStart) / 1000)
         val mode = if (OfflineTranslator.isReady(lang)) "offline ${lang.code}" else "offline ${lang.code} – model se stahuje"
-        val capture = when {
-            usb != null -> "USB klíčenka ${capW}×${capH}"
-            monitor.overlayCaptured -> "celá obrazovka (nakukuje)"
-            else -> "OK"
-        }
+        val r = reader
+        val src = if (demo) "ukázka" else "PS5 " + Ps5Link.state + (Ps5Link.reason?.let { " ($it)" } ?: "")
         val ecoInfo = if (perf.eco) " · úsporný režim" else ""
         val zoneInfo = if (!autoFind) "ručně" else if (autoZone.learned != null) "auto – titulky nalezeny" else "auto – hledám"
-        val app = "oblast: $zoneInfo · " + (TitulkyAccessibility.foregroundPackage ?: "?") + " · HDMI test: " + hdmiProbe.verdict
         val err = lastError?.let { "\nchyba překladu: ${it.take(60)}" } ?: ""
         ov.debug(
-            "snímky ${frames / secs}/s · OCR ${ocrRuns / secs}/s · ${lastMs} ms\n" +
-                "překlad: $mode · paměť ${cache.size()} · snímání: $capture$ecoInfo\n" +
-                "aplikace: $app\n" +
+            "zdroj: $src · video ${r?.frameWidth}×${r?.frameHeight} · přijato ${r?.fed} · dekódováno ${r?.decoded}\n" +
+                "čtení ${ocrRuns / secs}/s · ${lastMs} ms · překlad: $mode · paměť ${cache.size()}$ecoInfo\n" +
+                "oblast: $zoneInfo · na obrazovce: " + (TitulkyAccessibility.foregroundPackage ?: "?") + "\n" +
                 "čtu: ${lastOcrText.replace('\n', ' ').take(70)}$err"
         )
     }
@@ -730,15 +578,14 @@ class TranslatorService : Service() {
     override fun onDestroy() {
         running = false
         paused = false
+        demo = false
         scope.cancel()
         saveCache()
         overlay?.destroy(); overlay = null
-        virtualDisplay?.release(); virtualDisplay = null
-        usb?.close(); usb = null
-        reader?.close(); reader = null
-        val p = projection
-        projection = null
-        try { p?.stop() } catch (_: Exception) {}
+        link?.stop(); link = null
+        feeder?.stop(); feeder = null
+        activeReader = null
+        reader?.stop(); reader = null
         try { recognizer.close() } catch (_: Exception) {}
         super.onDestroy()
     }
