@@ -53,6 +53,10 @@ class PsnLoginActivity : Activity() {
             "&redirect_uri=$REDIRECT&scope=psn:clientapp&request_locale=en_US&ui=pr&service_logo=ps" +
             "&layout_type=popup&smcid=remoteplay&prompt=always&PlatformPrivacyWs1=minimal&"
 
+        /** Chybové hlášky stránky Sony, po kterých má smysl zkusit jiný režim. */
+        private val SONY_ERRORS = listOf("something went wrong", "can't connect to the server", "cannot connect to the server",
+            "connection to the server timed out", "connect to the server timed out", "too many requests", "an error has occurred")
+
         private const val UA_DESKTOP =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
@@ -105,7 +109,8 @@ class PsnLoginActivity : Activity() {
     private lateinit var bar: LinearLayout
     private lateinit var reloadBtn: TextView
     private lateinit var modeBtn: TextView
-    private var desktop = false
+    private var desktop = true
+    private var switched = false
     private var cx = 0f
     private var cy = 0f
     private var done = false
@@ -122,8 +127,19 @@ class PsnLoginActivity : Activity() {
             if (done) return
             if (!loaded && loadStarted > 0 && SystemClock.uptimeMillis() - loadStarted > 25_000) {
                 loaded = true
-                showProblem("timeout")
+                if (!autoSwitch("timeout")) showProblem("timeout")
             }
+            // stránka Sony sama ohlásila chybu? (čte se jen viditelný text stránky, ne políčka s údaji)
+            try {
+                w.evaluateJavascript("(function(){try{return (document.body&&document.body.innerText||'').slice(0,2500)}catch(e){return ''}})()") { v ->
+                    val text = (v ?: "").lowercase()
+                    val hit = SONY_ERRORS.firstOrNull { text.contains(it) }
+                    if (hit != null && !done && SystemClock.uptimeMillis() - loadStarted > 4000) {
+                        if (hit.contains("too many")) { showProblem(hit) }
+                        else if (!autoSwitch(hit)) showProblem(hit)
+                    }
+                }
+            } catch (_: Throwable) {}
             main.postDelayed(this, 1500)
         }
     }
@@ -227,6 +243,9 @@ class PsnLoginActivity : Activity() {
             placeCursor()
         }
         w.requestFocus()
+        // začíná se režimem, který naposledy fungoval (poprvé režim „počítač“)
+        desktop = Prefs.psnDesktopMode(this)
+        w.settings.userAgentString = if (desktop) UA_DESKTOP else null
         load()
         main.postDelayed(poll, 1500)
     }
@@ -235,10 +254,31 @@ class PsnLoginActivity : Activity() {
         val w = web ?: return
         loaded = false
         loadStarted = SystemClock.uptimeMillis()
-        note.text = tx("ps5_acc_hint")
-        note.setTextColor(Color.WHITE)
+        if (!switched) { note.text = tx("ps5_acc_hint"); note.setTextColor(Color.WHITE) }
         log("load desktop=$desktop")
         w.loadUrl(LOGIN_URL)
+    }
+
+    /**
+     * Stránka Sony nejde nebo ohlásila chybu → samo zkusit druhý režim (počítač ↔ televize).
+     * Jen jednou, ať se to netočí dokola. Vrací true, když se přepnulo.
+     */
+    private fun autoSwitch(why: String): Boolean {
+        if (switched || done) return false
+        switched = true
+        log("auto switch from desktop=$desktop because $why")
+        setMode(!desktop)
+        note.text = tx("psn_auto")
+        note.setTextColor(Theme.WARN)
+        return true
+    }
+
+    private fun setMode(d: Boolean) {
+        val w = web ?: return
+        desktop = d
+        w.settings.userAgentString = if (desktop) UA_DESKTOP else null
+        try { CookieManager.getInstance().removeAllCookies(null) } catch (_: Throwable) {}
+        load()
     }
 
     /** Stránka se nenačetla – řekni to a nabídni, co s tím. */
@@ -259,7 +299,8 @@ class PsnLoginActivity : Activity() {
         try { web?.stopLoading() } catch (_: Throwable) {}
         Thread({
             val id = if (code != null) accountIdForCode(code) else null
-            if (id != null) { Prefs.setPsnId(applicationContext, id); result = id } else failed = true
+            if (id != null) { Prefs.setPsnId(applicationContext, id); Prefs.setPsnDesktopMode(applicationContext, desktop); result = id } else failed = true
+            log("finish ok=" + (id != null) + " desktop=$desktop")
             runOnUiThread { finish() }
         }, "tp-psn").start()
         return true
@@ -283,11 +324,8 @@ class PsnLoginActivity : Activity() {
         when {
             inside(reloadBtn) -> { load(); return }
             inside(modeBtn) -> {
-                // jiný režim stránky: tváří se jako prohlížeč v počítači (někdy pomůže)
-                desktop = !desktop
-                w.settings.userAgentString = if (desktop) UA_DESKTOP else null
-                try { CookieManager.getInstance().removeAllCookies(null) } catch (_: Throwable) {}
-                load(); return
+                switched = true
+                setMode(!desktop); return
             }
         }
         val t = SystemClock.uptimeMillis()
