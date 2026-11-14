@@ -69,6 +69,15 @@ for i in 1 2 3 4 5; do adb shell input keyevent 20; done
 shot 12d_pred_odeslanim
 key 23; sleep 25; shot 12e_po_odeslani
 sleep 20; shot 12f_po_odeslani_pozdeji
+# krok s heslem: vymyšlené heslo. Věcná odpověď („nesprávné údaje“) = dotaz prošel ochranou Sony;
+# „Can't connect to the server“ = ochrana ho odmítla.
+key 19; key 19; key 23; sleep 3
+adb shell input text "Zkouska-Heslo-12345"; sleep 2
+key 4; sleep 2
+for i in 1 2 3 4 5; do adb shell input keyevent 20; done
+shot 12g_heslo_pred_odeslanim
+key 23; sleep 25; shot 12h_heslo_po_odeslani
+sleep 20; shot 12i_heslo_po_odeslani_pozdeji
 key 4; sleep 2; key 4; sleep 2
 
 # 7) nabídka se seznamem (jazyk): stránka Titulky → první řádek → OK
