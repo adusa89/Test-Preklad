@@ -103,6 +103,28 @@ object Ps5 {
         return if (parseAccountId(id) != null) id else null
     }
 
+    /** Z adresy, na kterou Sony po přihlášení přesměruje, vytáhne jednorázový kód. */
+    fun authCodeFromUrl(url: String): String? {
+        val q = url.substringAfter('?', "").substringBefore('#')
+        for (part in q.split('&')) {
+            val k = part.substringBefore('=')
+            val v = part.substringAfter('=', "")
+            if (k == "code" && v.isNotEmpty() && v.length <= 64 && v.all { it.isLetterOrDigit() || it == '-' || it == '_' }) return v
+        }
+        return null
+    }
+
+    /** Z odpovědi Sony o účtu vytáhne číslo účtu a převede ho na zakódované ID (base64). */
+    fun accountIdFromUserInfo(json: String): String? {
+        val m = Regex("\"user_id\"\\s*:\\s*\"?(\\d{6,20})\"?").find(json) ?: return null
+        val b = parseAccountId(m.groupValues[1].padStart(10, '0')) ?: return null
+        return accountIdToBase64(b)
+    }
+
+    /** Z odpovědi Sony vytáhne přístupový klíč. */
+    fun accessTokenFrom(json: String): String? =
+        Regex("\"access_token\"\\s*:\\s*\"([A-Za-z0-9._~+/=-]{8,400})\"").find(json)?.groupValues?.get(1)
+
     /** Přezdívka PSN: 3–16 znaků, písmena, číslice, pomlčka, podtržítko. */
     fun validOnlineId(s: String): Boolean =
         s.length in 3..16 && s.all { it.isLetterOrDigit() || it == '-' || it == '_' } && s.all { it.code < 128 }

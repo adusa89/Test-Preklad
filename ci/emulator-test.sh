@@ -59,7 +59,7 @@ grep -E "TP_TEST|TestPreklad|AndroidRuntime|FATAL|libchiaki|DEBUG   :" $OUT/logc
 SHOWS=$(grep -c "TP_TEST.*SHOW|" $OUT/log.txt)
 adb shell dumpsys meminfo $PKG | grep -E "TOTAL|Native Heap|Dalvik Heap" | head -4 > $OUT/memory.txt
 # počítají se jen pády naší aplikace (na Androidu 9 padá vestavěná aplikace emulátoru, to není naše chyba)
-CRASH=$(grep -c "Process: cz.testpreklad" $OUT/log.txt)
+CRASH=$(grep -cE "Process: cz.testpreklad|Fatal signal.*cz.testpreklad" $OUT/logcat_full.txt)
 LIB=$(grep -c "TP_TEST.*START|.*lib=ok" $OUT/log.txt)
 DECODED=$(grep "TP_TEST.*VIDEO|" $OUT/log.txt | grep -oE "decoded=[0-9]+" | cut -d= -f2 | sort -n | tail -1)
 LINK=$(grep -c "TP_TEST.*LINK|\(WAITING\|FAILED\)" $OUT/log.txt)

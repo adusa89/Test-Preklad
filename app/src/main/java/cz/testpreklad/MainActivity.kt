@@ -147,6 +147,15 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         UiState.shown()
+        // návrat z přihlášení účtem PlayStation
+        val acc = PsnLoginActivity.result
+        if (acc != null) {
+            PsnLoginActivity.result = null
+            pairNote(t("ps5_acc_ok"), Theme.OK) { draftPsn = acc }
+        } else if (PsnLoginActivity.failed) {
+            PsnLoginActivity.failed = false
+            pairNote(t("ps5_acc_err"), Theme.BAD)
+        }
         render(keepFocus = true)
         main.removeCallbacks(ticker)
         main.postDelayed(ticker, 1000)
@@ -501,6 +510,11 @@ class MainActivity : Activity() {
         add(ui.card().apply { addView(ui.text(t("ps5_steps"), 16f, Theme.TEXT)) }, 16)
         add(tagged(ui.button(t("ps5_find")) { findPs5() }, "pfind"), 12)
         add(input("ps5_ip", draftIp, "pip", number = true), 10)
+        add(tagged(ui.button(t("ps5_acc_btn")) {
+            saveDrafts()
+            try { startActivity(Intent(this, PsnLoginActivity::class.java)) } catch (_: Exception) { pairNote(t("ps5_acc_err"), Theme.BAD) }
+        }, "pacc"), 10)
+        add(ui.text(t("ps5_acc_or"), 14f, Theme.MUTED), 8)
         add(input("ps5_psn", draftPsn, "ppsn", number = false), 8)
         add(input("ps5_pin", draftPin, "ppin", number = true), 8)
         add(input("ps5_login", draftLogin, "plogin", number = true), 8)

@@ -141,4 +141,18 @@ class DemoGameTest {
         assertEquals(DemoGame.subtitleAt(100), DemoGame.subtitleAt(100 + DemoGame.cycleMs * 7))
         for (t in 0 until DemoGame.cycleMs step 500) assertTrue(DemoGame.indexAt(t) in DemoGame.lines.indices)
     }
+
+    @Test fun psnSignIn() {
+        assertEquals("AbC123", Ps5.authCodeFromUrl("https://remoteplay.dl.playstation.net/remoteplay/redirect?code=AbC123&cid=00000000-0000"))
+        assertEquals("x-1_2", Ps5.authCodeFromUrl("https://a/b?cid=1&code=x-1_2#frag"))
+        assertNull(Ps5.authCodeFromUrl("https://remoteplay.dl.playstation.net/remoteplay/redirect?error=login_required"))
+        assertNull(Ps5.authCodeFromUrl("https://a/b?code="))
+        assertNull(Ps5.authCodeFromUrl("https://a/b?code=a b"))
+        assertEquals("tok.en-1", Ps5.accessTokenFrom("{\"access_token\":\"tok.en-1\",\"token_type\":\"bearer\"}"))
+        assertNull(Ps5.accessTokenFrom("{\"error\":\"invalid_grant\"}"))
+        // 578437695752307201 = bajty 1..8 (nejnižší první)
+        assertEquals("AQIDBAUGBwg=", Ps5.accountIdFromUserInfo("{\"scopes\":\"psn:clientapp\",\"user_id\":\"578437695752307201\",\"x\":1}"))
+        assertEquals("AQIDBAUGBwg=", Ps5.accountIdFromUserInfo("{\"user_id\": 578437695752307201}"))
+        assertNull(Ps5.accountIdFromUserInfo("{\"error\":\"x\"}"))
+    }
 }
