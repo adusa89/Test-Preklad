@@ -11,8 +11,8 @@ android {
         applicationId = "cz.testpreklad"
         minSdk = 26          // Android 8 a novější (prakticky všechny Android TV a boxy)
         targetSdk = 34
-        versionCode = 14
-        versionName = "0.14"
+        versionCode = 15
+        versionName = "0.15"
 
         // televize a boxy mají procesory ARM; emulátor při zkoušce x86 (-Pabis=x86)
         val abis = ((project.findProperty("abis") as String?) ?: "armeabi-v7a,arm64-v8a").split(",")
@@ -57,6 +57,9 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
 
+    // nativní knihovny v APK zabalené (jinak by přibalený prohlížeč zvětšil APK na dvojnásobek)
+    packaging { jniLibs { useLegacyPackaging = true } }
+
     lint {
         abortOnError = false
         checkReleaseBuilds = false
@@ -76,6 +79,10 @@ dependencies {
     implementation("com.google.mlkit:translate:17.0.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
+
+    // Prohlížeč pro přihlášení k účtu PlayStation (jádro Firefoxu, licence MPL 2.0). Televize mívají
+    // vlastní prohlížeč zastaralý a neaktualizovatelný; stránka Sony v něm nefunguje.
+    implementation("org.mozilla.geckoview:geckoview:136.0.20250317200840")
 
     testImplementation("junit:junit:4.13.2")
 }

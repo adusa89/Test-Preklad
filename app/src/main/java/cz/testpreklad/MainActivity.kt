@@ -533,9 +533,9 @@ class MainActivity : Activity() {
             2 -> {
                 val have = Ps5.parseAccountId(draftPsn) != null
                 if (have) add(ui.text(t("ps5_acc_done"), 17f, Theme.OK, bold = true), 10)
-                // starý prohlížeč televize: stránka Sony v něm hlásí „Something went wrong“
+                // bez přibaleného prohlížeče a se starým prohlížečem televize stránka Sony nefunguje
                 val wv = PsnLoginActivity.webViewVersion()
-                if (!have && Ps5.webViewTooOld(wv)) {
+                if (!have && !LoginBrowser.bundledAvailable(this) && Ps5.webViewTooOld(wv)) {
                     add(ui.text(t("wv_old").replace("%s", wv), 15f, Theme.WARN), 10)
                     add(tagged(ui.button(t("wv_update")) {
                         try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + PsnLoginActivity.webViewPackage()))) }
@@ -1021,7 +1021,9 @@ class MainActivity : Activity() {
             .append(", spojení: ").append(Ps5Link.state).append(Ps5Link.reason?.let { " ($it)" } ?: "")
             .append(", ukázka: ").append(TranslatorService.demo).append(", snímků: ").append(TranslatorService.framesDecoded)
             .append(", knihovna: ").append(Ps5Link.selfTest()).append("\n")
-        sb.append("Prohlížeč televize: ").append(PsnLoginActivity.webViewVersion()).append("\n")
+        sb.append("Prohlížeč televize: ").append(PsnLoginActivity.webViewVersion())
+            .append(", přibalený prohlížeč: ").append(LoginBrowser.bundledAvailable(this))
+            .append(", procesor: ").append(Build.SUPPORTED_ABIS.joinToString("/")).append("\n")
         sb.append("--- poslední události ---\n").append(DiagLog.dump())
         // konec záznamu spojení s konzolí (pomůže najít, proč se nepřipojila)
         try {
@@ -1127,8 +1129,8 @@ class MainActivity : Activity() {
 }
 
 object BuildInfo {
-    const val VERSION = "verze 0.14"
-    const val VERSION_CODE = 14
+    const val VERSION = "verze 0.15"
+    const val VERSION_CODE = 15
     const val DOWNLOAD_URL = "https://github.com/adusa89/Test-Preklad/releases/download/latest/TestPreklad.apk"
     const val VERSION_URL = "https://github.com/adusa89/Test-Preklad/releases/download/latest/version.txt"
 }

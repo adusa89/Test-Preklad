@@ -13,6 +13,8 @@ v černém pruhu přes obraz. Hra jde do televize dál kabelem HDMI. Překlad je
 - `app/src/test` – unit testy včetně simulace hraní
 - `.github/workflows/build.yml`, `ci/emulator-test.sh` – sestavení APK a automatická zkouška v emulátoru Android TV (Android 9, 11, 13, 14); APK se vydá až po úspěšné zkoušce
 
+- přihlášení k účtu PlayStation běží v přibaleném prohlížeči GeckoView (Mozilla, licence MPL 2.0), protože prohlížeče televizí bývají zastaralé
+
 Návod: NAVOD.md
 
 Aplikace není produktem společnosti Sony Interactive Entertainment. „PlayStation“ a „PS5“ jsou jejich ochranné známky.

@@ -78,7 +78,7 @@ jobs:
           echo "$CODE $NAME" > version.txt
           cat version.txt
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest TestPreklad.apk version.txt --title "Test Překlad – nejnovější APK" --notes "Automaticky sestaveno z posledního kódu a vyzkoušeno v emulátoru Android TV (Android 9, 11, 13, 14). Spojení s PlayStationem používá otevřenou knihovnu chiaki-ng (AGPL-3.0); zdrojový kód je v tomto repozitáři."
+          gh release create latest TestPreklad.apk version.txt --title "Test Překlad – nejnovější APK" --notes "Součástí je prohlížeč GeckoView (Mozilla, MPL 2.0) pro přihlášení k účtu PlayStation. Automaticky sestaveno z posledního kódu a vyzkoušeno v emulátoru Android TV (Android 9, 11, 13, 14). Spojení s PlayStationem používá otevřenou knihovnu chiaki-ng (AGPL-3.0); zdrojový kód je v tomto repozitáři."
 
   emulator:
     name: Emulátor Android TV (API ${{ matrix.api }})

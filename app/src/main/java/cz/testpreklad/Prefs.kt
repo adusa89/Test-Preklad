@@ -83,10 +83,6 @@ object Prefs {
     fun psnId(c: Context): String = p(c).getString("psn_id", "") ?: ""
     fun setPsnId(c: Context, v: String) = p(c).edit().putString("psn_id", v).apply()
 
-    /** Režim přihlašovací stránky Sony, který naposledy fungoval (true = podoba pro počítač). */
-    fun psnDesktopMode(c: Context) = bool(c, "psn_desktop", true)
-    fun setPsnDesktopMode(c: Context, v: Boolean) = setBool(c, "psn_desktop", v)
-
     /** Čtyřmístný přihlašovací kód účtu na konzoli (jen pokud ho uživatel na PS5 má zapnutý). */
     fun ps5LoginPin(c: Context): String = p(c).getString("ps5_login_pin", "") ?: ""
     fun setPs5LoginPin(c: Context, v: String) = p(c).edit().putString("ps5_login_pin", v).apply()

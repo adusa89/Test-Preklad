@@ -11,13 +11,8 @@ import android.util.Base64
 import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
-import android.view.MotionEvent
 import android.view.View
-import android.webkit.CookieManager
-import android.webkit.WebResourceError
-import android.webkit.WebResourceRequest
 import android.webkit.WebView
-import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -31,7 +26,8 @@ import java.net.URLEncoder
 /**
  * Přihlášení účtem PlayStation (e-mail a heslo) přímo na stránce Sony. Aplikace z něj potřebuje
  * jedinou věc: číslo účtu, které konzole vyžaduje při párování. Heslo aplikace nečte ani neukládá.
- * Stejný postup používá otevřený klient chiaki-ng.
+ * Stejný postup používá otevřený klient chiaki-ng. Stránka běží v přibaleném prohlížeči
+ * (viz [LoginBrowser]), protože prohlížeče televizí bývají zastaralé.
  *
  * Na televizi se stránka ovládá ukazatelem: šipky jím pohybují, OK klikne.
  */
@@ -52,13 +48,6 @@ class PsnLoginActivity : Activity() {
             "?service_entity=urn:service-entity:psn&response_type=code&client_id=$CLIENT_ID" +
             "&redirect_uri=$REDIRECT&scope=psn:clientapp&request_locale=en_US&ui=pr&service_logo=ps" +
             "&layout_type=popup&smcid=remoteplay&prompt=always&PlatformPrivacyWs1=minimal&"
-
-        /** Chybové hlášky stránky Sony, po kterých má smysl zkusit jiný režim. */
-        private val SONY_ERRORS = listOf("something went wrong", "can't connect to the server", "cannot connect to the server",
-            "connection to the server timed out", "connect to the server timed out", "too many requests", "an error has occurred")
-
-        private const val UA_DESKTOP =
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
         /** Verze vestavěného prohlížeče televize ("?" = nejde zjistit). */
         fun webViewVersion(): String = try {
@@ -106,50 +95,21 @@ class PsnLoginActivity : Activity() {
 
     private fun log(msg: String) { Log.i("TP_TEST", "PSN|$msg"); DiagLog.add("PSN|$msg") }
 
-    /** Verze vestavěného prohlížeče (stará verze bývá důvod, proč se stránka Sony nenačte). */
-    private fun webViewVersion(): String = Companion.webViewVersion()
-
     private val main = Handler(Looper.getMainLooper())
-    private var web: WebView? = null
+    private var browser: LoginBrowser? = null
     private lateinit var root: FrameLayout
     private lateinit var cursor: View
     private lateinit var note: TextView
-    private lateinit var bar: LinearLayout
     private lateinit var reloadBtn: TextView
-    private lateinit var modeBtn: TextView
-    private var desktop = true
-    private var switched = false
     private var cx = 0f
     private var cy = 0f
     private var done = false
     private var loadStarted = 0L
     private var loaded = false
-    private var httpLogged = 0
-    private var errLogged = 0
-    private var consoleLogged = 0
 
     /** Hlídá, že se stránka Sony vůbec načetla. */
-    private val poll = object : Runnable {
-        override fun run() {
-            val w = web ?: return
-            if (done) return
-            if (!loaded && loadStarted > 0 && SystemClock.uptimeMillis() - loadStarted > 25_000) {
-                loaded = true
-                if (!autoSwitch("timeout")) showProblem("timeout")
-            }
-            // stránka Sony sama ohlásila chybu? (čte se jen viditelný text stránky, ne políčka s údaji)
-            try {
-                w.evaluateJavascript("(function(){try{return (document.body&&document.body.innerText||'').slice(0,2500)}catch(e){return ''}})()") { v ->
-                    val text = (v ?: "").lowercase()
-                    val hit = SONY_ERRORS.firstOrNull { text.contains(it) }
-                    if (hit != null && !done && SystemClock.uptimeMillis() - loadStarted > 4000) {
-                        if (hit.contains("too many")) { showProblem(hit) }
-                        else if (!autoSwitch(hit)) showProblem(hit)
-                    }
-                }
-            } catch (_: Throwable) {}
-            main.postDelayed(this, 1500)
-        }
+    private val watchdog = Runnable {
+        if (!loaded && !done) problem("timeout")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -158,71 +118,41 @@ class PsnLoginActivity : Activity() {
         failed = false
         root = FrameLayout(this)
         root.setBackgroundColor(Color.BLACK)
-        val w = try { WebView(this) } catch (e: Throwable) {
-            // televize bez vestavěného prohlížeče – tady to nejde, zbývá ruční zadání
-            Log.w(TAG, "webview", e)
-            DiagLog.add("PSN|no webview " + e.javaClass.simpleName)
+        val b = LoginBrowser.create(this, object : LoginBrowser.Events {
+            override fun onUrl(url: String): Boolean = intercept(url)
+            override fun onLoaded(ok: Boolean, detail: String) {
+                runOnUiThread {
+                    log("page loaded ok=$ok $detail")
+                    if (ok) { loaded = true; main.removeCallbacks(watchdog) } else problem(detail.ifEmpty { "load" })
+                }
+            }
+        })
+        if (b == null) {
+            // zařízení bez jakéhokoli prohlížeče – přihlášení tu nejde
+            log("no browser")
             failed = true
             Toast.makeText(this, tx("ps5_acc_err"), Toast.LENGTH_LONG).show()
             finish(); return
         }
-        web = w
-        val s = w.settings
-        s.javaScriptEnabled = true
-        s.domStorageEnabled = true
-        @Suppress("DEPRECATION")
-        s.databaseEnabled = true
-        s.loadWithOverviewMode = true
-        s.useWideViewPort = true
-        s.javaScriptCanOpenWindowsAutomatically = true
-        try { CookieManager.getInstance().setAcceptCookie(true); CookieManager.getInstance().setAcceptThirdPartyCookies(w, true) } catch (_: Throwable) {}
-        log("open webview=" + webViewVersion() + " ua=" + (s.userAgentString ?: "").takeLast(60))
-        w.webViewClient = object : WebViewClient() {
-            @Deprecated("Deprecated in Java")
-            override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean = intercept(url)
-            override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
-                if (!intercept(url)) log("start " + url.substringBefore('?').substringBefore('#').takeLast(70))
-            }
-            override fun onPageFinished(view: WebView, url: String) {
-                loaded = true
-                log("page " + url.substringBefore('?').takeLast(60) + " title=" + (view.title ?: "").take(40))
-            }
-            override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: android.webkit.WebResourceResponse) {
-                // odmítnuté dotazy stránky Sony (jen adresa bez údajů) – pomůže najít, kde přihlášení selhalo
-                if (httpLogged++ < 25) log("http " + response.statusCode + " " + (request.url.host ?: "") + (request.url.path ?: "").take(60))
-            }
-            override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
-                if (!request.isForMainFrame && errLogged++ < 15) log("neterr " + error.errorCode + " " + (request.url.host ?: "") + (request.url.path ?: "").take(50))
-                if (request.isForMainFrame) showProblem(error.errorCode.toString() + " " + error.description)
-            }
-        }
-        w.webChromeClient = object : android.webkit.WebChromeClient() {
-            override fun onConsoleMessage(m: android.webkit.ConsoleMessage): Boolean {
-                if (m.messageLevel() == android.webkit.ConsoleMessage.MessageLevel.ERROR && consoleLogged++ < 15)
-                    log("js " + m.message().take(140) + " @" + m.sourceId().substringAfterLast('/').take(30) + ":" + m.lineNumber())
-                return true
-            }
-        }
-        root.addView(w, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+        browser = b
+        log("open engine=" + b.name + " webview=" + webViewVersion())
+        root.addView(b.view, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
 
-        // horní lišta s tlačítky (kliká se na ně ukazatelem)
-        bar = LinearLayout(this).apply {
+        // horní lišta (kliká se na ni ukazatelem)
+        val bar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setBackgroundColor(0xF0101319.toInt())
             setPadding(16, 10, 16, 10)
         }
-        fun barButton(label: String) = TextView(this).apply {
-            text = label
+        reloadBtn = TextView(this).apply {
+            text = tx("psn_reload")
             setTextColor(Theme.ACCENT_DARK)
             textSize = 15f
             gravity = Gravity.CENTER
             background = GradientDrawable().apply { setColor(Theme.ACCENT); cornerRadius = 14f }
             setPadding(28, 12, 28, 12)
         }
-        reloadBtn = barButton(tx("psn_reload"))
-        modeBtn = barButton(tx("psn_mode"))
         bar.addView(reloadBtn, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT))
-        bar.addView(modeBtn, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { leftMargin = 16 })
         root.addView(bar, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.TOP))
 
         note = TextView(this).apply {
@@ -245,55 +175,29 @@ class PsnLoginActivity : Activity() {
         setContentView(root)
         root.post {
             cx = root.width / 2f; cy = root.height / 2f
-            // stránka začíná pod horní lištou
-            (w.layoutParams as FrameLayout.LayoutParams).topMargin = bar.height
-            w.requestLayout()
+            // stránka leží mezi horní lištou a nápovědou dole
+            (b.view.layoutParams as FrameLayout.LayoutParams).apply { topMargin = bar.height; bottomMargin = note.height }
+            b.view.requestLayout()
             placeCursor()
         }
-        w.requestFocus()
-        // začíná se režimem, který naposledy fungoval (poprvé režim „počítač“)
-        desktop = Prefs.psnDesktopMode(this)
-        w.settings.userAgentString = if (desktop) UA_DESKTOP else null
+        b.view.requestFocus()
         load()
-        main.postDelayed(poll, 1500)
     }
 
     private fun load() {
-        val w = web ?: return
+        val b = browser ?: return
         loaded = false
         loadStarted = SystemClock.uptimeMillis()
-        if (!switched) { note.text = tx("ps5_acc_hint"); note.setTextColor(Color.WHITE) }
-        log("load desktop=$desktop")
-        w.loadUrl(LOGIN_URL)
+        note.text = tx("ps5_acc_hint"); note.setTextColor(Color.WHITE)
+        main.removeCallbacks(watchdog)
+        main.postDelayed(watchdog, 45_000)
+        b.load(LOGIN_URL)
     }
 
-    /**
-     * Stránka Sony nejde nebo ohlásila chybu → samo zkusit druhý režim (počítač ↔ televize).
-     * Jen jednou, ať se to netočí dokola. Vrací true, když se přepnulo.
-     */
-    private fun autoSwitch(why: String): Boolean {
-        if (switched || done) return false
-        switched = true
-        log("auto switch from desktop=$desktop because $why")
-        setMode(!desktop)
-        note.text = tx("psn_auto")
-        note.setTextColor(Theme.WARN)
-        return true
-    }
-
-    private fun setMode(d: Boolean) {
-        val w = web ?: return
-        desktop = d
-        w.settings.userAgentString = if (desktop) UA_DESKTOP else null
-        try { CookieManager.getInstance().removeAllCookies(null) } catch (_: Throwable) {}
-        load()
-    }
-
-    /** Stránka se nenačetla – řekni to a nabídni, co s tím. */
-    private fun showProblem(why: String) {
-        log("problem desktop=$desktop $why")
-        val v = webViewVersion()
-        note.text = (if (Ps5.webViewTooOld(v)) tx("wv_old").replace("%s", v) else tx("psn_err")) + "  (" + why.take(60) + ")"
+    /** Stránka se nenačetla – řekni to a nabídni Načíst znovu. */
+    private fun problem(why: String) {
+        log("problem $why")
+        note.text = tx("psn_err") + "  (" + why.take(60) + ")"
         note.setTextColor(Theme.WARN)
     }
 
@@ -303,13 +207,14 @@ class PsnLoginActivity : Activity() {
         if (done) return true
         done = true
         val code = Ps5.authCodeFromUrl(url)
-        note.text = tx("ps5_acc_wait")
-        note.setTextColor(Color.WHITE)
-        try { web?.stopLoading() } catch (_: Throwable) {}
+        runOnUiThread {
+            main.removeCallbacks(watchdog)
+            note.text = tx("ps5_acc_wait"); note.setTextColor(Color.WHITE)
+        }
         Thread({
             val id = if (code != null) accountIdForCode(code) else null
-            if (id != null) { Prefs.setPsnId(applicationContext, id); Prefs.setPsnDesktopMode(applicationContext, desktop); result = id } else failed = true
-            log("finish ok=" + (id != null) + " desktop=$desktop")
+            if (id != null) { Prefs.setPsnId(applicationContext, id); result = id } else failed = true
+            log("finish ok=" + (id != null))
             runOnUiThread { finish() }
         }, "tp-psn").start()
         return true
@@ -329,24 +234,13 @@ class PsnLoginActivity : Activity() {
     }
 
     private fun tap() {
-        val w = web ?: return
-        when {
-            inside(reloadBtn) -> { load(); return }
-            inside(modeBtn) -> {
-                switched = true
-                setMode(!desktop); return
-            }
-        }
-        val t = SystemClock.uptimeMillis()
-        val y = cy - w.top
-        val down = MotionEvent.obtain(t, t, MotionEvent.ACTION_DOWN, cx, y, 0)
-        val up = MotionEvent.obtain(t, t + 60, MotionEvent.ACTION_UP, cx, y, 0)
-        w.dispatchTouchEvent(down); w.dispatchTouchEvent(up)
-        down.recycle(); up.recycle()
+        val b = browser ?: return
+        if (inside(reloadBtn)) { load(); return }
+        b.tap(cx - b.view.left, cy - b.view.top)
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        val w = web ?: return super.dispatchKeyEvent(event)
+        val b = browser ?: return super.dispatchKeyEvent(event)
         val downEv = event.action == KeyEvent.ACTION_DOWN
         // delší držení šipky = rychlejší pohyb
         val step = if (event.repeatCount > 6) 70f else if (event.repeatCount > 0) 36f else 22f
@@ -354,11 +248,12 @@ class PsnLoginActivity : Activity() {
             KeyEvent.KEYCODE_DPAD_LEFT -> { if (downEv) { cx = (cx - step).coerceAtLeast(4f); placeCursor() }; return true }
             KeyEvent.KEYCODE_DPAD_RIGHT -> { if (downEv) { cx = (cx + step).coerceAtMost(root.width - 4f); placeCursor() }; return true }
             KeyEvent.KEYCODE_DPAD_UP -> {
-                if (downEv) { if (cy <= bar.height + 30f && w.scrollY > 0) w.scrollBy(0, -90) else cy = (cy - step).coerceAtLeast(4f); placeCursor() }
+                // u horního okraje stránky se místo ukazatele posouvá stránka
+                if (downEv) { if (cy <= b.view.top + 40f && event.repeatCount > 0) b.scroll(-120) else cy = (cy - step).coerceAtLeast(4f); placeCursor() }
                 return true
             }
             KeyEvent.KEYCODE_DPAD_DOWN -> {
-                if (downEv) { if (cy >= root.height - note.height - 30f) w.scrollBy(0, 90) else cy += step; placeCursor() }
+                if (downEv) { if (cy >= b.view.bottom - 40f) b.scroll(120) else cy += step; placeCursor() }
                 return true
             }
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER, KeyEvent.KEYCODE_BUTTON_A -> {
@@ -369,19 +264,13 @@ class PsnLoginActivity : Activity() {
         return super.dispatchKeyEvent(event)
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        val w = web
-        if (w != null && w.canGoBack() && !done) w.goBack() else { @Suppress("DEPRECATION") super.onBackPressed() }
-    }
-
     override fun onResume() { super.onResume(); UiState.shown() }
     override fun onPause() { UiState.hidden(); super.onPause() }
 
     override fun onDestroy() {
-        main.removeCallbacks(poll)
-        try { web?.destroy() } catch (_: Throwable) {}
-        web = null
+        main.removeCallbacks(watchdog)
+        browser?.destroy()
+        browser = null
         super.onDestroy()
     }
 }
