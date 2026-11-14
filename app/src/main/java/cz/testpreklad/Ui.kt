@@ -71,10 +71,15 @@ class Ui(private val ctx: Context) {
             setLineSpacing(0f, 1.15f)
         }
 
-    fun vbox(): LinearLayout = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
+    // clipChildren = false: vybraný prvek se lehce zvětší a nesmí se mu přitom uříznout rohy
+    fun vbox(): LinearLayout = LinearLayout(ctx).apply {
+        orientation = LinearLayout.VERTICAL
+        clipChildren = false; clipToPadding = false
+    }
     fun hbox(): LinearLayout = LinearLayout(ctx).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
+        clipChildren = false; clipToPadding = false
     }
 
     fun card(): LinearLayout = vbox().apply {

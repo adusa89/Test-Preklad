@@ -203,7 +203,7 @@ class MainActivity : Activity() {
         side.addView(menu, ui.lp(top = 18))
         root.addView(side, LinearLayout.LayoutParams(ui.dp(280), LinearLayout.LayoutParams.MATCH_PARENT))
 
-        val scroll = ScrollView(this).apply { isFillViewport = true }
+        val scroll = ScrollView(this).apply { isFillViewport = true; clipChildren = false; clipToPadding = false }
         content = ui.vbox().apply { setPadding(ui.dp(48), ui.dp(34), ui.dp(64), ui.dp(48)) }
         scroll.addView(content)
         root.addView(scroll, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
