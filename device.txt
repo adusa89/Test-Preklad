@@ -1,0 +1,5 @@
+9
+sdk_google_atv_x86
+Physical size: 1920x1080
+MemTotal:        2046996 kB
+    versionName=66.0.3359.158
