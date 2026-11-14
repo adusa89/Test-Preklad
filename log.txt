@@ -1,0 +1,501 @@
+11-14 15:00:28.699 D/AndroidRuntime( 3316): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:00:28.705 I/AndroidRuntime( 3316): Using default boot image
+11-14 15:00:28.705 I/AndroidRuntime( 3316): Leaving lock profiling enabled
+11-14 15:00:28.820 D/AndroidRuntime( 3316): Calling main entry com.android.commands.input.Input
+11-14 15:00:28.841 D/AndroidRuntime( 3316): Shutting down VM
+11-14 15:00:32.701 D/AndroidRuntime( 3400): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:00:32.703 I/AndroidRuntime( 3400): Using default boot image
+11-14 15:00:32.703 I/AndroidRuntime( 3400): Leaving lock profiling enabled
+11-14 15:00:32.762 D/AndroidRuntime( 3400): Calling main entry com.android.commands.input.Input
+11-14 15:00:32.811 D/AndroidRuntime( 3400): Shutting down VM
+11-14 15:00:32.819 I/AndroidRuntime( 3400): NOTE: attach of thread 'Binder:3400_2' failed
+11-14 15:01:21.719 D/AndroidRuntime( 4395): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:01:21.720 I/AndroidRuntime( 4395): Using default boot image
+11-14 15:01:21.720 I/AndroidRuntime( 4395): Leaving lock profiling enabled
+11-14 15:01:21.767 D/AndroidRuntime( 4395): Calling main entry com.android.commands.input.Input
+11-14 15:01:21.779 D/AndroidRuntime( 4395): Shutting down VM
+11-14 15:01:25.474 D/AndroidRuntime( 4429): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:01:25.475 I/AndroidRuntime( 4429): Using default boot image
+11-14 15:01:25.475 I/AndroidRuntime( 4429): Leaving lock profiling enabled
+11-14 15:01:25.519 D/AndroidRuntime( 4429): Calling main entry com.android.commands.input.Input
+11-14 15:01:25.555 D/AndroidRuntime( 4429): Shutting down VM
+11-14 15:01:31.150 I/TP_TEST ( 3108): PAIR|discover nets=10.0.2.16/24 10.0.2.15/24 → 
+11-14 15:01:38.503 D/AndroidRuntime( 4468): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:01:38.504 I/AndroidRuntime( 4468): Using default boot image
+11-14 15:01:38.504 I/AndroidRuntime( 4468): Leaving lock profiling enabled
+11-14 15:01:38.548 D/AndroidRuntime( 4468): Calling main entry com.android.commands.input.Input
+11-14 15:01:38.554 D/AndroidRuntime( 4468): Shutting down VM
+11-14 15:01:40.009 D/AndroidRuntime( 4484): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:01:40.010 I/AndroidRuntime( 4484): Using default boot image
+11-14 15:01:40.011 I/AndroidRuntime( 4484): Leaving lock profiling enabled
+11-14 15:01:40.060 D/AndroidRuntime( 4484): Calling main entry com.android.commands.input.Input
+11-14 15:01:40.075 D/AndroidRuntime( 4484): Shutting down VM
+11-14 15:01:43.769 D/AndroidRuntime( 4518): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:01:43.770 I/AndroidRuntime( 4518): Using default boot image
+11-14 15:01:43.770 I/AndroidRuntime( 4518): Leaving lock profiling enabled
+11-14 15:01:43.816 D/AndroidRuntime( 4518): Calling main entry com.android.commands.input.Input
+11-14 15:01:43.822 D/AndroidRuntime( 4518): Shutting down VM
+11-14 15:01:45.277 D/AndroidRuntime( 4532): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:01:45.278 I/AndroidRuntime( 4532): Using default boot image
+11-14 15:01:45.278 I/AndroidRuntime( 4532): Leaving lock profiling enabled
+11-14 15:01:45.323 D/AndroidRuntime( 4532): Calling main entry com.android.commands.input.Input
+11-14 15:01:45.346 D/AndroidRuntime( 4532): Shutting down VM
+11-14 15:01:49.016 D/AndroidRuntime( 4550): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:01:49.017 I/AndroidRuntime( 4550): Using default boot image
+11-14 15:01:49.017 I/AndroidRuntime( 4550): Leaving lock profiling enabled
+11-14 15:01:49.064 D/AndroidRuntime( 4550): Calling main entry com.android.commands.input.Input
+11-14 15:01:49.076 D/AndroidRuntime( 4550): Shutting down VM
+11-14 15:01:50.542 D/AndroidRuntime( 4564): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:01:50.543 I/AndroidRuntime( 4564): Using default boot image
+11-14 15:01:50.543 I/AndroidRuntime( 4564): Leaving lock profiling enabled
+11-14 15:01:50.587 D/AndroidRuntime( 4564): Calling main entry com.android.commands.input.Input
+11-14 15:01:50.618 D/AndroidRuntime( 4564): Shutting down VM
+11-14 15:01:54.281 D/AndroidRuntime( 4581): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:01:54.282 I/AndroidRuntime( 4581): Using default boot image
+11-14 15:01:54.282 I/AndroidRuntime( 4581): Leaving lock profiling enabled
+11-14 15:01:54.328 D/AndroidRuntime( 4581): Calling main entry com.android.commands.input.Input
+11-14 15:01:54.342 D/AndroidRuntime( 4581): Shutting down VM
+11-14 15:01:55.805 D/AndroidRuntime( 4595): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:01:55.806 I/AndroidRuntime( 4595): Using default boot image
+11-14 15:01:55.806 I/AndroidRuntime( 4595): Leaving lock profiling enabled
+11-14 15:01:55.855 D/AndroidRuntime( 4595): Calling main entry com.android.commands.input.Input
+11-14 15:01:55.881 D/AndroidRuntime( 4595): Shutting down VM
+11-14 15:01:59.544 D/AndroidRuntime( 4612): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:01:59.545 I/AndroidRuntime( 4612): Using default boot image
+11-14 15:01:59.545 I/AndroidRuntime( 4612): Leaving lock profiling enabled
+11-14 15:01:59.589 D/AndroidRuntime( 4612): Calling main entry com.android.commands.input.Input
+11-14 15:01:59.596 D/AndroidRuntime( 4612): Shutting down VM
+11-14 15:02:01.052 D/AndroidRuntime( 4626): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:02:01.053 I/AndroidRuntime( 4626): Using default boot image
+11-14 15:02:01.053 I/AndroidRuntime( 4626): Leaving lock profiling enabled
+11-14 15:02:01.105 D/AndroidRuntime( 4626): Calling main entry com.android.commands.input.Input
+11-14 15:02:01.122 D/AndroidRuntime( 4626): Shutting down VM
+11-14 15:02:04.825 D/AndroidRuntime( 4643): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:02:04.827 I/AndroidRuntime( 4643): Using default boot image
+11-14 15:02:04.827 I/AndroidRuntime( 4643): Leaving lock profiling enabled
+11-14 15:02:04.873 D/AndroidRuntime( 4643): Calling main entry com.android.commands.input.Input
+11-14 15:02:04.879 D/AndroidRuntime( 4643): Shutting down VM
+11-14 15:02:06.335 D/AndroidRuntime( 4658): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:02:06.336 I/AndroidRuntime( 4658): Using default boot image
+11-14 15:02:06.336 I/AndroidRuntime( 4658): Leaving lock profiling enabled
+11-14 15:02:06.383 D/AndroidRuntime( 4658): Calling main entry com.android.commands.input.Input
+11-14 15:02:06.396 D/AndroidRuntime( 4658): Shutting down VM
+11-14 15:02:10.052 D/AndroidRuntime( 4676): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:02:10.053 I/AndroidRuntime( 4676): Using default boot image
+11-14 15:02:10.053 I/AndroidRuntime( 4676): Leaving lock profiling enabled
+11-14 15:02:10.097 D/AndroidRuntime( 4676): Calling main entry com.android.commands.input.Input
+11-14 15:02:10.107 D/AndroidRuntime( 4676): Shutting down VM
+11-14 15:02:11.576 D/AndroidRuntime( 4692): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:02:11.577 I/AndroidRuntime( 4692): Using default boot image
+11-14 15:02:11.577 I/AndroidRuntime( 4692): Leaving lock profiling enabled
+11-14 15:02:11.625 D/AndroidRuntime( 4692): Calling main entry com.android.commands.input.Input
+11-14 15:02:11.637 D/AndroidRuntime( 4692): Shutting down VM
+11-14 15:02:21.364 I/TP_TEST ( 4733): A11Y|true|launchers=[com.google.android.tvlauncher, com.android.tv.settings]
+11-14 15:02:21.376 I/TP_TEST ( 4733): START|video=1280x720|screen=1920x1080|eco=true|decoder=OMX.google.h264.decoder (přímý výstup)|lib=ok 1280x720@30 10000kb
+11-14 15:02:21.393 I/TP_TEST ( 4733): VIDEO|fed=0|decoded=0|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:02:21.393 I/TP_TEST ( 4733): LINK|OFF|
+11-14 15:02:21.394 I/TP_TEST ( 4733): SOURCE|demo
+11-14 15:02:26.493 I/TP_TEST ( 4733): READ|ocr=3837ms|zone=48%|Dutch: We need money, Arthu.
+11-14 15:02:27.322 I/TP_TEST ( 4733): SHOW|Dutch: We need money, Arthu.|Dutch: Potřebujeme peníze, Arthu.
+11-14 15:02:27.343 I/TP_TEST ( 4733): VIDEO|fed=60|decoded=56|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=60 raw=false err=null
+11-14 15:02:31.074 I/TP_TEST ( 4733): READ|ocr=3728ms|zone=48%|Dutch: We need money, Arthur.
+11-14 15:02:35.330 I/TP_TEST ( 4733): READ|ocr=4231ms|zone=48%|Arthur: I reckon we ain't gonna find not
+11-14 15:02:35.639 I/TP_TEST ( 4733): SHOW|Arthur: I reckon we ain't gonna find nothin' in Valentine.|Arthur: Myslím, že nebudeme nic najít v Valentine.
+11-14 15:02:35.640 I/TP_TEST ( 4733): ZONE|learned 0.7565278-0.93652785
+11-14 15:02:35.664 I/TP_TEST ( 4733): VIDEO|fed=143|decoded=138|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=143 raw=false err=null
+11-14 15:02:40.173 I/TP_TEST ( 4733): READ|ocr=4507ms|zone=18%|Arthur: I reckon we ain't gonna find not
+11-14 15:02:43.910 I/TP_TEST ( 4733): READ|ocr=3714ms|zone=18%|Get on your horse, we ride at dawn.
+11-14 15:02:44.107 I/TP_TEST ( 4733): SHOW|Get on your horse, we ride at dawn.|Dostaňte se na koni, jezdíme za svítání.
+11-14 15:02:44.128 I/TP_TEST ( 4733): VIDEO|fed=226|decoded=222|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=226 raw=false err=null
+11-14 15:02:47.279 I/TP_TEST ( 4733): READ|ocr=3149ms|zone=18%|
+11-14 15:02:47.279 I/TP_TEST ( 4733): HIDE
+11-14 15:02:50.643 I/TP_TEST ( 4733): READ|ocr=3339ms|zone=18%|Hosea: If we keep going like this, the P
+11-14 15:02:50.868 I/TP_TEST ( 4733): SHOW|Hosea: If we keep going like this, the Pinkertons will find us.|Hosea: Pokud budeme dělat takhle, Pinkertons nás najde.
+11-14 15:02:50.869 I/TP_TEST ( 4733): ZONE|learned 0.765-0.98083335
+11-14 15:02:50.889 I/TP_TEST ( 4733): VIDEO|fed=295|decoded=290|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=295 raw=false err=null
+11-14 15:02:54.933 I/TP_TEST ( 4733): READ|ocr=4039ms|zone=21%|Hosea: If we keep going like this, the P
+11-14 15:02:59.589 I/TP_TEST ( 4733): READ|ocr=4632ms|zone=21%|Dutch: We need money, Arthur.
+11-14 15:02:59.716 I/TP_TEST ( 4733): SHOW|Dutch: We need money, Arthur.|Dutch: Potřebujeme peníze, Arthur.
+11-14 15:02:59.746 I/TP_TEST ( 4733): VIDEO|fed=382|decoded=379|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=382 raw=false err=null
+11-14 15:03:03.851 I/TP_TEST ( 4733): READ|ocr=4100ms|zone=21%|Dutch: We need money, Arthur.
+11-14 15:03:08.222 I/TP_TEST ( 4733): READ|ocr=4347ms|zone=21%|Arthur: I reckon we ain't gonna find not
+11-14 15:03:08.222 I/TP_TEST ( 4733): SHOW|Arthur: I reckon we ain't gonna find nothin' in Valentine.|Arthur: Myslím, že nebudeme nic najít v Valentine.
+11-14 15:03:08.243 I/TP_TEST ( 4733): VIDEO|fed=467|decoded=463|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=467 raw=false err=null
+11-14 15:03:11.588 I/TP_TEST ( 4733): READ|ocr=3342ms|zone=21%|
+11-14 15:03:11.588 I/TP_TEST ( 4733): HIDE
+11-14 15:03:15.676 I/TP_TEST ( 4733): READ|ocr=4064ms|zone=21%|Get on your horse, we ride at dawn.
+11-14 15:03:15.676 I/TP_TEST ( 4733): SHOW|Get on your horse, we ride at dawn.|Dostaňte se na koni, jezdíme za svítání.
+11-14 15:03:15.697 I/TP_TEST ( 4733): VIDEO|fed=542|decoded=537|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=542 raw=false err=null
+11-14 15:03:18.971 I/TP_TEST ( 4733): READ|ocr=3270ms|zone=21%|Get on your horse, we ride at dawn.
+11-14 15:03:23.580 I/TP_TEST ( 4733): READ|ocr=4585ms|zone=21%|Hosea: If we keep going like this, the P
+11-14 15:03:23.580 I/TP_TEST ( 4733): SHOW|Hosea: If we keep going like this, the Pinkertons will find us.|Hosea: Pokud budeme dělat takhle, Pinkertons nás najde.
+11-14 15:03:23.602 I/TP_TEST ( 4733): VIDEO|fed=620|decoded=616|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=620 raw=false err=null
+11-14 15:03:27.678 I/TP_TEST ( 4733): READ|ocr=4072ms|zone=21%|Hosea: If we keep going like this, the P
+11-14 15:03:29.832 D/AndroidRuntime( 6388): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:03:29.840 I/AndroidRuntime( 6388): Using default boot image
+11-14 15:03:29.840 I/AndroidRuntime( 6388): Leaving lock profiling enabled
+11-14 15:03:30.031 D/AndroidRuntime( 6388): Calling main entry com.android.commands.input.Input
+11-14 15:03:30.130 D/AndroidRuntime( 6388): Shutting down VM
+11-14 15:03:30.183 I/AndroidRuntime( 6388): NOTE: attach of thread 'Binder:6388_2' failed
+11-14 15:03:31.821 I/TP_TEST ( 4733): READ|ocr=4119ms|zone=21%|Dutch: We need money, Arthur.
+11-14 15:03:31.822 I/TP_TEST ( 4733): SHOW|Dutch: We need money, Arthur.|Dutch: Potřebujeme peníze, Arthur.
+11-14 15:03:31.844 I/TP_TEST ( 4733): VIDEO|fed=702|decoded=698|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=702 raw=false err=null
+11-14 15:03:35.539 I/TP_TEST ( 4733): READ|ocr=3692ms|zone=21%|
+11-14 15:03:35.539 I/TP_TEST ( 4733): HIDE
+11-14 15:03:36.917 I/TP_TEST ( 4733): VIDEO|fed=752|decoded=748|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=752 raw=false err=null
+11-14 15:03:41.728 I/TP_TEST ( 4733): PAIR|discover nets=10.0.2.16/24 10.0.2.15/24 → 
+11-14 15:03:41.729 I/TestPreklad( 4733): regist: [I] Regist starting search
+11-14 15:03:41.730 I/TestPreklad( 4733): regist: [I] Regist sending search packet
+11-14 15:03:42.031 I/TP_TEST ( 4733): VIDEO|fed=803|decoded=799|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=803 raw=false err=null
+11-14 15:03:44.733 I/TestPreklad( 4733): regist: [E] Regist timed out waiting for search response
+11-14 15:03:44.733 I/TestPreklad( 4733): regist: [E] Regist search failed
+11-14 15:03:44.733 I/TP_TEST ( 4733): PAIR|failed RegistEventFailed
+11-14 15:03:44.988 I/TP_TEST ( 4733): SOURCE|ps5 10.0.2.2
+11-14 15:03:44.990 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:03:44.993 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:03:45.038 I/TP_TEST ( 4733): LINK|WAITING|Connection Refused in Session Request
+11-14 15:03:47.144 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:03:47.995 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:03:47.996 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:03:52.260 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:03:57.379 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:03:59.527 I/TP_TEST ( 4733): PAIR|discover nets=10.0.2.16/24 10.0.2.15/24 → 
+11-14 15:03:59.528 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:03:59.529 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:03:59.635 I/TP_TEST ( 4733): LINK|FAILED|Connection Refused in Session Request
+11-14 15:04:02.493 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:07.607 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:11.530 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:04:11.531 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:04:12.720 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:17.836 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:18.903 D/AndroidRuntime( 6734): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:04:18.904 I/AndroidRuntime( 6734): Using default boot image
+11-14 15:04:18.904 I/AndroidRuntime( 6734): Leaving lock profiling enabled
+11-14 15:04:18.952 D/AndroidRuntime( 6734): Calling main entry com.android.commands.input.Input
+11-14 15:04:18.959 D/AndroidRuntime( 6734): Shutting down VM
+11-14 15:04:20.413 D/AndroidRuntime( 6749): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:04:20.414 I/AndroidRuntime( 6749): Using default boot image
+11-14 15:04:20.414 I/AndroidRuntime( 6749): Leaving lock profiling enabled
+11-14 15:04:20.458 D/AndroidRuntime( 6749): Calling main entry com.android.commands.input.Input
+11-14 15:04:20.470 D/AndroidRuntime( 6749): Shutting down VM
+11-14 15:04:22.951 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:23.532 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:04:23.533 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:04:25.201 I/TP_TEST ( 4733): PSN|open engine=gecko webview=90.0.4430.91
+11-14 15:04:25.206 I/TP_TEST ( 4733): PSN|load try 1
+11-14 15:04:25.990 I/TP_TEST ( 4733): PSN|page loaded ok=true after 0s 
+11-14 15:04:28.071 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:33.185 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:33.839 I/TP_TEST ( 4733): PSN|page loaded ok=true after 8s 
+11-14 15:04:38.221 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:43.331 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:43.395 I/TP_TEST ( 4733): PAIR|discover nets=10.0.2.16/24 10.0.2.15/24 → 
+11-14 15:04:43.395 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:04:43.396 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:04:48.445 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:53.558 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:58.672 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:03.785 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:08.899 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:13.397 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:05:13.398 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:05:14.011 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:19.123 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:24.237 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:26.580 D/AndroidRuntime( 7089): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:26.586 I/AndroidRuntime( 7089): Using default boot image
+11-14 15:05:26.586 I/AndroidRuntime( 7089): Leaving lock profiling enabled
+11-14 15:05:26.706 D/AndroidRuntime( 7089): Calling main entry com.android.commands.input.Input
+11-14 15:05:26.712 D/AndroidRuntime( 7089): Shutting down VM
+11-14 15:05:27.164 D/AndroidRuntime( 7102): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:27.165 I/AndroidRuntime( 7102): Using default boot image
+11-14 15:05:27.177 I/AndroidRuntime( 7102): Leaving lock profiling enabled
+11-14 15:05:27.222 D/AndroidRuntime( 7102): Calling main entry com.android.commands.input.Input
+11-14 15:05:27.226 D/AndroidRuntime( 7102): Shutting down VM
+11-14 15:05:27.680 D/AndroidRuntime( 7115): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:27.681 I/AndroidRuntime( 7115): Using default boot image
+11-14 15:05:27.681 I/AndroidRuntime( 7115): Leaving lock profiling enabled
+11-14 15:05:27.732 D/AndroidRuntime( 7115): Calling main entry com.android.commands.input.Input
+11-14 15:05:27.735 D/AndroidRuntime( 7115): Shutting down VM
+11-14 15:05:28.187 D/AndroidRuntime( 7128): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:28.198 I/AndroidRuntime( 7128): Using default boot image
+11-14 15:05:28.198 I/AndroidRuntime( 7128): Leaving lock profiling enabled
+11-14 15:05:28.243 D/AndroidRuntime( 7128): Calling main entry com.android.commands.input.Input
+11-14 15:05:28.245 D/AndroidRuntime( 7128): Shutting down VM
+11-14 15:05:28.697 D/AndroidRuntime( 7141): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:28.698 I/AndroidRuntime( 7141): Using default boot image
+11-14 15:05:28.698 I/AndroidRuntime( 7141): Leaving lock profiling enabled
+11-14 15:05:28.744 D/AndroidRuntime( 7141): Calling main entry com.android.commands.input.Input
+11-14 15:05:28.747 D/AndroidRuntime( 7141): Shutting down VM
+11-14 15:05:29.197 D/AndroidRuntime( 7154): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:29.207 I/AndroidRuntime( 7154): Using default boot image
+11-14 15:05:29.207 I/AndroidRuntime( 7154): Leaving lock profiling enabled
+11-14 15:05:29.252 D/AndroidRuntime( 7154): Calling main entry com.android.commands.input.Input
+11-14 15:05:29.255 D/AndroidRuntime( 7154): Shutting down VM
+11-14 15:05:29.357 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:29.706 D/AndroidRuntime( 7167): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:29.708 I/AndroidRuntime( 7167): Using default boot image
+11-14 15:05:29.708 I/AndroidRuntime( 7167): Leaving lock profiling enabled
+11-14 15:05:29.761 D/AndroidRuntime( 7167): Calling main entry com.android.commands.input.Input
+11-14 15:05:29.764 D/AndroidRuntime( 7167): Shutting down VM
+11-14 15:05:30.217 D/AndroidRuntime( 7180): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:30.227 I/AndroidRuntime( 7180): Using default boot image
+11-14 15:05:30.228 I/AndroidRuntime( 7180): Leaving lock profiling enabled
+11-14 15:05:30.272 D/AndroidRuntime( 7180): Calling main entry com.android.commands.input.Input
+11-14 15:05:30.275 D/AndroidRuntime( 7180): Shutting down VM
+11-14 15:05:30.725 D/AndroidRuntime( 7193): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:30.727 I/AndroidRuntime( 7193): Using default boot image
+11-14 15:05:30.727 I/AndroidRuntime( 7193): Leaving lock profiling enabled
+11-14 15:05:30.771 D/AndroidRuntime( 7193): Calling main entry com.android.commands.input.Input
+11-14 15:05:30.774 D/AndroidRuntime( 7193): Shutting down VM
+11-14 15:05:31.225 D/AndroidRuntime( 7206): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:31.238 I/AndroidRuntime( 7206): Using default boot image
+11-14 15:05:31.238 I/AndroidRuntime( 7206): Leaving lock profiling enabled
+11-14 15:05:31.284 D/AndroidRuntime( 7206): Calling main entry com.android.commands.input.Input
+11-14 15:05:31.287 D/AndroidRuntime( 7206): Shutting down VM
+11-14 15:05:31.738 D/AndroidRuntime( 7219): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:31.739 I/AndroidRuntime( 7219): Using default boot image
+11-14 15:05:31.739 I/AndroidRuntime( 7219): Leaving lock profiling enabled
+11-14 15:05:31.784 D/AndroidRuntime( 7219): Calling main entry com.android.commands.input.Input
+11-14 15:05:31.787 D/AndroidRuntime( 7219): Shutting down VM
+11-14 15:05:31.918 I/TP_TEST ( 4733): ZONE|scan
+11-14 15:05:32.237 D/AndroidRuntime( 7232): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:32.249 I/AndroidRuntime( 7232): Using default boot image
+11-14 15:05:32.249 I/AndroidRuntime( 7232): Leaving lock profiling enabled
+11-14 15:05:32.295 D/AndroidRuntime( 7232): Calling main entry com.android.commands.input.Input
+11-14 15:05:32.298 D/AndroidRuntime( 7232): Shutting down VM
+11-14 15:05:32.750 D/AndroidRuntime( 7245): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:32.751 I/AndroidRuntime( 7245): Using default boot image
+11-14 15:05:32.751 I/AndroidRuntime( 7245): Leaving lock profiling enabled
+11-14 15:05:32.798 D/AndroidRuntime( 7245): Calling main entry com.android.commands.input.Input
+11-14 15:05:32.804 D/AndroidRuntime( 7245): Shutting down VM
+11-14 15:05:33.261 D/AndroidRuntime( 7258): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:33.274 I/AndroidRuntime( 7258): Using default boot image
+11-14 15:05:33.274 I/AndroidRuntime( 7258): Leaving lock profiling enabled
+11-14 15:05:33.323 D/AndroidRuntime( 7258): Calling main entry com.android.commands.input.Input
+11-14 15:05:33.326 D/AndroidRuntime( 7258): Shutting down VM
+11-14 15:05:33.777 D/AndroidRuntime( 7271): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:33.779 I/AndroidRuntime( 7271): Using default boot image
+11-14 15:05:33.779 I/AndroidRuntime( 7271): Leaving lock profiling enabled
+11-14 15:05:33.829 D/AndroidRuntime( 7271): Calling main entry com.android.commands.input.Input
+11-14 15:05:33.831 D/AndroidRuntime( 7271): Shutting down VM
+11-14 15:05:34.282 D/AndroidRuntime( 7284): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:34.293 I/AndroidRuntime( 7284): Using default boot image
+11-14 15:05:34.293 I/AndroidRuntime( 7284): Leaving lock profiling enabled
+11-14 15:05:34.338 D/AndroidRuntime( 7284): Calling main entry com.android.commands.input.Input
+11-14 15:05:34.340 D/AndroidRuntime( 7284): Shutting down VM
+11-14 15:05:34.480 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:34.790 D/AndroidRuntime( 7297): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:34.791 I/AndroidRuntime( 7297): Using default boot image
+11-14 15:05:34.791 I/AndroidRuntime( 7297): Leaving lock profiling enabled
+11-14 15:05:34.836 D/AndroidRuntime( 7297): Calling main entry com.android.commands.input.Input
+11-14 15:05:34.839 D/AndroidRuntime( 7297): Shutting down VM
+11-14 15:05:35.289 D/AndroidRuntime( 7310): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:35.300 I/AndroidRuntime( 7310): Using default boot image
+11-14 15:05:35.300 I/AndroidRuntime( 7310): Leaving lock profiling enabled
+11-14 15:05:35.345 D/AndroidRuntime( 7310): Calling main entry com.android.commands.input.Input
+11-14 15:05:35.348 D/AndroidRuntime( 7310): Shutting down VM
+11-14 15:05:35.798 D/AndroidRuntime( 7323): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:35.799 I/AndroidRuntime( 7323): Using default boot image
+11-14 15:05:35.799 I/AndroidRuntime( 7323): Leaving lock profiling enabled
+11-14 15:05:35.843 D/AndroidRuntime( 7323): Calling main entry com.android.commands.input.Input
+11-14 15:05:35.846 D/AndroidRuntime( 7323): Shutting down VM
+11-14 15:05:36.299 D/AndroidRuntime( 7336): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:36.310 I/AndroidRuntime( 7336): Using default boot image
+11-14 15:05:36.310 I/AndroidRuntime( 7336): Leaving lock profiling enabled
+11-14 15:05:36.356 D/AndroidRuntime( 7336): Calling main entry com.android.commands.input.Input
+11-14 15:05:36.359 D/AndroidRuntime( 7336): Shutting down VM
+11-14 15:05:36.810 D/AndroidRuntime( 7349): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:36.811 I/AndroidRuntime( 7349): Using default boot image
+11-14 15:05:36.811 I/AndroidRuntime( 7349): Leaving lock profiling enabled
+11-14 15:05:36.855 D/AndroidRuntime( 7349): Calling main entry com.android.commands.input.Input
+11-14 15:05:36.858 D/AndroidRuntime( 7349): Shutting down VM
+11-14 15:05:37.309 D/AndroidRuntime( 7362): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:37.323 I/AndroidRuntime( 7362): Using default boot image
+11-14 15:05:37.323 I/AndroidRuntime( 7362): Leaving lock profiling enabled
+11-14 15:05:37.370 D/AndroidRuntime( 7362): Calling main entry com.android.commands.input.Input
+11-14 15:05:37.374 D/AndroidRuntime( 7362): Shutting down VM
+11-14 15:05:37.826 D/AndroidRuntime( 7375): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:37.828 I/AndroidRuntime( 7375): Using default boot image
+11-14 15:05:37.828 I/AndroidRuntime( 7375): Leaving lock profiling enabled
+11-14 15:05:37.889 D/AndroidRuntime( 7375): Calling main entry com.android.commands.input.Input
+11-14 15:05:37.903 D/AndroidRuntime( 7375): Shutting down VM
+11-14 15:05:39.601 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:43.044 D/AndroidRuntime( 7507): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:43.048 I/AndroidRuntime( 7507): Using default boot image
+11-14 15:05:43.048 I/AndroidRuntime( 7507): Leaving lock profiling enabled
+11-14 15:05:43.119 D/AndroidRuntime( 7507): Calling main entry com.android.commands.input.Input
+11-14 15:05:43.421 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:05:43.434 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:05:43.494 D/AndroidRuntime( 7507): Shutting down VM
+11-14 15:05:44.729 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:46.099 D/AndroidRuntime( 7524): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:46.117 I/AndroidRuntime( 7524): Using default boot image
+11-14 15:05:46.117 I/AndroidRuntime( 7524): Leaving lock profiling enabled
+11-14 15:05:46.204 D/AndroidRuntime( 7524): Calling main entry com.android.commands.input.Input
+11-14 15:05:46.245 D/AndroidRuntime( 7524): Shutting down VM
+11-14 15:05:49.781 D/AndroidRuntime( 7537): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:49.782 I/AndroidRuntime( 7537): Using default boot image
+11-14 15:05:49.782 I/AndroidRuntime( 7537): Leaving lock profiling enabled
+11-14 15:05:49.831 D/AndroidRuntime( 7537): Calling main entry com.android.commands.input.Input
+11-14 15:05:49.839 D/AndroidRuntime( 7537): Shutting down VM
+11-14 15:05:49.858 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:50.321 D/AndroidRuntime( 7550): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:50.322 I/AndroidRuntime( 7550): Using default boot image
+11-14 15:05:50.322 I/AndroidRuntime( 7550): Leaving lock profiling enabled
+11-14 15:05:50.378 D/AndroidRuntime( 7550): Calling main entry com.android.commands.input.Input
+11-14 15:05:50.380 D/AndroidRuntime( 7550): Shutting down VM
+11-14 15:05:50.846 D/AndroidRuntime( 7563): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:50.847 I/AndroidRuntime( 7563): Using default boot image
+11-14 15:05:50.848 I/AndroidRuntime( 7563): Leaving lock profiling enabled
+11-14 15:05:50.898 D/AndroidRuntime( 7563): Calling main entry com.android.commands.input.Input
+11-14 15:05:50.901 D/AndroidRuntime( 7563): Shutting down VM
+11-14 15:05:51.354 D/AndroidRuntime( 7576): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:51.365 I/AndroidRuntime( 7576): Using default boot image
+11-14 15:05:51.365 I/AndroidRuntime( 7576): Leaving lock profiling enabled
+11-14 15:05:51.411 D/AndroidRuntime( 7576): Calling main entry com.android.commands.input.Input
+11-14 15:05:51.414 D/AndroidRuntime( 7576): Shutting down VM
+11-14 15:05:51.866 D/AndroidRuntime( 7589): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:51.867 I/AndroidRuntime( 7589): Using default boot image
+11-14 15:05:51.868 I/AndroidRuntime( 7589): Leaving lock profiling enabled
+11-14 15:05:51.914 D/AndroidRuntime( 7589): Calling main entry com.android.commands.input.Input
+11-14 15:05:51.919 D/AndroidRuntime( 7589): Shutting down VM
+11-14 15:05:52.917 D/AndroidRuntime( 7606): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:05:52.918 I/AndroidRuntime( 7606): Using default boot image
+11-14 15:05:52.918 I/AndroidRuntime( 7606): Leaving lock profiling enabled
+11-14 15:05:52.964 D/AndroidRuntime( 7606): Calling main entry com.android.commands.input.Input
+11-14 15:05:52.971 D/AndroidRuntime( 7606): Shutting down VM
+11-14 15:05:54.979 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:00.091 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:05.203 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:10.315 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:13.438 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:06:13.439 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:06:15.426 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:20.539 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:35.878 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:40.488 D/AndroidRuntime( 7649): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:06:40.489 I/AndroidRuntime( 7649): Using default boot image
+11-14 15:06:40.489 I/AndroidRuntime( 7649): Leaving lock profiling enabled
+11-14 15:06:40.534 D/AndroidRuntime( 7649): Calling main entry com.android.commands.input.Input
+11-14 15:06:40.536 D/AndroidRuntime( 7649): Shutting down VM
+11-14 15:06:40.990 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:41.991 D/AndroidRuntime( 7662): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:06:41.992 I/AndroidRuntime( 7662): Using default boot image
+11-14 15:06:41.992 I/AndroidRuntime( 7662): Leaving lock profiling enabled
+11-14 15:06:42.036 D/AndroidRuntime( 7662): Calling main entry com.android.commands.input.Input
+11-14 15:06:42.039 D/AndroidRuntime( 7662): Shutting down VM
+11-14 15:06:43.440 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:06:43.441 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:06:43.496 D/AndroidRuntime( 7676): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:06:43.497 I/AndroidRuntime( 7676): Using default boot image
+11-14 15:06:43.497 I/AndroidRuntime( 7676): Leaving lock profiling enabled
+11-14 15:06:43.548 D/AndroidRuntime( 7676): Calling main entry com.android.commands.input.Input
+11-14 15:06:43.551 D/AndroidRuntime( 7676): Shutting down VM
+11-14 15:06:46.109 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:48.079 D/AndroidRuntime( 7695): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:06:48.080 I/AndroidRuntime( 7695): Using default boot image
+11-14 15:06:48.080 I/AndroidRuntime( 7695): Leaving lock profiling enabled
+11-14 15:06:48.129 D/AndroidRuntime( 7695): Calling main entry com.android.commands.input.Input
+11-14 15:06:48.368 D/AndroidRuntime( 7695): Shutting down VM
+11-14 15:06:50.825 D/AndroidRuntime( 7708): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:06:50.826 I/AndroidRuntime( 7708): Using default boot image
+11-14 15:06:50.826 I/AndroidRuntime( 7708): Leaving lock profiling enabled
+11-14 15:06:50.871 D/AndroidRuntime( 7708): Calling main entry com.android.commands.input.Input
+11-14 15:06:50.874 D/AndroidRuntime( 7708): Shutting down VM
+11-14 15:06:51.256 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:54.356 D/AndroidRuntime( 7721): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:06:54.357 I/AndroidRuntime( 7721): Using default boot image
+11-14 15:06:54.357 I/AndroidRuntime( 7721): Leaving lock profiling enabled
+11-14 15:06:54.404 D/AndroidRuntime( 7721): Calling main entry com.android.commands.input.Input
+11-14 15:06:54.407 D/AndroidRuntime( 7721): Shutting down VM
+11-14 15:06:54.862 D/AndroidRuntime( 7734): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:06:54.863 I/AndroidRuntime( 7734): Using default boot image
+11-14 15:06:54.863 I/AndroidRuntime( 7734): Leaving lock profiling enabled
+11-14 15:06:54.919 D/AndroidRuntime( 7734): Calling main entry com.android.commands.input.Input
+11-14 15:06:54.922 D/AndroidRuntime( 7734): Shutting down VM
+11-14 15:06:55.376 D/AndroidRuntime( 7747): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:06:55.377 I/AndroidRuntime( 7747): Using default boot image
+11-14 15:06:55.377 I/AndroidRuntime( 7747): Leaving lock profiling enabled
+11-14 15:06:55.423 D/AndroidRuntime( 7747): Calling main entry com.android.commands.input.Input
+11-14 15:06:55.426 D/AndroidRuntime( 7747): Shutting down VM
+11-14 15:06:55.876 D/AndroidRuntime( 7760): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:06:55.887 I/AndroidRuntime( 7760): Using default boot image
+11-14 15:06:55.887 I/AndroidRuntime( 7760): Leaving lock profiling enabled
+11-14 15:06:55.931 D/AndroidRuntime( 7760): Calling main entry com.android.commands.input.Input
+11-14 15:06:55.934 D/AndroidRuntime( 7760): Shutting down VM
+11-14 15:06:56.374 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:56.385 D/AndroidRuntime( 7773): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:06:56.386 I/AndroidRuntime( 7773): Using default boot image
+11-14 15:06:56.386 I/AndroidRuntime( 7773): Leaving lock profiling enabled
+11-14 15:06:56.431 D/AndroidRuntime( 7773): Calling main entry com.android.commands.input.Input
+11-14 15:06:56.433 D/AndroidRuntime( 7773): Shutting down VM
+11-14 15:06:57.431 D/AndroidRuntime( 7790): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:06:57.432 I/AndroidRuntime( 7790): Using default boot image
+11-14 15:06:57.432 I/AndroidRuntime( 7790): Leaving lock profiling enabled
+11-14 15:06:57.481 D/AndroidRuntime( 7790): Calling main entry com.android.commands.input.Input
+11-14 15:06:57.484 D/AndroidRuntime( 7790): Shutting down VM
+11-14 15:07:01.377 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:06.490 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:11.601 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:16.713 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:18.985 I/TP_TEST ( 4733): PAIR|discover nets=10.0.2.16/24 10.0.2.15/24 → 
+11-14 15:07:18.986 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:07:18.987 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:07:21.822 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:26.934 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:37.154 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:42.264 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:45.013 D/AndroidRuntime( 7846): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:07:45.015 I/AndroidRuntime( 7846): Using default boot image
+11-14 15:07:45.015 I/AndroidRuntime( 7846): Leaving lock profiling enabled
+11-14 15:07:45.061 D/AndroidRuntime( 7846): Calling main entry com.android.commands.input.Input
+11-14 15:07:45.096 D/AndroidRuntime( 7846): Shutting down VM
+11-14 15:07:47.381 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:48.582 D/AndroidRuntime( 7861): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:07:48.583 I/AndroidRuntime( 7861): Using default boot image
+11-14 15:07:48.583 I/AndroidRuntime( 7861): Leaving lock profiling enabled
+11-14 15:07:48.631 D/AndroidRuntime( 7861): Calling main entry com.android.commands.input.Input
+11-14 15:07:48.635 D/AndroidRuntime( 7861): Shutting down VM
+11-14 15:07:48.988 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:07:49.027 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:07:52.529 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:54.263 D/AndroidRuntime( 7887): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:07:54.264 I/AndroidRuntime( 7887): Using default boot image
+11-14 15:07:54.264 I/AndroidRuntime( 7887): Leaving lock profiling enabled
+11-14 15:07:54.314 D/AndroidRuntime( 7887): Calling main entry com.android.commands.input.Input
+11-14 15:07:54.320 D/AndroidRuntime( 7887): Shutting down VM
+11-14 15:07:55.776 D/AndroidRuntime( 7902): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:07:55.777 I/AndroidRuntime( 7902): Using default boot image
+11-14 15:07:55.777 I/AndroidRuntime( 7902): Leaving lock profiling enabled
+11-14 15:07:55.823 D/AndroidRuntime( 7902): Calling main entry com.android.commands.input.Input
+11-14 15:07:55.828 D/AndroidRuntime( 7902): Shutting down VM
+11-14 15:07:57.284 D/AndroidRuntime( 7915): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:07:57.288 I/AndroidRuntime( 7915): Using default boot image
+11-14 15:07:57.288 I/AndroidRuntime( 7915): Leaving lock profiling enabled
+11-14 15:07:57.339 D/AndroidRuntime( 7915): Calling main entry com.android.commands.input.Input
+11-14 15:07:57.343 D/AndroidRuntime( 7915): Shutting down VM
+11-14 15:07:57.643 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:58.798 D/AndroidRuntime( 7928): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:07:58.799 I/AndroidRuntime( 7928): Using default boot image
+11-14 15:07:58.799 I/AndroidRuntime( 7928): Leaving lock profiling enabled
+11-14 15:07:58.845 D/AndroidRuntime( 7928): Calling main entry com.android.commands.input.Input
+11-14 15:07:58.853 D/AndroidRuntime( 7928): Shutting down VM
+11-14 15:08:01.321 D/AndroidRuntime( 7941): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:08:01.322 I/AndroidRuntime( 7941): Using default boot image
+11-14 15:08:01.322 I/AndroidRuntime( 7941): Leaving lock profiling enabled
+11-14 15:08:01.369 D/AndroidRuntime( 7941): Calling main entry com.android.commands.input.Input
+11-14 15:08:01.374 D/AndroidRuntime( 7941): Shutting down VM
+11-14 15:08:02.750 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:08:03.834 D/AndroidRuntime( 7954): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:08:03.836 I/AndroidRuntime( 7954): Using default boot image
+11-14 15:08:03.836 I/AndroidRuntime( 7954): Leaving lock profiling enabled
+11-14 15:08:03.881 D/AndroidRuntime( 7954): Calling main entry com.android.commands.input.Input
+11-14 15:08:03.898 D/AndroidRuntime( 7954): Shutting down VM
+11-14 15:08:07.588 D/AndroidRuntime( 7971): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-14 15:08:07.589 I/AndroidRuntime( 7971): Using default boot image
+11-14 15:08:07.589 I/AndroidRuntime( 7971): Leaving lock profiling enabled
+11-14 15:08:07.635 D/AndroidRuntime( 7971): Calling main entry com.android.commands.input.Input
+11-14 15:08:07.640 D/AndroidRuntime( 7971): Shutting down VM
+11-14 15:08:07.879 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null

@@ -1,0 +1,119 @@
+prelozenych_titulku=9 pady=0 knihovna_ps5=1 dekodovano_snimku=828 pokusy_o_spojeni=2 parovani_bez_konzole=1
+VYSLEDEK=OK
+11-14 15:01:31.150 I/TP_TEST ( 3108): PAIR|discover nets=10.0.2.16/24 10.0.2.15/24 → 
+11-14 15:02:21.364 I/TP_TEST ( 4733): A11Y|true|launchers=[com.google.android.tvlauncher, com.android.tv.settings]
+11-14 15:02:21.376 I/TP_TEST ( 4733): START|video=1280x720|screen=1920x1080|eco=true|decoder=OMX.google.h264.decoder (přímý výstup)|lib=ok 1280x720@30 10000kb
+11-14 15:02:21.393 I/TP_TEST ( 4733): VIDEO|fed=0|decoded=0|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:02:21.393 I/TP_TEST ( 4733): LINK|OFF|
+11-14 15:02:21.394 I/TP_TEST ( 4733): SOURCE|demo
+11-14 15:02:27.322 I/TP_TEST ( 4733): SHOW|Dutch: We need money, Arthu.|Dutch: Potřebujeme peníze, Arthu.
+11-14 15:02:27.343 I/TP_TEST ( 4733): VIDEO|fed=60|decoded=56|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=60 raw=false err=null
+11-14 15:02:35.639 I/TP_TEST ( 4733): SHOW|Arthur: I reckon we ain't gonna find nothin' in Valentine.|Arthur: Myslím, že nebudeme nic najít v Valentine.
+11-14 15:02:35.640 I/TP_TEST ( 4733): ZONE|learned 0.7565278-0.93652785
+11-14 15:02:35.664 I/TP_TEST ( 4733): VIDEO|fed=143|decoded=138|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=143 raw=false err=null
+11-14 15:02:44.107 I/TP_TEST ( 4733): SHOW|Get on your horse, we ride at dawn.|Dostaňte se na koni, jezdíme za svítání.
+11-14 15:02:44.128 I/TP_TEST ( 4733): VIDEO|fed=226|decoded=222|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=226 raw=false err=null
+11-14 15:02:47.279 I/TP_TEST ( 4733): HIDE
+11-14 15:02:50.868 I/TP_TEST ( 4733): SHOW|Hosea: If we keep going like this, the Pinkertons will find us.|Hosea: Pokud budeme dělat takhle, Pinkertons nás najde.
+11-14 15:02:50.869 I/TP_TEST ( 4733): ZONE|learned 0.765-0.98083335
+11-14 15:02:50.889 I/TP_TEST ( 4733): VIDEO|fed=295|decoded=290|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=295 raw=false err=null
+11-14 15:02:59.716 I/TP_TEST ( 4733): SHOW|Dutch: We need money, Arthur.|Dutch: Potřebujeme peníze, Arthur.
+11-14 15:02:59.746 I/TP_TEST ( 4733): VIDEO|fed=382|decoded=379|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=382 raw=false err=null
+11-14 15:03:08.222 I/TP_TEST ( 4733): SHOW|Arthur: I reckon we ain't gonna find nothin' in Valentine.|Arthur: Myslím, že nebudeme nic najít v Valentine.
+11-14 15:03:08.243 I/TP_TEST ( 4733): VIDEO|fed=467|decoded=463|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=467 raw=false err=null
+11-14 15:03:11.588 I/TP_TEST ( 4733): HIDE
+11-14 15:03:15.676 I/TP_TEST ( 4733): SHOW|Get on your horse, we ride at dawn.|Dostaňte se na koni, jezdíme za svítání.
+11-14 15:03:15.697 I/TP_TEST ( 4733): VIDEO|fed=542|decoded=537|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=542 raw=false err=null
+11-14 15:03:23.580 I/TP_TEST ( 4733): SHOW|Hosea: If we keep going like this, the Pinkertons will find us.|Hosea: Pokud budeme dělat takhle, Pinkertons nás najde.
+11-14 15:03:23.602 I/TP_TEST ( 4733): VIDEO|fed=620|decoded=616|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=620 raw=false err=null
+11-14 15:03:31.822 I/TP_TEST ( 4733): SHOW|Dutch: We need money, Arthur.|Dutch: Potřebujeme peníze, Arthur.
+11-14 15:03:31.844 I/TP_TEST ( 4733): VIDEO|fed=702|decoded=698|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=702 raw=false err=null
+11-14 15:03:35.539 I/TP_TEST ( 4733): HIDE
+11-14 15:03:36.917 I/TP_TEST ( 4733): VIDEO|fed=752|decoded=748|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=752 raw=false err=null
+11-14 15:03:41.728 I/TP_TEST ( 4733): PAIR|discover nets=10.0.2.16/24 10.0.2.15/24 → 
+11-14 15:03:42.031 I/TP_TEST ( 4733): VIDEO|fed=803|decoded=799|1280x720|dec=OMX.google.h264.decoder (přímý výstup)|err=null|demo sent=803 raw=false err=null
+11-14 15:03:44.733 I/TP_TEST ( 4733): PAIR|failed RegistEventFailed
+11-14 15:03:44.988 I/TP_TEST ( 4733): SOURCE|ps5 10.0.2.2
+11-14 15:03:44.990 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:03:44.993 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:03:45.038 I/TP_TEST ( 4733): LINK|WAITING|Connection Refused in Session Request
+11-14 15:03:47.144 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:03:47.995 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:03:47.996 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:03:52.260 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:03:57.379 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:03:59.527 I/TP_TEST ( 4733): PAIR|discover nets=10.0.2.16/24 10.0.2.15/24 → 
+11-14 15:03:59.528 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:03:59.529 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:03:59.635 I/TP_TEST ( 4733): LINK|FAILED|Connection Refused in Session Request
+11-14 15:04:02.493 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:07.607 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:11.530 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:04:11.531 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:04:12.720 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:17.836 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:22.951 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:23.532 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:04:23.533 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:04:25.201 I/TP_TEST ( 4733): PSN|open engine=gecko webview=90.0.4430.91
+11-14 15:04:25.206 I/TP_TEST ( 4733): PSN|load try 1
+11-14 15:04:25.990 I/TP_TEST ( 4733): PSN|page loaded ok=true after 0s 
+11-14 15:04:28.071 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:33.185 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:33.839 I/TP_TEST ( 4733): PSN|page loaded ok=true after 8s 
+11-14 15:04:38.221 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:43.331 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:43.395 I/TP_TEST ( 4733): PAIR|discover nets=10.0.2.16/24 10.0.2.15/24 → 
+11-14 15:04:43.395 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:04:43.396 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:04:48.445 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:53.558 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:04:58.672 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:03.785 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:08.899 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:13.397 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:05:13.398 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:05:14.011 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:19.123 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:24.237 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:29.357 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:31.918 I/TP_TEST ( 4733): ZONE|scan
+11-14 15:05:34.480 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:39.601 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:43.421 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:05:43.434 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:05:44.729 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:49.858 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:05:54.979 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:00.091 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:05.203 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:10.315 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:13.438 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:06:13.439 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:06:15.426 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:20.539 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:35.878 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:40.990 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:43.440 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:06:43.441 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:06:46.109 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:51.256 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:06:56.374 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:01.377 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:06.490 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:11.601 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:16.713 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:18.985 I/TP_TEST ( 4733): PAIR|discover nets=10.0.2.16/24 10.0.2.15/24 → 
+11-14 15:07:18.986 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:07:18.987 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:07:21.822 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:26.934 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:37.154 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:42.264 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:47.381 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:48.988 I/TP_TEST ( 4733): PS5|connect 10.0.2.2 → Success
+11-14 15:07:49.027 I/TP_TEST ( 4733): PS5|quit Connection Refused in Session Request 
+11-14 15:07:52.529 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:07:57.643 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:08:02.750 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
+11-14 15:08:07.879 I/TP_TEST ( 4733): VIDEO|fed=832|decoded=828|0x0|dec=OMX.google.h264.decoder (přímý výstup)|err=null
