@@ -136,35 +136,6 @@ object TextLogic {
         return t.length >= 8 && t.last() in ".!?…\"')"
     }
 
-    /**
-     * Rozdělí řádky podle toho, jestli jejich střed leží uvnitř obdélníku (v pixelech oblasti).
-     * Používá se k oddělení textu našeho vlastního pruhu od textu hry.
-     */
-    fun splitByRect(blocks: List<OcrBlock>, left: Int, top: Int, right: Int, bottom: Int): Pair<List<OcrBlock>, List<OcrBlock>> {
-        val inside = ArrayList<OcrBlock>()
-        val outside = ArrayList<OcrBlock>()
-        for (b in blocks) {
-            val (i, o) = b.lines.partition { l ->
-                val cx = (l.left + l.right) / 2
-                val cy = (l.top + l.bottom) / 2
-                cx in left..right && cy in top..bottom
-            }
-            if (i.isNotEmpty()) inside.add(OcrBlock(i))
-            if (o.isNotEmpty()) outside.add(OcrBlock(o))
-        }
-        return inside to outside
-    }
-
-    /** Volné porovnání (bez diakritiky a interpunkce) – pozná vlastní překlad přečtený z obrazovky. */
-    fun looselySimilar(a: String, b: String, threshold: Float = 0.6f): Boolean {
-        val x = simplify(a)
-        val y = simplify(b)
-        if (x.length < 4 || y.length < 4) return x == y && x.isNotEmpty()
-        if (x.contains(y) || y.contains(x)) return true
-        val maxLen = max(x.length, y.length)
-        return 1f - levenshtein(x, y).toFloat() / maxLen >= threshold
-    }
-
     private val NON_ALNUM = Regex("[^a-z0-9]+")
 
     fun simplify(s: String): String {

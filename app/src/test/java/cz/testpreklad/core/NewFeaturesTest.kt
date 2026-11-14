@@ -56,14 +56,6 @@ class SubtitleOnlyTest {
         assertEquals("potrebujeme peniaze", TextLogic.simplify("Potrebujeme peniaze."))
     }
 
-    @Test fun looseSimilarityRecognizesOwnTranslation() {
-        val shown = "Dutch: Potřebujeme peníze, Arthure."
-        assertTrue(TextLogic.looselySimilar("Dutch: Potrebujeme penize, Arthure", shown))
-        assertTrue(TextLogic.looselySimilar("Potřebujeme peníze, Arthure.", shown))      // bez mluvčího
-        assertTrue(TextLogic.looselySimilar("Dutch: Potrebujerne penize Arthurc", shown)) // chyby OCR
-        assertFalse(TextLogic.looselySimilar("Dutch: We need money, Arthur.", shown))    // originál ≠ překlad
-        assertFalse(TextLogic.looselySimilar("", shown))
-    }
 }
 
 class CoverLayoutTest {
@@ -207,31 +199,6 @@ class AllLanguagesTest {
         assertEquals("Réglages", I18n.t(Lang.FR, "m_settings"))
         assertEquals("Impostazioni", I18n.t(Lang.IT, "m_settings"))
     }
-}
-
-
-/** Chyby nalezené zkouškou v emulátoru Android TV. */
-class EmulatorFindingsTest {
-    private fun l(t: String, left: Int, top: Int, right: Int, bottom: Int) = OcrLine(t, left, top, right, bottom)
-
-    @Test fun ownBarTextSeparatedFromGameText() {
-        val blocks = listOf(
-            OcrBlock(listOf(l("Top videa", 400, 300, 700, 330))),                       // náš pruh
-            OcrBlock(listOf(l("Dutch: We need money, Arthur.", 300, 500, 800, 530))),   // titulek hry
-        )
-        val (inside, outside) = TextLogic.splitByRect(blocks, 100, 280, 1000, 350)
-        assertEquals("Top videa", inside.single().lines.single().text)
-        assertEquals("Dutch: We need money, Arthur.", outside.single().lines.single().text)
-    }
-
-    @Test fun splitHandlesMixedBlockAndEmpty() {
-        val b = OcrBlock(listOf(l("a b c d", 0, 0, 100, 20), l("e f g h", 0, 200, 100, 220)))
-        val (i, o) = TextLogic.splitByRect(listOf(b), 0, 0, 200, 50)
-        assertEquals(1, i.single().lines.size); assertEquals(1, o.single().lines.size)
-        val (i2, o2) = TextLogic.splitByRect(emptyList(), 0, 0, 1, 1)
-        assertTrue(i2.isEmpty() && o2.isEmpty())
-    }
-
 }
 
 

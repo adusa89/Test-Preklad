@@ -508,7 +508,7 @@ class TranslatorService : Service() {
         return FrameSignature.brightMask(FrameSignature.luminance(px))
     }
 
-    /** Domovské obrazovky (launchery) – při testu HDMI se jejich obraz nepočítá. */
+    /** Domovské obrazovky televize (launchery) – přes ně se titulky neukazují. */
     private val launchers: Set<String> by lazy {
         try {
             @Suppress("DEPRECATION")

@@ -8,7 +8,8 @@ import android.view.accessibility.AccessibilityEvent
  * Služba Usnadnění. Dělá dvě věci:
  *  1) umožní zobrazit titulky přes jiné aplikace i na televizích, které skrývají povolení
  *     „Zobrazení přes jiné aplikace“ (typicky Google TV / Chromecast) – bez počítače a ADB,
- *  2) hlídá, která aplikace je na obrazovce, aby se titulky ukazovaly jen v PS Remote Play.
+ *  2) hlídá, která aplikace je na obrazovce, aby se titulky neukazovaly přes domovskou obrazovku
+ *     televize ani přes menu této aplikace.
  *
  * Nečte obsah obrazovky ani nic neodesílá – reaguje jen na přepnutí aplikace.
  */
@@ -24,11 +25,6 @@ class TitulkyAccessibility : AccessibilityService() {
 
         /** Okna, která nejsou "přepnutí aplikace" (klávesnice, systémová lišta…). */
         private val IGNORED = listOf("com.android.systemui", "inputmethod", "android.ime", "com.google.android.katniss")
-
-        private val REMOTE_PLAY_HINTS = listOf("remoteplay", "chiaki", "momiji", "psplay")
-
-        /** Je to aplikace pro Remote Play (oficiální PS Remote Play nebo open-source klienti)? */
-        fun isRemotePlay(pkg: String): Boolean = REMOTE_PLAY_HINTS.any { pkg.contains(it, ignoreCase = true) }
     }
 
     override fun onServiceConnected() {

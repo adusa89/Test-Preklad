@@ -19,12 +19,10 @@ import android.view.WindowManager
 import android.widget.TextView
 import cz.testpreklad.core.ScreenLayout
 import cz.testpreklad.core.Segment
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import kotlin.math.max
 
 /**
- * Černý pruh s překladem, zobrazený přes všechny aplikace (i přes PS Remote Play).
+ * Černý pruh s překladem, zobrazený přes obraz televize (i přes vstup HDMI s hrou).
  *
  * Okno se vytváří přes službu Usnadnění, když je zapnutá (funguje na Google TV / Chromecastu
  * bez ADB), jinak přes povolení „Zobrazení přes jiné aplikace“.
@@ -65,19 +63,8 @@ class SubtitleOverlay(
     @Volatile private var textSize = textSizeSp
     @Volatile private var bgAlpha = (255 * opacityPercent / 100).coerceIn(0, 255)
 
-    /** Kde pruh na obrazovce leží (vlevo, nahoře, vpravo, dole; 0..1), nebo null, když není vidět. */
-    @Volatile var barRect: FloatArray? = null
-        private set
-
-    /** Je pruh úplně neprůhledný (čistě černý)? Pak jde ve snímku spolehlivě poznat. */
-    val isOpaque: Boolean get() = bgAlpha == 255
-
-    /** Je pruh právě zobrazený (bez ohledu na krátké nakouknutí)? */
+    /** Je pruh právě zobrazený? */
     @Volatile var isShown = false
-        private set
-
-    /** Text, který je teď v pruhu (bez formátování) – pro rozpoznání vlastního textu ve snímku. */
-    @Volatile var displayedPlain: String = ""
         private set
 
     init {
@@ -166,8 +153,6 @@ class SubtitleOverlay(
      * v režimu "přes titulky" se pruh položí přesně přes něj.
      */
     fun show(segments: List<Segment>, original: String?, textTop: Float, textBottom: Float) {
-        val plain = segments.joinToString("\n") { s -> if (s.speaker != null) "${s.speaker}: ${s.body}" else s.body }
-        displayedPlain = plain
         isShown = true
         main.post {
             val tv = bar ?: return@post
@@ -197,8 +182,6 @@ class SubtitleOverlay(
             }
             lp.width = width
             lp.y = (top * screenH).toInt().coerceIn(0, max(0, screenH - h))
-            val left = (screenW - width) / 2f
-            barRect = floatArrayOf(left / screenW, lp.y.toFloat() / screenH, (left + width) / screenW, (lp.y + h).toFloat() / screenH)
             tv.visibility = View.VISIBLE
             try { wm.updateViewLayout(tv, lp) } catch (_: Exception) {}
         }
@@ -206,23 +189,7 @@ class SubtitleOverlay(
 
     fun hide() {
         isShown = false
-        barRect = null
-        displayedPlain = ""
         main.post { bar?.visibility = View.GONE }
-    }
-
-    /**
-     * Krátké skrytí pruhu kvůli přečtení textu pod ním. Čeká, až se změna opravdu provede,
-     * aby další snímek obrazovky pruh už neobsahoval.
-     */
-    fun setPeekHidden(hidden: Boolean) {
-        if (!isShown) return
-        val done = CountDownLatch(1)
-        main.post {
-            bar?.visibility = if (hidden) View.INVISIBLE else View.VISIBLE
-            done.countDown()
-        }
-        try { done.await(150, TimeUnit.MILLISECONDS) } catch (_: InterruptedException) {}
     }
 
     fun debug(text: String) {
