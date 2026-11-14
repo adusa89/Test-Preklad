@@ -1,42 +1,54 @@
 # Test Překlad – stručný návod
 
-Kompletní manuál (s obrázky tabulek, řešením problémů a slovenskou částí) dostaneš jako samostatný dokument.
-Tady je zkrácená verze.
+Aplikace pro Android TV, boxy, Chromecast a projektory. Sama se po domácí síti připojí
+k PlayStationu 5, přečte anglické titulky hry, přeloží je (offline, zdarma) a ukáže je
+v černém pruhu přes obraz. Hra jde do televize dál kabelem HDMI.
 
 ## 1. APK
-1. Založ si účet na github.com → **New repository** → nahraj obsah této složky (včetně `.github`).
-2. Záložka **Actions** → počkej na zelenou fajfku (cca 5 min) → **Artifacts** → `TestPreklad-APK`.
-3. Hotové APK má asi 25–35 MB.
+Stáhni `TestPreklad.apk`:
+https://github.com/adusa89/Test-Preklad/releases/download/latest/TestPreklad.apk
 
 ## 2. Instalace
-Do TV nainstaluj **Send Files to TV**, pošli APK, otevři ho a povol *Instalovat neznámé aplikace*.
+Nahraj APK do televize (USB flash + správce souborů, nebo aplikace Downloader) a nainstaluj.
+Když instalaci zablokuje Play Protect, vypni v Google Play → Play Protect → nastavení
+„Kontrolovat aplikace pomocí Play Protect“ a nainstaluj znovu.
 
-## 3. První nastavení
-- PlayStation: *Nastavení → Systém → Remote Play* zapnout.
-- TV: nainstaluj **PS Remote Play** (Android TV 12+), přihlas se, spáruj ovladač.
-- Test Překlad → **Nastavení → Zobrazení přes Usnadnění** → v TV zapni *Test Překlad* (funguje i na Chromecastu, bez počítače).
+## 3. První nastavení (průvodce tě provede)
+1. Vyber jazyk překladu.
+2. Zapni aplikaci v nastavení televize: Usnadnění → Test Překlad → Zapnout.
+3. Počkej na stažení jazykového modelu (jednou, asi 30 MB).
+4. Spáruj PlayStation – viz další bod.
 
-## 4. Hraní
-1. Otevři PS Remote Play a připoj se ke konzoli.
-2. Test Překlad → **Spustit překlad** → sdílení: *Jedna aplikace → PS Remote Play* (Android 14+, bez probliknutí), jinak *Celá obrazovka*.
-3. Ve hře zapni titulky. Poprvé si v **Oblasti titulků** nastav modrý rámeček na titulky.
+## 4. Spárování PlayStationu (jen jednou)
+Televize a PS5 musí být ve stejné domácí síti.
+1. Na PS5: Nastavení → Systém → Vzdálené hraní → zapni „Povolit vzdálené hraní“.
+2. Tamtéž zvol „Propojit zařízení“ – ukáže se osmimístné číslo (platí pár minut).
+3. V aplikaci na stránce PlayStation zvol „Najít PlayStation v síti“ (nebo zadej adresu ručně:
+   PS5 → Nastavení → Síť → Stav připojení → Adresa IPv4).
+4. Zadej svou přezdívku na PSN (nebo ID účtu) a číslo z PS5 a zvol Spárovat.
 
-## 5. Překlad
-Vždy offline a zdarma, přímo v televizi. Internet je potřeba jen jednou na stažení jazykového modelu (cca 30 MB).
-Jména postav a míst se nepřekládají, westernový slang se před překladem převede do spisovné angličtiny.
+Když se účet podle přezdívky nenajde (soukromý profil), otevři na telefonu
+psn.flipscreen.games, zadej přezdívku a do aplikace opiš řádek „Encoded ID“.
 
-## 6. Problémy
-Zapni **Nastavení → Diagnostický režim** – ukáže, co aplikace čte, a případné chyby.
+## 5. Hraní
+1. Na stránce Domů zvol „Spustit překlad“ a počkej na „Překlad běží“ (objeví se i malý náhled
+   toho, co aplikace z PlayStationu vidí).
+2. Přepni televizi na HDMI s PlayStationem a hraj. Ve hře měj zapnuté anglické titulky.
+3. Titulky si aplikace na obrazovce najde sama.
 
-Záložní povolení přes ADB: `adb shell appops set cz.testpreklad SYSTEM_ALERT_WINDOW allow`
+## 6. Zkouška bez PlayStationu
+Na stránce Domů zvol „Zkouška bez PlayStationu“. Ukáže se ukázková hra s anglickými titulky
+a přes ně pruh s překladem. Tím si ověříš, že pruh a překlad v televizi fungují.
 
-## 7. Co nejmenší zpoždění
-- Překlad naskočí zhruba za 0,2–0,4 s (aplikace kontroluje obraz 10× za sekundu a překládá hned po prvním přečtení).
-- PlayStation i TV připoj **kabelem**; jinak Wi-Fi 5 GHz.
-- PS Remote Play → Kvalita videa: snímková frekvence **Vysoká**, rozlišení **1080p** (při sekání 720p, níž ne).
+## 7. Problémy
+- **Nejde spárovat** – číslo z PS5 platí jen pár minut, vyžádej si nové. Zkontroluj adresu a účet.
+- **„PlayStation neodpovídá“** – je konzole zapnutá (ne vypnutá ze zásuvky) a ve stejné síti?
+- **Účet na PS5 má přihlašovací kód** – zadej ho na stránce PlayStation (4 číslice).
+- **Pruh se neukáže** – zkontroluj Usnadnění (bod 3.2) a vyzkoušej bod 6.
+- **Nic se nečte** – zapni Nastavení → Diagnostický režim; uvidíš, co aplikace čte.
+- Nápověda → „Vytvořit hlášení chyby“ uloží soubor s podrobnostmi pro vývojáře.
 
-## 8. Plná kvalita přes HDMI (televize s Androidem)
-Nastavení → Zdroj obrazu:
-- **HDMI kabel** – PS5 zapojené jako obvykle. Domů → „Televize čte obraz z HDMI“ → Vyzkoušet. Test řekne, jestli to TV dovolí.
-- **USB klíčenka** – když HDMI test neprojde: PS5 → HDMI splitter (4K HDR, downscaler) → výstup 1 do TV, výstup 2 do USB capture klíčenky → USB port TV. Na PS5 vypni HDCP.
-- **PS Remote Play** – Android boxy a Chromecast (nižší kvalita obrazu).
+## Licence a zdrojový kód
+Spojení s PlayStationem používá otevřenou knihovnu chiaki-ng
+(https://github.com/streetpea/chiaki-ng, licence AGPL-3.0). Zdrojový kód aplikace včetně
+úprav je v tomto repozitáři. Aplikace není produktem společnosti Sony.
