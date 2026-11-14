@@ -1,0 +1,138 @@
+11-14 15:01:46.096 I/TP_TEST ( 3088): PAIR|discover nets=10.0.2.15/24 → 
+11-14 15:02:25.043 I/TP_TEST ( 4576): A11Y|true|launchers=[com.google.android.tvlauncher, com.android.tv.settings]
+11-14 15:02:25.054 I/TP_TEST ( 4576): START|video=1280x720|screen=1920x1080|eco=true|decoder=c2.goldfish.h264.decoder (přímý výstup)|lib=ok 1280x720@30 10000kb
+11-14 15:02:25.109 I/TP_TEST ( 4576): VIDEO|fed=0|decoded=0|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:02:25.109 I/TP_TEST ( 4576): LINK|OFF|
+11-14 15:02:25.115 I/TP_TEST ( 4576): SOURCE|demo
+11-14 15:02:31.098 I/TP_TEST ( 4576): READ|ocr=4725ms|zone=48%|Dutch: We need money, Arthur.
+11-14 15:02:31.943 I/TP_TEST ( 4576): SHOW|Dutch: We need money, Arthur.|Dutch: Potřebujeme peníze, Arthur.
+11-14 15:02:31.973 I/TP_TEST ( 4576): VIDEO|fed=50|decoded=49|1280x720|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null|demo sent=50 raw=false err=null
+11-14 15:02:36.186 I/TP_TEST ( 4576): READ|ocr=4205ms|zone=48%|
+11-14 15:02:36.186 I/TP_TEST ( 4576): HIDE
+11-14 15:02:40.255 I/TP_TEST ( 4576): READ|ocr=4042ms|zone=48%|Arthur: I reckon we ain't gonna find not
+11-14 15:02:40.461 I/TP_TEST ( 4576): SHOW|Arthur: I reckon we ain't gonna find nothin' in Valentine.|Arthur: Myslím, že nebudeme nic najít v Valentine.
+11-14 15:02:40.462 I/TP_TEST ( 4576): ZONE|learned 0.7565278-0.93652785
+11-14 15:02:40.482 I/TP_TEST ( 4576): VIDEO|fed=132|decoded=130|1280x720|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null|demo sent=132 raw=false err=null
+11-14 15:02:44.501 I/TP_TEST ( 4576): READ|ocr=4015ms|zone=18%|
+11-14 15:02:44.501 I/TP_TEST ( 4576): HIDE
+11-14 15:02:48.365 I/TP_TEST ( 4576): READ|ocr=3838ms|zone=18%|Get on your horse, we ride at dawn.
+11-14 15:02:48.577 I/TP_TEST ( 4576): SHOW|Get on your horse, we ride at dawn.|Dostaňte se na koni, jezdíme za svítání.
+11-14 15:02:48.599 I/TP_TEST ( 4576): VIDEO|fed=213|decoded=210|1280x720|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null|demo sent=213 raw=false err=null
+11-14 15:02:52.489 I/TP_TEST ( 4576): READ|ocr=3887ms|zone=18%|
+11-14 15:02:52.489 I/TP_TEST ( 4576): HIDE
+11-14 15:02:56.326 I/TP_TEST ( 4576): READ|ocr=3807ms|zone=18%|Hosea: If we keep going like this, the P
+11-14 15:02:56.555 I/TP_TEST ( 4576): SHOW|Hosea: If we keep going like this, the Pinkertons will find us.|Hosea: Pokud budeme dělat takhle, Pinkertons nás najde.
+11-14 15:02:56.557 I/TP_TEST ( 4576): ZONE|learned 0.765-0.9752778
+11-14 15:02:56.578 I/TP_TEST ( 4576): VIDEO|fed=292|decoded=291|1280x720|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null|demo sent=292 raw=false err=null
+11-14 15:03:00.630 I/TP_TEST ( 4576): READ|ocr=4047ms|zone=21%|
+11-14 15:03:00.630 I/TP_TEST ( 4576): HIDE
+11-14 15:03:04.667 I/TP_TEST ( 4576): READ|ocr=4008ms|zone=21%|Dutch: We need money, Arthur.
+11-14 15:03:04.668 I/TP_TEST ( 4576): SHOW|Dutch: We need money, Arthur.|Dutch: Potřebujeme peníze, Arthur.
+11-14 15:03:04.689 I/TP_TEST ( 4576): VIDEO|fed=374|decoded=372|1280x720|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null|demo sent=374 raw=false err=null
+11-14 15:03:08.833 I/TP_TEST ( 4576): READ|ocr=4132ms|zone=21%|
+11-14 15:03:08.833 I/TP_TEST ( 4576): HIDE
+11-14 15:03:13.055 I/TP_TEST ( 4576): READ|ocr=4196ms|zone=21%|Arthur: I reckon we ain't gonna find not
+11-14 15:03:13.055 I/TP_TEST ( 4576): SHOW|Arthur: I reckon we ain't gonna find nothin' in Valentine.|Arthur: Myslím, že nebudeme nic najít v Valentine.
+11-14 15:03:13.077 I/TP_TEST ( 4576): VIDEO|fed=456|decoded=455|1280x720|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null|demo sent=456 raw=false err=null
+11-14 15:03:16.917 I/TP_TEST ( 4576): READ|ocr=3836ms|zone=21%|
+11-14 15:03:16.917 I/TP_TEST ( 4576): HIDE
+11-14 15:03:20.930 I/TP_TEST ( 4576): READ|ocr=3988ms|zone=21%|Get on your horse, we ride at dawn.
+11-14 15:03:20.931 I/TP_TEST ( 4576): SHOW|Get on your horse, we ride at dawn.|Dostaňte se na koni, jezdíme za svítání.
+11-14 15:03:20.952 I/TP_TEST ( 4576): VIDEO|fed=535|decoded=534|1280x720|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null|demo sent=535 raw=false err=null
+11-14 15:03:24.778 I/TP_TEST ( 4576): READ|ocr=3820ms|zone=21%|
+11-14 15:03:24.778 I/TP_TEST ( 4576): HIDE
+11-14 15:03:29.125 I/TP_TEST ( 4576): READ|ocr=4320ms|zone=21%|Hosea: If we keep going like this, the P
+11-14 15:03:29.126 I/TP_TEST ( 4576): SHOW|Hosea: If we keep going like this, the Pinkertons will find us.|Hosea: Pokud budeme dělat takhle, Pinkertons nás najde.
+11-14 15:03:29.148 I/TP_TEST ( 4576): VIDEO|fed=615|decoded=613|1280x720|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null|demo sent=615 raw=false err=null
+11-14 15:03:33.405 I/TP_TEST ( 4576): READ|ocr=4218ms|zone=21%|
+11-14 15:03:33.405 I/TP_TEST ( 4576): HIDE
+11-14 15:03:34.213 I/TP_TEST ( 4576): VIDEO|fed=665|decoded=664|1280x720|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null|demo sent=665 raw=false err=null
+11-14 15:03:35.815 I/TP_TEST ( 4576): PAIR|discover nets=10.0.2.15/24 → 
+11-14 15:03:35.817 I/TestPreklad( 4576): regist: [I] Regist starting search
+11-14 15:03:35.817 I/TestPreklad( 4576): regist: [I] Regist sending search packet
+11-14 15:03:38.821 I/TestPreklad( 4576): regist: [E] Regist timed out waiting for search response
+11-14 15:03:38.821 I/TestPreklad( 4576): regist: [E] Regist search failed
+11-14 15:03:38.821 I/TP_TEST ( 4576): PAIR|failed RegistEventFailed
+11-14 15:03:39.134 I/TP_TEST ( 4576): SOURCE|ps5 10.0.2.2
+11-14 15:03:39.139 I/TP_TEST ( 4576): PS5|connect 10.0.2.2 → Success
+11-14 15:03:39.140 I/TP_TEST ( 4576): PS5|quit Connection Refused in Session Request 
+11-14 15:03:39.180 I/TP_TEST ( 4576): LINK|WAITING|Connection Refused in Session Request
+11-14 15:03:39.331 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:03:42.142 I/TP_TEST ( 4576): PS5|connect 10.0.2.2 → Success
+11-14 15:03:42.143 I/TP_TEST ( 4576): PS5|quit Connection Refused in Session Request 
+11-14 15:03:44.452 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:03:49.572 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:03:54.692 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:03:55.195 I/TP_TEST ( 4576): PAIR|discover nets=10.0.2.15/24 → 
+11-14 15:03:55.196 I/TP_TEST ( 4576): PS5|connect 10.0.2.2 → Success
+11-14 15:03:55.197 I/TP_TEST ( 4576): PS5|quit Connection Refused in Session Request 
+11-14 15:03:55.299 I/TP_TEST ( 4576): LINK|FAILED|Connection Refused in Session Request
+11-14 15:03:59.817 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:04:04.939 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:04:07.199 I/TP_TEST ( 4576): PS5|connect 10.0.2.2 → Success
+11-14 15:04:07.200 I/TP_TEST ( 4576): PS5|quit Connection Refused in Session Request 
+11-14 15:04:10.058 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:04:15.182 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:04:19.201 I/TP_TEST ( 4576): PS5|connect 10.0.2.2 → Success
+11-14 15:04:19.202 I/TP_TEST ( 4576): PS5|quit Connection Refused in Session Request 
+11-14 15:04:20.304 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:04:22.574 I/TP_TEST ( 4576): PSN|open engine=gecko webview=113.0.5672.136
+11-14 15:04:22.581 I/TP_TEST ( 4576): PSN|load try 1
+11-14 15:04:23.593 I/TP_TEST ( 4576): PSN|page loaded ok=true after 1s 
+11-14 15:04:25.431 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:04:26.962 I/TP_TEST ( 4576): PSN|page loaded ok=true after 4s 
+11-14 15:04:30.443 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:04:35.337 I/TP_TEST ( 4576): PAIR|discover nets=10.0.2.15/24 → 
+11-14 15:04:35.353 I/TP_TEST ( 4576): PS5|connect 10.0.2.2 → Success
+11-14 15:04:35.376 I/TP_TEST ( 4576): PS5|quit Connection Refused in Session Request 
+11-14 15:04:35.449 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:04:40.488 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:04:45.607 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:04:50.726 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:04:55.846 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:05:00.964 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:05:05.380 I/TP_TEST ( 4576): PS5|connect 10.0.2.2 → Success
+11-14 15:05:05.381 I/TP_TEST ( 4576): PS5|quit Connection Refused in Session Request 
+11-14 15:05:06.085 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:05:11.205 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:05:16.325 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:05:21.444 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:05:26.588 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:05:29.154 I/TP_TEST ( 4576): ZONE|scan
+11-14 15:05:31.725 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:05:35.383 I/TP_TEST ( 4576): PS5|connect 10.0.2.2 → Success
+11-14 15:05:35.384 I/TP_TEST ( 4576): PS5|quit Connection Refused in Session Request 
+11-14 15:05:36.855 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:05:41.975 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:05:47.094 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:05:52.212 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:05:57.332 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:06:02.453 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:06:05.385 I/TP_TEST ( 4576): PS5|connect 10.0.2.2 → Success
+11-14 15:06:05.386 I/TP_TEST ( 4576): PS5|quit Connection Refused in Session Request 
+11-14 15:06:07.572 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:06:12.692 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:06:17.813 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:06:22.933 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:06:28.063 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:06:33.209 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:06:35.388 I/TP_TEST ( 4576): PS5|connect 10.0.2.2 → Success
+11-14 15:06:35.398 I/TP_TEST ( 4576): PS5|quit Connection Refused in Session Request 
+11-14 15:06:38.314 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:06:43.450 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:06:48.569 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:06:53.690 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:06:58.810 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:07:03.931 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:07:09.049 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:07:12.446 I/TP_TEST ( 4576): PAIR|discover nets=10.0.2.15/24 → 
+11-14 15:07:12.446 I/TP_TEST ( 4576): PS5|connect 10.0.2.2 → Success
+11-14 15:07:12.447 I/TP_TEST ( 4576): PS5|quit Connection Refused in Session Request 
+11-14 15:07:14.169 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:07:19.289 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:07:24.294 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:07:29.372 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:07:34.495 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:07:39.647 I/TP_TEST ( 4576): VIDEO|fed=715|decoded=714|0x0|dec=c2.goldfish.h264.decoder (přímý výstup)|err=null
+11-14 15:07:42.449 I/TP_TEST ( 4576): PS5|connect 10.0.2.2 → Success
+11-14 15:07:42.449 I/TP_TEST ( 4576): PS5|quit Connection Refused in Session Request 
