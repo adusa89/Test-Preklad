@@ -7,11 +7,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          for a in geckoview geckoview-x86 geckoview-x86_64 geckoview-arm64-v8a geckoview-armeabi-v7a; do
-            echo "== $a"; curl -sS -m 20 "https://maven.mozilla.org/maven2/org/mozilla/geckoview/$a/maven-metadata.xml" | grep -E "<latest>|<release>|<lastUpdated>" ; curl -sS -m 20 "https://maven.mozilla.org/maven2/org/mozilla/geckoview/$a/maven-metadata.xml" | grep -oE "<version>[^<]+" | tail -3
+          M=https://maven.mozilla.org/maven2/org/mozilla/geckoview
+          curl -sS -m 20 "$M/geckoview-x86/maven-metadata.xml" | grep -oE "<version>1(2[89]|3[0-9]|4[0-4])\.[^<]+" | cut -d'>' -f2 > v.txt
+          for major in 128 133 136 140 142 144; do
+            V=$(grep "^$major\." v.txt | tail -1); echo "== $major -> $V"
+            curl -sS -m 20 "$M/geckoview/$V/geckoview-$V.pom" | grep -A2 -E "kotlin-stdlib<|kotlinx" | grep -E "artifactId|version" | tr -d ' \n'; echo
+            curl -sS -m 20 -I "$M/geckoview/$V/geckoview-$V.aar" | grep -iE "^HTTP|content-length"
+            curl -sS -m 20 -I "$M/geckoview-x86/$V/geckoview-x86-$V.aar" | grep -iE "^HTTP|content-length"
+            curl -sS -m 20 -I "$M/geckoview-armeabi-v7a/$V/geckoview-armeabi-v7a-$V.aar" | grep -iE "^HTTP|content-length"
           done
-          V=$(curl -sS -m 20 "https://maven.mozilla.org/maven2/org/mozilla/geckoview/geckoview/maven-metadata.xml" | grep -oE "<release>[^<]+" | cut -d'>' -f2)
-          echo "== release $V"
-          curl -sS -m 30 "https://maven.mozilla.org/maven2/org/mozilla/geckoview/geckoview/$V/geckoview-$V.pom" | head -60
-          curl -sS -m 60 -o g.aar "https://maven.mozilla.org/maven2/org/mozilla/geckoview/geckoview/$V/geckoview-$V.aar"; ls -la g.aar; unzip -l g.aar | grep -E "\.so$|AndroidManifest|omni" | head -30
-          unzip -p g.aar AndroidManifest.xml | grep -E "minSdk|uses-sdk|uses-permission|<service|<provider|<activity" | head -40
+          V=$(grep "^144\." v.txt | tail -1)
+          curl -sS -m 90 -o g.aar "$M/geckoview/$V/geckoview-$V.aar"; unzip -l g.aar | grep -E "libxul|minSdk" ; unzip -p g.aar AndroidManifest.xml | grep -E "uses-sdk"
