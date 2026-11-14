@@ -23,10 +23,11 @@ sleep 10; shot 01_pruvodce_vitej
 key 23; sleep 2; shot 02_pruvodce_povoleni
 key 23; sleep 2; shot 03_pruvodce_jazyk
 sleep 45; shot 03b_pruvodce_jazyk_po_stazeni
-key 23; sleep 2; shot 04_pruvodce_pripojeni
-key 23; sleep 2; shot 05_pruvodce_hotovo
-# přeskočit průvodce (vpravo, vpravo = „Dokončit“) → hlavní obrazovka
-key 22; key 22; key 23; sleep 3; shot 06_domu
+key 23; sleep 2; shot 04_pruvodce_ps5_krok1
+key 23; sleep 8; shot 04b_pruvodce_ps5_krok2_hledani
+# zpět v průvodci spárováním a pak dokončení průvodce
+adb shell am start -n $PKG/.MainActivity --ez nowizard true
+sleep 3; shot 06_domu
 
 # 2) všechny stránky menu
 for i in 1 2 3 4 5 6 7; do key 20; key 23; sleep 2; shot "07_menu_$i"; done

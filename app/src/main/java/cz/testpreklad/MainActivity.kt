@@ -82,6 +82,7 @@ class MainActivity : Activity() {
     private var pairMsg: String? = null
     private var pairMsgColor = Theme.MUTED
     private var pairBusy = false
+    private var pairStep = 0
     private var skipDraftSave = false
     private var lastLink = Ps5.Link.OFF
     private var lastFrames = 0L
@@ -131,6 +132,7 @@ class MainActivity : Activity() {
      * párování a spojení proti adrese, kde žádný PlayStation není – nic nesmí spadnout.
      */
     private fun ps5SelfTest(i: Intent?) {
+        if (i?.getBooleanExtra("nowizard", false) == true) { Prefs.setWizardDone(this, true); wizard = -1; section = Section.HOME; render() }
         val ip = i?.getStringExtra("ps5test") ?: return
         if (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE == 0) return
         Prefs.setWizardDone(this, true); wizard = -1
@@ -151,7 +153,7 @@ class MainActivity : Activity() {
         val acc = PsnLoginActivity.result
         if (acc != null) {
             PsnLoginActivity.result = null
-            pairNote(t("ps5_acc_ok"), Theme.OK) { draftPsn = acc }
+            pairNote(t("ps5_acc_ok"), Theme.OK) { draftPsn = acc; pairStep = 3 }
         } else if (PsnLoginActivity.failed) {
             PsnLoginActivity.failed = false
             pairNote(t("ps5_acc_err"), Theme.BAD)
@@ -317,13 +319,17 @@ class MainActivity : Activity() {
             }
             else -> {
                 add(ui.text(t("wz_done"), 17f, Theme.MUTED), 12)
+                add(ui.card().apply {
+                    for (i in intArrayOf(4, 5, 3)) addView(ui.text(t("help_$i").substringAfter(". "), 16f), ui.lp(top = if (i == 4) 0 else 8))
+                }, 12)
                 add(ui.text(t("wz_done_auto"), 15f, Theme.MUTED), 12)
                 if (Prefs.ps5Host(this) != null) nextLabel = t("b_start")
             }
         }
 
         val row = ui.hbox()
-        row.addView(tagged(ui.button(nextLabel, primary = true) {
+        val pairing = wizard == 3 && Prefs.ps5Host(this) == null
+        row.addView(tagged(ui.button(nextLabel, primary = !pairing) {
             if (wizard < wizardSteps.size - 1) { wizard++; render() }
             else {
                 val paired = Prefs.ps5Host(this) != null
@@ -336,7 +342,7 @@ class MainActivity : Activity() {
         add(row, 28)
 
         val target = focusedTag?.let { window.decorView.findViewWithTag<View>(it) }
-            ?: window.decorView.findViewWithTag<View>("wnext")
+            ?: window.decorView.findViewWithTag<View>(if (pairing) "pnext" else "wnext")
         target?.requestFocus()
     }
 
@@ -498,6 +504,7 @@ class MainActivity : Activity() {
             c.addView(ui.text(host.ip, 15f, Theme.MUTED), ui.lp(top = 4))
             add(c, 16)
             pairMsg?.let { add(ui.text(it, 15f, pairMsgColor), 10) }
+            if (wizard < 0 && !TranslatorService.running) add(tagged(ui.button(t("b_start"), primary = true) { section = Section.HOME; startFlow() }, "pstart"), 12)
             add(input("ps5_login", draftLogin, "plogin", number = true), 12)
             add(tagged(ui.button(t("ps5_forget")) {
                 if (TranslatorService.running && !TranslatorService.demo) stopService(Intent(this, TranslatorService::class.java))
@@ -507,19 +514,41 @@ class MainActivity : Activity() {
         }
         if (draftIp.isEmpty()) draftIp = Prefs.ps5Ip(this)
         if (draftPsn.isEmpty()) draftPsn = Prefs.psnId(this)
-        add(ui.card().apply { addView(ui.text(t("ps5_steps"), 16f, Theme.TEXT)) }, 16)
-        add(tagged(ui.button(t("ps5_find")) { findPs5() }, "pfind"), 12)
-        add(input("ps5_ip", draftIp, "pip", number = true), 10)
-        add(tagged(ui.button(t("ps5_acc_btn")) {
-            saveDrafts()
-            try { startActivity(Intent(this, PsnLoginActivity::class.java)) } catch (_: Exception) { pairNote(t("ps5_acc_err"), Theme.BAD) }
-        }, "pacc"), 10)
-        add(ui.text(t("ps5_acc_or"), 14f, Theme.MUTED), 8)
-        add(input("ps5_psn", draftPsn, "ppsn", number = false), 8)
-        add(input("ps5_pin", draftPin, "ppin", number = true), 8)
-        add(input("ps5_login", draftLogin, "plogin", number = true), 8)
+
+        // ---- průvodce spárováním: čtyři malé kroky, vždy jedna věc ----
+        val step = pairStep.coerceIn(0, 3)
+        add(ui.text(t("pg_step").replace("%d", (step + 1).toString()), 14f, Theme.ACCENT, bold = true), 16)
+        add(ui.text(t("pg_${step + 1}_title"), 22f, Theme.TEXT, bold = true), 2)
+        add(ui.card().apply { addView(ui.text(t("pg_${step + 1}_text"), 16f, Theme.TEXT)) }, 10)
+        var nextOk = true
+        when (step) {
+            1 -> {
+                add(input("ps5_ip", draftIp, "pip", number = true), 10)
+                add(tagged(ui.button(t("ps5_find")) { findPs5() }, "pfind"), 8)
+            }
+            2 -> {
+                add(tagged(ui.button(t("ps5_acc_btn"), primary = draftPsn.isEmpty()) {
+                    saveDrafts()
+                    try { startActivity(Intent(this, PsnLoginActivity::class.java)) } catch (_: Exception) { pairNote(t("ps5_acc_err"), Theme.BAD) }
+                }, "pacc"), 10)
+                add(ui.text(t("ps5_acc_or"), 14f, Theme.MUTED), 8)
+                add(input("ps5_psn", draftPsn, "ppsn", number = false), 8)
+            }
+            3 -> {
+                add(input("ps5_pin", draftPin, "ppin", number = true), 10)
+                add(input("ps5_login", draftLogin, "plogin", number = true), 8)
+                nextOk = false
+            }
+        }
         pairMsg?.let { add(ui.text(it, 15f, pairMsgColor), 10) }
-        add(tagged(ui.button(t(if (pairBusy) "ps5_pairing" else "ps5_pair"), primary = true) { if (!pairBusy) pairPs5() }, "ppair"), 12)
+        val row = ui.hbox()
+        if (nextOk) {
+            row.addView(tagged(ui.button(t("wz_next"), primary = !(step == 2 && draftPsn.isEmpty())) { pairNext() }, "pnext"))
+        } else {
+            row.addView(tagged(ui.button(t(if (pairBusy) "ps5_pairing" else "ps5_pair"), primary = true) { if (!pairBusy) pairPs5() }, "pnext"))
+        }
+        if (step > 0) row.addView(tagged(ui.button(t("wz_back")) { saveDrafts(); pairStep = step - 1; pairMsg = null; render() }, "pback"), wrapLp())
+        add(row, 14)
     }
 
     /** Zpráva u párování; [change] upraví rozepsané údaje (až po uložení toho, co je v políčkách). */
@@ -531,6 +560,23 @@ class MainActivity : Activity() {
             pairMsg = msg; pairMsgColor = color; pairBusy = busy
             skipDraftSave = true
             try { render(true) } finally { skipDraftSave = false }
+        }
+    }
+
+    /** Další krok průvodce spárováním (s kontrolou toho, co je v daném kroku potřeba). */
+    private fun pairNext() {
+        saveDrafts()
+        when (pairStep.coerceIn(0, 3)) {
+            0 -> { pairStep = 1; pairMsg = null; render(); if (draftIp.isEmpty()) findPs5() }
+            1 -> {
+                if (!Ps5.validHost(draftIp)) { pairNote(t("ps5_bad_ip"), Theme.BAD); return }
+                Prefs.setPs5Ip(this, draftIp)
+                pairStep = 2; pairMsg = null; render()
+            }
+            2 -> {
+                if (draftPsn.isEmpty()) { pairNote(t("pg_need_acc"), Theme.BAD); return }
+                pairStep = 3; pairMsg = null; render()
+            }
         }
     }
 
@@ -569,7 +615,7 @@ class MainActivity : Activity() {
             Ps5Pairing.pair(ip, account, pin) { h: Ps5Host? ->
                 if (h != null) {
                     Prefs.setPs5Host(this, h)
-                    pairNote(t("ps5_ok"), Theme.OK) { draftPin = "" }
+                    pairNote(t("ps5_ok"), Theme.OK) { draftPin = ""; pairStep = 0 }
                 } else pairNote(t("ps5_fail"), Theme.BAD)
             }
         }, "tp-pair").start()
