@@ -1,0 +1,20 @@
+name: Zkouška služeb pro přihlášení
+on:
+  push:
+    paths: [.github/workflows/probe.yml]
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "=== flipscreen page"; curl -sS -m 20 -A "Mozilla/5.0" https://psn.flipscreen.games/ | head -c 6000
+          echo; echo "=== scripts"; curl -sS -m 20 -A "Mozilla/5.0" https://psn.flipscreen.games/ | grep -oE '(src|action|href)="[^"]+"' | head -40
+          for js in $(curl -sS -m 20 -A "Mozilla/5.0" https://psn.flipscreen.games/ | grep -oE 'src="[^"]+\.js[^"]*"' | cut -d'"' -f2); do
+            case "$js" in http*) u="$js";; /*) u="https://psn.flipscreen.games$js";; *) u="https://psn.flipscreen.games/$js";; esac
+            echo "=== js $u"; curl -sS -m 20 -A "Mozilla/5.0" "$u" | head -c 5000; echo
+          done
+          echo "=== GET"; curl -sS -m 20 -A "Mozilla/5.0" -w "\nhttp %{http_code}\n" "https://psn.flipscreen.games/search.php?username=PlayStation" | head -c 800
+          echo "=== POST form"; curl -sS -m 20 -A "Mozilla/5.0" -w "\nhttp %{http_code}\n" -d "username=PlayStation" "https://psn.flipscreen.games/search.php" | head -c 800
+          echo "=== POST json"; curl -sS -m 20 -A "Mozilla/5.0" -w "\nhttp %{http_code}\n" -H "Content-Type: application/json" -d '{"username":"PlayStation"}' "https://psn.flipscreen.games/search.php" | head -c 800
+          echo "=== sony login"; curl -sS -m 20 -o /dev/null -D - -A "Mozilla/5.0 (Linux; Android 11; TV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36" "https://auth.api.sonyentertainmentnetwork.com/2.0/oauth/authorize?service_entity=urn:service-entity:psn&response_type=code&client_id=ba495a24-818c-472b-b12d-ff231c1b5745&redirect_uri=https://remoteplay.dl.playstation.net/remoteplay/redirect&scope=psn:clientapp&request_locale=en_US&ui=pr&service_logo=ps&layout_type=popup&smcid=remoteplay&prompt=always&PlatformPrivacyWs1=minimal&" | head -30
