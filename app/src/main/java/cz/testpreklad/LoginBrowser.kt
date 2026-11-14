@@ -34,6 +34,8 @@ interface LoginBrowser {
     fun load(url: String)
     /** Klepnutí na místo [x],[y] (v souřadnicích [view]). */
     fun tap(x: Float, y: Float)
+    /** Ukazatel se přesunul na [x],[y] – stránka se to dozví jako pohyb myši. */
+    fun hover(x: Float, y: Float)
     /** Posun stránky o [dy] bodů (kladné = dolů). */
     fun scroll(dy: Int)
     fun destroy()
@@ -60,6 +62,21 @@ interface LoginBrowser {
             e.source = InputDevice.SOURCE_TOUCHSCREEN
             v.dispatchTouchEvent(e)
             e.recycle()
+        }
+
+        /**
+         * Pohyb ukazatele předaný stránce jako pohyb myši. Ukazatel ovládaný šipkami je pro stránku
+         * totéž co myš; bez toho stránka žádný pohyb nevidí a ochrana přihlášení to bere jako podezřelé.
+         */
+        internal fun hoverOn(v: View, x: Float, y: Float) {
+            try {
+                val t = SystemClock.uptimeMillis()
+                val props = arrayOf(MotionEvent.PointerProperties().apply { id = 0; toolType = MotionEvent.TOOL_TYPE_MOUSE })
+                val coords = arrayOf(MotionEvent.PointerCoords().apply { this.x = x; this.y = y; pressure = 0f; size = 1f })
+                val e = MotionEvent.obtain(t, t, MotionEvent.ACTION_HOVER_MOVE, 1, props, coords, 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_MOUSE, 0)
+                v.dispatchGenericMotionEvent(e)
+                e.recycle()
+            } catch (_: Throwable) {}
         }
 
         internal fun tapOn(v: View, x: Float, y: Float) {
@@ -118,6 +135,7 @@ private class GeckoBrowser(a: Activity, private val ev: LoginBrowser.Events) : L
 
     override fun load(url: String) = session.loadUri(url)
     override fun tap(x: Float, y: Float) { gecko.requestFocus(); LoginBrowser.tapOn(gecko, x, y) }
+    override fun hover(x: Float, y: Float) = LoginBrowser.hoverOn(gecko, x, y)
 
     /** Posun tažením prstu (stejně jako na dotykové obrazovce). */
     override fun scroll(dy: Int) {
@@ -167,6 +185,7 @@ private class SystemBrowser(a: Activity, private val ev: LoginBrowser.Events) : 
 
     override fun load(url: String) = web.loadUrl(url)
     override fun tap(x: Float, y: Float) { web.requestFocus(); LoginBrowser.tapOn(web, x, y) }
+    override fun hover(x: Float, y: Float) = LoginBrowser.hoverOn(web, x, y)
     override fun scroll(dy: Int) = web.scrollBy(0, dy)
     override fun destroy() {
         try { CookieManager.getInstance().removeAllCookies(null) } catch (_: Throwable) {}

@@ -226,6 +226,7 @@ class PsnLoginActivity : Activity() {
         cursor.translationX = cx - 18
         cursor.translationY = cy - 18
         cursor.bringToFront()
+        browser?.let { b -> if (cy >= b.view.top && cy <= b.view.bottom) b.hover(cx - b.view.left, cy - b.view.top) }
     }
 
     private fun inside(v: View): Boolean {
