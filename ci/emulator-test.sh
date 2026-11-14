@@ -59,7 +59,17 @@ key 20; key 23; sleep 3; shot 11_stranka_playstation
 adb shell am start -n $PKG/.MainActivity --ez psnlogin true
 sleep 35; shot 12_prihlaseni_sony
 sleep 25; shot 12b_prihlaseni_sony_pozdeji
+# zkouška odeslání: vymyšlený e-mail. Když Sony odpoví věcně (účet nenalezen / krok s heslem),
+# přihlašovací dotaz prochází; „connection timed out“ by znamenalo, že ho prohlížeč blokuje.
+for i in $(seq 1 22); do adb shell input keyevent 22; done
+key 23; sleep 3; shot 12c_pole_email
+adb shell input text "zkouska.testpreklad@example.com"; sleep 2
 key 4; sleep 2
+for i in 1 2 3 4 5; do adb shell input keyevent 20; done
+shot 12d_pred_odeslanim
+key 23; sleep 25; shot 12e_po_odeslani
+sleep 20; shot 12f_po_odeslani_pozdeji
+key 4; sleep 2; key 4; sleep 2
 
 # 7) nabídka se seznamem (jazyk): stránka Titulky → první řádek → OK
 adb shell am start -n $PKG/.MainActivity --ez nowizard true

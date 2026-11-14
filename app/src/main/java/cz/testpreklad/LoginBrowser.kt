@@ -11,6 +11,10 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import org.mozilla.geckoview.AllowOrDeny
+import org.mozilla.geckoview.ContentBlocking
+import org.mozilla.geckoview.GeckoRuntimeSettings
+import org.mozilla.geckoview.StorageController
+import org.mozilla.geckoview.WebRequestError
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoSession
@@ -76,14 +80,31 @@ private class GeckoBrowser(a: Activity, private val ev: LoginBrowser.Events) : L
     override val name = "gecko"
     private val gecko = GeckoView(a)
     override val view: View get() = gecko
-    // soukromý režim: po zavření nezůstane uložené přihlášení ani cookies
-    private val session = GeckoSession(GeckoSessionSettings.Builder().usePrivateMode(true).build())
+    private val session = GeckoSession(GeckoSessionSettings.Builder().build())
 
     init {
-        val rt = runtime ?: GeckoRuntime.create(a.applicationContext).also { runtime = it }
+        // Ochrana proti sledování musí být vypnutá: blokuje i ochranný skript přihlašovací stránky Sony
+        // a přihlášení pak končí hláškou „The connection to the server timed out“ (stejně jako
+        // v prohlížečích s blokováním reklam).
+        val rt = runtime ?: GeckoRuntime.create(
+            a.applicationContext,
+            GeckoRuntimeSettings.Builder().contentBlocking(
+                ContentBlocking.Settings.Builder()
+                    .antiTracking(ContentBlocking.AntiTracking.NONE)
+                    .safeBrowsing(ContentBlocking.SafeBrowsing.NONE)
+                    .cookieBehavior(ContentBlocking.CookieBehavior.ACCEPT_ALL)
+                    .enhancedTrackingProtectionLevel(ContentBlocking.EtpLevel.NONE)
+                    .build()
+            ).build()
+        ).also { runtime = it }
         session.navigationDelegate = object : GeckoSession.NavigationDelegate {
             override fun onLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? =
                 GeckoResult.fromValue(if (ev.onUrl(request.uri)) AllowOrDeny.DENY else AllowOrDeny.ALLOW)
+
+            override fun onLoadError(session: GeckoSession, uri: String?, error: WebRequestError): GeckoResult<String>? {
+                ev.onLoaded(false, "chyba sítě " + error.category + "/" + error.code)
+                return null
+            }
         }
         session.progressDelegate = object : GeckoSession.ProgressDelegate {
             override fun onPageStart(session: GeckoSession, url: String) { ev.onUrl(url) }
@@ -111,6 +132,8 @@ private class GeckoBrowser(a: Activity, private val ev: LoginBrowser.Events) : L
     override fun destroy() {
         try { gecko.releaseSession() } catch (_: Throwable) {}
         try { session.close() } catch (_: Throwable) {}
+        // po zavření nesmí v televizi zůstat uložené přihlášení ani cookies
+        try { runtime?.storageController?.clearData(StorageController.ClearFlags.ALL) } catch (_: Throwable) {}
     }
 }
 
