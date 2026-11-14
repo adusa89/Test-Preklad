@@ -21,13 +21,12 @@ Když instalaci zablokuje Play Protect, vypni v Google Play → Play Protect →
 
 ## 4. Spárování PlayStationu (jen jednou)
 Televize a PS5 musí být ve stejné domácí síti.
-1. Na PS5: Nastavení → Systém → Vzdálené hraní → zapni „Povolit vzdálené hraní“.
+1. Na PS5: Nastavení → Systém → Remote Play → zapni „Povolit Remote Play“.
 2. Tamtéž zvol „Propojit zařízení“ – ukáže se osmimístné číslo (platí pár minut).
 3. V aplikaci na stránce PlayStation zvol „Najít PlayStation v síti“ (nebo zadej adresu ručně:
    PS5 → Nastavení → Síť → Stav připojení → Adresa IPv4).
 4. Zvol „Přihlásit se účtem PlayStation (e-mail a heslo)“ a přihlas se na stránce Sony
    (šipky pohybují ukazatelem, OK kliká). Aplikace si tím zjistí číslo tvého účtu.
-   Místo přihlášení jde zadat i přezdívku na PSN, pokud máš veřejný profil.
 5. Zadej číslo z PS5 a zvol Spárovat.
 
 Všechno se dělá jen v televizi a na PlayStationu – telefon ani počítač není potřeba.

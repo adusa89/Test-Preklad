@@ -17,6 +17,9 @@ object Theme {
     val SIDEBAR = Color.rgb(0x14, 0x17, 0x1D)
     val CARD = Color.rgb(0x1B, 0x1F, 0x27)
     val CARD_FOCUS = Color.rgb(0x27, 0x2D, 0x38)
+    /** Plocha vybraného prvku – výrazně světlejší, do zlatova. */
+    val FOCUS = Color.rgb(0x4A, 0x40, 0x22)
+    val ACCENT_FOCUS = Color.rgb(0xFF, 0xE3, 0x8F)
     val TEXT = Color.rgb(0xF2, 0xF2, 0xF2)
     val MUTED = Color.rgb(0x9A, 0xA4, 0xAE)
     val ACCENT = Color.rgb(0xF2, 0xC1, 0x4E)
@@ -38,13 +41,24 @@ class Ui(private val ctx: Context) {
             if (stroke > 0) setStroke(dp(stroke), strokeColor)
         }
 
-    /** Pozadí, které při zaměření ovladačem dostane zlatý rámeček. */
-    fun focusBg(normal: Int, focused: Int = Theme.CARD_FOCUS, radius: Int = 12): Drawable =
+    /**
+     * Pozadí, které je při výběru ovladačem vidět na první pohled: světlejší plocha se silným
+     * zlatým rámečkem (u zlatých tlačítek bílý rámeček).
+     */
+    fun focusBg(normal: Int, focused: Int = Theme.FOCUS, radius: Int = 12): Drawable =
         StateListDrawable().apply {
-            addState(intArrayOf(android.R.attr.state_focused), rounded(focused, radius, 3, Theme.ACCENT))
+            val gold = normal == Theme.ACCENT
+            addState(intArrayOf(android.R.attr.state_focused), rounded(if (gold) Theme.ACCENT_FOCUS else focused, radius, 5, if (gold) Color.WHITE else Theme.ACCENT))
             addState(intArrayOf(android.R.attr.state_pressed), rounded(focused, radius))
             addState(intArrayOf(), rounded(normal, radius))
         }
+
+    /** Vybraný prvek se navíc lehce zvětší, takže je jasné, kde ovladač právě stojí. */
+    fun pop(v: View) {
+        v.setOnFocusChangeListener { view, has ->
+            view.animate().scaleX(if (has) 1.04f else 1f).scaleY(if (has) 1.04f else 1f).setDuration(110).start()
+        }
+    }
 
     fun cardBg(): Drawable = rounded(Theme.CARD, 14)
 
@@ -81,10 +95,10 @@ class Ui(private val ctx: Context) {
             isClickable = true
             setTextColor(if (primary) Theme.ACCENT_DARK else Theme.TEXT)
             typeface = Typeface.create("sans-serif-medium", if (primary) Typeface.BOLD else Typeface.NORMAL)
-            background = if (primary) focusBg(Theme.ACCENT, Color.rgb(0xFF, 0xD3, 0x6B))
-            else focusBg(Theme.CARD)
+            background = if (primary) focusBg(Theme.ACCENT) else focusBg(Theme.CARD)
             setPadding(dp(26), dp(14), dp(26), dp(14))
             setOnClickListener { onClick() }
+            pop(this)
         }
 
     /**
@@ -96,6 +110,7 @@ class Ui(private val ctx: Context) {
             isFocusable = true
             isClickable = true
             background = focusBg(Theme.CARD)
+            pop(this)
             setPadding(dp(20), dp(14), dp(20), dp(14))
             addView(text(label, 17f), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
             addView(text(value, 16f, valueColor, bold = true).apply { setPadding(dp(16), 0, 0, 0) })

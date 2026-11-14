@@ -96,11 +96,44 @@ object Ps5 {
         return text.toULongOrNull(16)
     }
 
-    /** Z odpovědi vyhledávací služby vytáhne zakódované ID účtu. */
-    fun parseLookup(json: String): String? {
-        val m = Regex("\"encoded_id\"\\s*:\\s*\"([A-Za-z0-9+/=_-]{8,16})\"").find(json) ?: return null
-        val id = m.groupValues[1]
-        return if (parseAccountId(id) != null) id else null
+    /** Odpověď konzole na hledání v síti. */
+    data class Reply(val ready: Boolean, val standby: Boolean, val name: String, val id: String, val type: String)
+
+    /** Zpráva, kterou se konzole v síti hledá (PS5 a PS4 používají jiné číslo verze a jiný port). */
+    fun searchPacket(ps5: Boolean): ByteArray =
+        ("SRCH * HTTP/1.1\ndevice-discovery-protocol-version:" + (if (ps5) "00030010" else "00020020") + "\n").toByteArray()
+    const val DISCOVERY_PORT_PS5 = 9302
+    const val DISCOVERY_PORT_PS4 = 987
+
+    /** Rozebere odpověď konzole; null = není to odpověď PlayStationu. */
+    fun parseDiscoveryReply(text: String): Reply? {
+        val lines = text.split('\n').map { it.trim() }
+        val first = lines.firstOrNull() ?: return null
+        if (!first.startsWith("HTTP/1.1 ")) return null
+        val code = first.removePrefix("HTTP/1.1 ").substringBefore(' ').toIntOrNull() ?: return null
+        if (code != 200 && code != 620) return null
+        val h = HashMap<String, String>()
+        for (l in lines.drop(1)) { val i = l.indexOf(':'); if (i > 0) h[l.substring(0, i).trim().lowercase()] = l.substring(i + 1).trim() }
+        if (!h.containsKey("host-type") && !h.containsKey("host-id")) return null
+        return Reply(code == 200, code == 620, h["host-name"] ?: "PlayStation", h["host-id"] ?: "", h["host-type"] ?: "")
+    }
+
+    /** Adresy, na které se má hledání poslat: všeobecné vysílání, vysílání sítě a každá adresa v síti. */
+    fun sweepTargets(localIp: String, prefixLength: Int): List<String> {
+        val p = localIp.split('.').mapNotNull { it.toIntOrNull() }
+        if (p.size != 4 || p.any { it !in 0..255 }) return listOf("255.255.255.255")
+        val out = LinkedHashSet<String>()
+        out.add("255.255.255.255")
+        val ip = (p[0].toLong() shl 24) or (p[1].toLong() shl 16) or (p[2].toLong() shl 8) or p[3].toLong()
+        val bits = prefixLength.coerceIn(8, 30)
+        val mask = (0xFFFFFFFFL shl (32 - bits)) and 0xFFFFFFFFL
+        fun str(a: Long) = "${(a shr 24) and 255}.${(a shr 16) and 255}.${(a shr 8) and 255}.${a and 255}"
+        out.add(str((ip and mask) or (mask.inv() and 0xFFFFFFFFL)))
+        // jednotlivé adresy: celá síť, nejvýš ale 254 nejbližších (velké sítě se neprocházejí celé)
+        val base = if (bits >= 24) ip and mask else ip and 0xFFFFFF00L
+        val count = if (bits >= 24) (1L shl (32 - bits)) else 256L
+        for (i in 1 until count - 1) { val a = base + i; if (a != ip) out.add(str(a)) }
+        return out.toList()
     }
 
     /** Z adresy, na kterou Sony po přihlášení přesměruje, vytáhne jednorázový kód. */
@@ -124,10 +157,6 @@ object Ps5 {
     /** Z odpovědi Sony vytáhne přístupový klíč. */
     fun accessTokenFrom(json: String): String? =
         Regex("\"access_token\"\\s*:\\s*\"([A-Za-z0-9._~+/=-]{8,400})\"").find(json)?.groupValues?.get(1)
-
-    /** Přezdívka PSN: 3–16 znaků, písmena, číslice, pomlčka, podtržítko. */
-    fun validOnlineId(s: String): Boolean =
-        s.length in 3..16 && s.all { it.isLetterOrDigit() || it == '-' || it == '_' } && s.all { it.code < 128 }
 
     /** Za jak dlouho zkusit spojení znovu (ms) – po každém neúspěchu déle, nejvýš 30 s. */
     fun retryDelayMs(failures: Int): Long = when {

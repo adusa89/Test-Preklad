@@ -55,6 +55,17 @@ adb shell am start -n $PKG/.MainActivity --es ps5test 10.0.2.2
 sleep 45; shot 10_ps5_nedostupna
 key 20; key 23; sleep 3; shot 11_stranka_playstation
 
+# 6) přihlašovací stránka Sony ve vestavěném prohlížeči: načte se na této verzi Androidu?
+adb shell am start -n $PKG/.MainActivity --ez psnlogin true
+sleep 35; shot 12_prihlaseni_sony
+sleep 25; shot 12b_prihlaseni_sony_pozdeji
+key 4; sleep 2
+
+# 7) nabídka se seznamem (jazyk): stránka Titulky → první řádek → OK
+adb shell am start -n $PKG/.MainActivity --ez nowizard true
+sleep 2; key 20; key 20; key 20; key 23; sleep 1; key 22; sleep 1; key 23; sleep 2; shot 13_nabidka_jazyk
+key 4; sleep 1
+
 adb logcat -d -v time > $OUT/logcat_full.txt
 grep -E "TP_TEST|TestPreklad|AndroidRuntime|FATAL|libchiaki|DEBUG   :" $OUT/logcat_full.txt > $OUT/log.txt
 SHOWS=$(grep -c "TP_TEST.*SHOW|" $OUT/log.txt)
@@ -72,6 +83,7 @@ else
   echo "VYSLEDEK=CHYBA" >> $OUT/result.txt
 fi
 grep "TP_TEST" $OUT/log.txt | grep -v "READ|" >> $OUT/result.txt
+adb shell dumpsys package com.google.android.webview 2>/dev/null | grep -m1 versionName >> $OUT/device.txt || true
 grep "TP_TEST" $OUT/log.txt > $OUT/reads.txt
 tail -c 400000 $OUT/logcat_full.txt > $OUT/logcat_tail.txt; rm $OUT/logcat_full.txt
 cat $OUT/result.txt

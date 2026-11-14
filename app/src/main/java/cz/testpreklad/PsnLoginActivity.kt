@@ -4,6 +4,8 @@ import android.app.Activity
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.util.Base64
 import android.util.Log
@@ -12,9 +14,12 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.webkit.CookieManager
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import cz.testpreklad.core.DiagLog
@@ -33,9 +38,9 @@ import java.net.URLEncoder
 class PsnLoginActivity : Activity() {
 
     companion object {
-        /** Výsledek posledního přihlášení (zakódované ID účtu) – vyzvedne si ho hlavní obrazovka. */
+        /** Výsledek (zakódované ID účtu) – vyzvedne si ho hlavní obrazovka. */
         @Volatile var result: String? = null
-        /** Přihlášení skončilo chybou (hlavní obrazovka ukáže hlášku). */
+        /** Skončilo chybou (hlavní obrazovka ukáže hlášku). */
         @Volatile var failed = false
 
         private const val TAG = "TestPreklad"
@@ -47,6 +52,9 @@ class PsnLoginActivity : Activity() {
             "?service_entity=urn:service-entity:psn&response_type=code&client_id=$CLIENT_ID" +
             "&redirect_uri=$REDIRECT&scope=psn:clientapp&request_locale=en_US&ui=pr&service_logo=ps" +
             "&layout_type=popup&smcid=remoteplay&prompt=always&PlatformPrivacyWs1=minimal&"
+
+        private const val UA_DESKTOP =
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
         /** Vymění jednorázový kód za číslo účtu. Volat mimo hlavní vlákno. */
         fun accountIdForCode(code: String): String? {
@@ -82,44 +90,105 @@ class PsnLoginActivity : Activity() {
         }
     }
 
+    private fun log(msg: String) { Log.i("TP_TEST", "PSN|$msg"); DiagLog.add("PSN|$msg") }
+
+    /** Verze vestavěného prohlížeče (stará verze bývá důvod, proč se stránka Sony nenačte). */
+    private fun webViewVersion(): String = try {
+        if (android.os.Build.VERSION.SDK_INT >= 26) WebView.getCurrentWebViewPackage()?.versionName ?: "?" else "?"
+    } catch (_: Throwable) { "?" }
+
+    private val main = Handler(Looper.getMainLooper())
     private var web: WebView? = null
+    private lateinit var root: FrameLayout
     private lateinit var cursor: View
     private lateinit var note: TextView
+    private lateinit var bar: LinearLayout
+    private lateinit var reloadBtn: TextView
+    private lateinit var modeBtn: TextView
+    private var desktop = false
     private var cx = 0f
     private var cy = 0f
     private var done = false
+    private var loadStarted = 0L
+    private var loaded = false
+
+    /** Hlídá, že se stránka Sony vůbec načetla. */
+    private val poll = object : Runnable {
+        override fun run() {
+            val w = web ?: return
+            if (done) return
+            if (!loaded && loadStarted > 0 && SystemClock.uptimeMillis() - loadStarted > 25_000) {
+                loaded = true
+                showProblem("timeout")
+            }
+            main.postDelayed(this, 1500)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         result = null
         failed = false
-        val root = FrameLayout(this)
+        root = FrameLayout(this)
         root.setBackgroundColor(Color.BLACK)
         val w = try { WebView(this) } catch (e: Throwable) {
-            // televize bez vestavěného prohlížeče – přihlášení tu nejde, zbývá ruční zadání
+            // televize bez vestavěného prohlížeče – tady to nejde, zbývá ruční zadání
             Log.w(TAG, "webview", e)
+            DiagLog.add("PSN|no webview " + e.javaClass.simpleName)
             failed = true
             Toast.makeText(this, tx("ps5_acc_err"), Toast.LENGTH_LONG).show()
             finish(); return
         }
         web = w
-        w.settings.javaScriptEnabled = true
-        w.settings.domStorageEnabled = true
-        w.settings.userAgentString =
-            "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36"
-        try { CookieManager.getInstance().setAcceptThirdPartyCookies(w, true) } catch (_: Throwable) {}
+        val s = w.settings
+        s.javaScriptEnabled = true
+        s.domStorageEnabled = true
+        @Suppress("DEPRECATION")
+        s.databaseEnabled = true
+        s.loadWithOverviewMode = true
+        s.useWideViewPort = true
+        s.javaScriptCanOpenWindowsAutomatically = true
+        try { CookieManager.getInstance().setAcceptCookie(true); CookieManager.getInstance().setAcceptThirdPartyCookies(w, true) } catch (_: Throwable) {}
+        log("open webview=" + webViewVersion() + " ua=" + (s.userAgentString ?: "").takeLast(60))
         w.webViewClient = object : WebViewClient() {
             @Deprecated("Deprecated in Java")
             override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean = intercept(url)
             override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) { intercept(url) }
+            override fun onPageFinished(view: WebView, url: String) {
+                loaded = true
+                log("page " + url.substringBefore('?').takeLast(60) + " title=" + (view.title ?: "").take(40))
+            }
+            override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+                if (request.isForMainFrame) showProblem(error.errorCode.toString() + " " + error.description)
+            }
         }
         root.addView(w, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+
+        // horní lišta s tlačítky (kliká se na ně ukazatelem)
+        bar = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setBackgroundColor(0xF0101319.toInt())
+            setPadding(16, 10, 16, 10)
+        }
+        fun barButton(label: String) = TextView(this).apply {
+            text = label
+            setTextColor(Theme.ACCENT_DARK)
+            textSize = 15f
+            gravity = Gravity.CENTER
+            background = GradientDrawable().apply { setColor(Theme.ACCENT); cornerRadius = 14f }
+            setPadding(28, 12, 28, 12)
+        }
+        reloadBtn = barButton(tx("psn_reload"))
+        modeBtn = barButton(tx("psn_mode"))
+        bar.addView(reloadBtn, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        bar.addView(modeBtn, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { leftMargin = 16 })
+        root.addView(bar, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.TOP))
 
         note = TextView(this).apply {
             text = tx("ps5_acc_hint")
             setTextColor(Color.WHITE)
-            textSize = 14f
-            setBackgroundColor(0xE6101319.toInt())
+            textSize = 15f
+            setBackgroundColor(0xF0101319.toInt())
             setPadding(24, 12, 24, 12)
         }
         root.addView(note, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM))
@@ -128,17 +197,38 @@ class PsnLoginActivity : Activity() {
             background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
                 setColor(0xFFF4C24D.toInt())
-                setStroke(4, Color.BLACK)
+                setStroke(5, Color.BLACK)
             }
         }
-        root.addView(cursor, FrameLayout.LayoutParams(28, 28))
+        root.addView(cursor, FrameLayout.LayoutParams(36, 36))
         setContentView(root)
         root.post {
             cx = root.width / 2f; cy = root.height / 2f
+            // stránka začíná pod horní lištou
+            (w.layoutParams as FrameLayout.LayoutParams).topMargin = bar.height
+            w.requestLayout()
             placeCursor()
         }
         w.requestFocus()
+        load()
+        main.postDelayed(poll, 1500)
+    }
+
+    private fun load() {
+        val w = web ?: return
+        loaded = false
+        loadStarted = SystemClock.uptimeMillis()
+        note.text = tx("ps5_acc_hint")
+        note.setTextColor(Color.WHITE)
+        log("load desktop=$desktop")
         w.loadUrl(LOGIN_URL)
+    }
+
+    /** Stránka se nenačetla – řekni to a nabídni, co s tím. */
+    private fun showProblem(why: String) {
+        log("problem desktop=$desktop $why")
+        note.text = tx("psn_err") + "  (" + why.take(60) + ")"
+        note.setTextColor(Theme.WARN)
     }
 
     /** Sony po přihlášení přesměruje na známou adresu s jednorázovým kódem. */
@@ -148,6 +238,7 @@ class PsnLoginActivity : Activity() {
         done = true
         val code = Ps5.authCodeFromUrl(url)
         note.text = tx("ps5_acc_wait")
+        note.setTextColor(Color.WHITE)
         try { web?.stopLoading() } catch (_: Throwable) {}
         Thread({
             val id = if (code != null) accountIdForCode(code) else null
@@ -158,35 +249,52 @@ class PsnLoginActivity : Activity() {
     }
 
     private fun placeCursor() {
-        cursor.translationX = cx - 14
-        cursor.translationY = cy - 14
+        cursor.translationX = cx - 18
+        cursor.translationY = cy - 18
         cursor.bringToFront()
+    }
+
+    private fun inside(v: View): Boolean {
+        val loc = IntArray(2); v.getLocationInWindow(loc)
+        val rl = IntArray(2); root.getLocationInWindow(rl)
+        val x = loc[0] - rl[0]; val y = loc[1] - rl[1]
+        return cx >= x && cx <= x + v.width && cy >= y && cy <= y + v.height
     }
 
     private fun tap() {
         val w = web ?: return
+        when {
+            inside(reloadBtn) -> { load(); return }
+            inside(modeBtn) -> {
+                // jiný režim stránky: tváří se jako prohlížeč v počítači (někdy pomůže)
+                desktop = !desktop
+                w.settings.userAgentString = if (desktop) UA_DESKTOP else null
+                try { CookieManager.getInstance().removeAllCookies(null) } catch (_: Throwable) {}
+                load(); return
+            }
+        }
         val t = SystemClock.uptimeMillis()
-        val down = MotionEvent.obtain(t, t, MotionEvent.ACTION_DOWN, cx, cy, 0)
-        val up = MotionEvent.obtain(t, t + 60, MotionEvent.ACTION_UP, cx, cy, 0)
+        val y = cy - w.top
+        val down = MotionEvent.obtain(t, t, MotionEvent.ACTION_DOWN, cx, y, 0)
+        val up = MotionEvent.obtain(t, t + 60, MotionEvent.ACTION_UP, cx, y, 0)
         w.dispatchTouchEvent(down); w.dispatchTouchEvent(up)
         down.recycle(); up.recycle()
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val w = web ?: return super.dispatchKeyEvent(event)
-        val root = w.parent as? View ?: return super.dispatchKeyEvent(event)
         val downEv = event.action == KeyEvent.ACTION_DOWN
         // delší držení šipky = rychlejší pohyb
-        val step = if (event.repeatCount > 6) 60f else if (event.repeatCount > 0) 30f else 18f
+        val step = if (event.repeatCount > 6) 70f else if (event.repeatCount > 0) 36f else 22f
         when (event.keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> { if (downEv) { cx = (cx - step).coerceAtLeast(4f); placeCursor() }; return true }
             KeyEvent.KEYCODE_DPAD_RIGHT -> { if (downEv) { cx = (cx + step).coerceAtMost(root.width - 4f); placeCursor() }; return true }
             KeyEvent.KEYCODE_DPAD_UP -> {
-                if (downEv) { if (cy <= 40f) w.scrollBy(0, -80) else cy -= step; placeCursor() }
+                if (downEv) { if (cy <= bar.height + 30f && w.scrollY > 0) w.scrollBy(0, -90) else cy = (cy - step).coerceAtLeast(4f); placeCursor() }
                 return true
             }
             KeyEvent.KEYCODE_DPAD_DOWN -> {
-                if (downEv) { if (cy >= root.height - 40f) w.scrollBy(0, 80) else cy += step; placeCursor() }
+                if (downEv) { if (cy >= root.height - note.height - 30f) w.scrollBy(0, 90) else cy += step; placeCursor() }
                 return true
             }
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER, KeyEvent.KEYCODE_BUTTON_A -> {
@@ -207,6 +315,7 @@ class PsnLoginActivity : Activity() {
     override fun onPause() { UiState.hidden(); super.onPause() }
 
     override fun onDestroy() {
+        main.removeCallbacks(poll)
         try { web?.destroy() } catch (_: Throwable) {}
         web = null
         super.onDestroy()

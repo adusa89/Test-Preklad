@@ -65,20 +65,6 @@ class Ps5Test {
         assertNull(Ps5.wakeCredential("zzzz".toByteArray()))
     }
 
-    @Test fun lookupAnswer() {
-        assertEquals("AQIDBAUGBwg=", Ps5.parseLookup("""{"online_id":"x","user_id":"1","encoded_id":"AQIDBAUGBwg="}"""))
-        assertEquals("AQIDBAUGBwg=", Ps5.parseLookup("""{ "encoded_id" : "AQIDBAUGBwg=" }"""))
-        assertNull(Ps5.parseLookup("""{"error":"not found"}"""))
-        assertNull(Ps5.parseLookup("<html>"))
-    }
-
-    @Test fun onlineId() {
-        assertTrue(Ps5.validOnlineId("adusa_89"))
-        assertFalse(Ps5.validOnlineId("ab"))
-        assertFalse(Ps5.validOnlineId("has space"))
-        assertFalse(Ps5.validOnlineId("příliš"))
-    }
-
     @Test fun retryGrowsAndIsCapped() {
         var prev = 0L
         for (i in 0..10) { val d = Ps5.retryDelayMs(i); assertTrue(d >= prev); prev = d }
@@ -154,5 +140,33 @@ class DemoGameTest {
         assertEquals("AQIDBAUGBwg=", Ps5.accountIdFromUserInfo("{\"scopes\":\"psn:clientapp\",\"user_id\":\"578437695752307201\",\"x\":1}"))
         assertEquals("AQIDBAUGBwg=", Ps5.accountIdFromUserInfo("{\"user_id\": 578437695752307201}"))
         assertNull(Ps5.accountIdFromUserInfo("{\"error\":\"x\"}"))
+    }
+
+    @Test fun discoveryReply() {
+        val r = Ps5.parseDiscoveryReply("HTTP/1.1 200 Ok\nhost-id:AABBCCDDEEFF\nhost-type:PS5\nhost-name:PS5-123\nhost-request-port:997\n")!!
+        assertTrue(r.ready); assertFalse(r.standby)
+        assertEquals("PS5-123", r.name); assertEquals("AABBCCDDEEFF", r.id); assertEquals("PS5", r.type)
+        val s = Ps5.parseDiscoveryReply("HTTP/1.1 620 Server Standby\r\nhost-id:AA\r\nhost-type:PS5\r\n")!!
+        assertTrue(s.standby); assertFalse(s.ready)
+        assertNull(Ps5.parseDiscoveryReply("SRCH * HTTP/1.1\ndevice-discovery-protocol-version:00030010\n"))
+        assertNull(Ps5.parseDiscoveryReply("HTTP/1.1 404 Not Found\n"))
+        assertNull(Ps5.parseDiscoveryReply("HTTP/1.1 200 OK\ncontent-type:text/html\n"))
+        assertNull(Ps5.parseDiscoveryReply(""))
+        assertTrue(String(Ps5.searchPacket(true)).contains("00030010"))
+        assertTrue(String(Ps5.searchPacket(false)).contains("00020020"))
+    }
+
+    @Test fun sweepCoversHomeNetwork() {
+        val t = Ps5.sweepTargets("192.168.1.37", 24)
+        assertEquals("255.255.255.255", t[0])
+        assertEquals("192.168.1.255", t[1])
+        assertTrue(t.contains("192.168.1.1")); assertTrue(t.contains("192.168.1.254"))
+        assertFalse(t.contains("192.168.1.37")); assertFalse(t.contains("192.168.1.0"))
+        assertEquals(2 + 253, t.size)
+        // velká síť: vysílání celé sítě + jen nejbližších 254 adres
+        val big = Ps5.sweepTargets("10.0.5.9", 16)
+        assertEquals("10.0.255.255", big[1])
+        assertTrue(big.contains("10.0.5.200")); assertFalse(big.contains("10.0.6.1"))
+        assertEquals(listOf("255.255.255.255"), Ps5.sweepTargets("nesmysl", 24))
     }
 }

@@ -2,9 +2,6 @@ package cz.testpreklad
 
 import android.util.Log
 import com.metallic.chiaki.lib.ChiakiLog
-import com.metallic.chiaki.lib.DiscoveryHost
-import com.metallic.chiaki.lib.DiscoveryService
-import com.metallic.chiaki.lib.DiscoveryServiceOptions
 import com.metallic.chiaki.lib.Regist
 import com.metallic.chiaki.lib.RegistEvent
 import com.metallic.chiaki.lib.RegistEventSuccess
@@ -13,14 +10,9 @@ import com.metallic.chiaki.lib.Target
 import cz.testpreklad.core.DiagLog
 import cz.testpreklad.core.Ps5
 import cz.testpreklad.core.Ps5Host
-import java.net.HttpURLConnection
-import java.net.InetSocketAddress
-import java.net.URL
-import java.net.URLEncoder
 
 /**
- * Jednorázové spárování s PlayStationem: najít konzoli v domácí síti, zjistit ID účtu PSN
- * a zaregistrovat televizi u konzole číslem, které konzole ukáže.
+ * Jednorázové spárování s PlayStationem: najít konzoli v domácí síti a zaregistrovat televizi u konzole číslem, které konzole ukáže.
  */
 object Ps5Pairing {
     private const val TAG = "TestPreklad"
@@ -31,58 +23,66 @@ object Ps5Pairing {
     private fun log(msg: String) { Log.i("TP_TEST", "PAIR|$msg"); DiagLog.add("PAIR|$msg") }
 
     /**
-     * Hledá PlayStation v domácí síti (asi 4 sekundy). Volat mimo hlavní vlákno.
-     * Vrací nalezené konzole, PS5 první.
+     * Hledá PlayStation v domácí síti. Volat mimo hlavní vlákno. Vrací nalezené konzole, PS5 první.
+     * Posílá dotaz třemi cestami (všeobecné vysílání, vysílání sítě a každé adrese zvlášť),
+     * protože některé routery a televize vysílání nepropouštějí.
      */
-    fun discover(timeoutMs: Long = 4000): List<Found> {
+    fun discover(timeoutMs: Long = 5000): List<Found> {
         val found = LinkedHashMap<String, Found>()
-        var service: DiscoveryService? = null
+        var sock: java.net.DatagramSocket? = null
+        var nets = ""
         try {
-            service = DiscoveryService(
-                DiscoveryServiceOptions(16U, 3U, 500U, InetSocketAddress("255.255.255.255", 987))
-            ) { hosts: List<DiscoveryHost> ->
-                synchronized(found) {
-                    for (h in hosts) {
-                        val ip = h.hostAddr ?: continue
-                        found[ip] = Found(ip, h.hostName ?: "PlayStation", h.isPS5, h.state == DiscoveryHost.State.STANDBY, h.hostId ?: "")
+            sock = java.net.DatagramSocket()
+            sock.broadcast = true
+            sock.soTimeout = 300
+            val targets = LinkedHashSet<String>()
+            try {
+                for (ni in java.util.Collections.list(java.net.NetworkInterface.getNetworkInterfaces())) {
+                    if (!ni.isUp || ni.isLoopback) continue
+                    for (ia in ni.interfaceAddresses) {
+                        val a = ia.address as? java.net.Inet4Address ?: continue
+                        nets += a.hostAddress + "/" + ia.networkPrefixLength + " "
+                        targets.addAll(Ps5.sweepTargets(a.hostAddress ?: continue, ia.networkPrefixLength.toInt()))
                     }
                 }
-            }
+            } catch (e: Throwable) { log("interfaces " + e.javaClass.simpleName) }
+            if (targets.isEmpty()) targets.add("255.255.255.255")
+            val ps5 = Ps5.searchPacket(true)
+            val ps4 = Ps5.searchPacket(false)
             val end = System.currentTimeMillis() + timeoutMs
+            val buf = ByteArray(1024)
+            var round = 0
             while (System.currentTimeMillis() < end) {
-                Thread.sleep(250)
-                // PS5 zapnutá a nalezená → není na co čekat
-                if (synchronized(found) { found.values.any { it.ps5 } }) { Thread.sleep(300); break }
+                // dotaz se pošle dvakrát (pakety se mohou ztratit), pak se jen poslouchá
+                if (round < 2) for (t in targets) {
+                    try {
+                        val addr = java.net.InetAddress.getByName(t)
+                        sock.send(java.net.DatagramPacket(ps5, ps5.size, addr, Ps5.DISCOVERY_PORT_PS5))
+                        sock.send(java.net.DatagramPacket(ps4, ps4.size, addr, Ps5.DISCOVERY_PORT_PS4))
+                    } catch (_: Throwable) {}
+                }
+                round++
+                val listenUntil = System.currentTimeMillis() + 900
+                while (System.currentTimeMillis() < listenUntil) {
+                    try {
+                        val p = java.net.DatagramPacket(buf, buf.size)
+                        sock.receive(p)
+                        val r = Ps5.parseDiscoveryReply(String(p.data, 0, p.length, Charsets.UTF_8)) ?: continue
+                        val ip = p.address.hostAddress ?: continue
+                        found[ip] = Found(ip, r.name, r.type.equals("PS5", true), r.standby, r.id)
+                    } catch (_: java.net.SocketTimeoutException) {
+                    } catch (_: Throwable) { break }
+                }
+                if (found.values.any { it.ps5 }) break
             }
         } catch (e: Throwable) {
             log("discover error $e")
         } finally {
-            try { service?.dispose() } catch (_: Throwable) {}
+            try { sock?.close() } catch (_: Throwable) {}
         }
-        val list = synchronized(found) { found.values.sortedByDescending { it.ps5 } }
-        log("discover → " + list.joinToString { "${it.ip} ${it.name} ps5=${it.ps5} standby=${it.standby}" })
+        val list = found.values.sortedByDescending { it.ps5 }
+        log("discover nets=$nets→ " + list.joinToString { "${it.ip} ${it.name} ps5=${it.ps5} standby=${it.standby}" })
         return list
-    }
-
-    /**
-     * Podle přezdívky na PSN zjistí ID účtu (veřejná vyhledávací služba; funguje jen
-     * pro veřejné profily). Volat mimo hlavní vlákno. Vrací zakódované ID, nebo null.
-     */
-    fun lookupAccountId(onlineId: String): String? {
-        if (!Ps5.validOnlineId(onlineId)) return null
-        return try {
-            val url = URL("https://psn.flipscreen.games/search.php?username=" + URLEncoder.encode(onlineId, "UTF-8"))
-            val c = url.openConnection() as HttpURLConnection
-            c.connectTimeout = 8000; c.readTimeout = 8000
-            c.setRequestProperty("Accept", "application/json")
-            try {
-                if (c.responseCode != 200) { log("lookup http ${c.responseCode}"); null }
-                else Ps5.parseLookup(c.inputStream.bufferedReader().use { it.readText().take(4000) })
-            } finally { c.disconnect() }
-        } catch (e: Exception) {
-            log("lookup error ${e.javaClass.simpleName}")
-            null
-        }
     }
 
     /**

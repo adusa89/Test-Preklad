@@ -133,6 +133,7 @@ class MainActivity : Activity() {
      */
     private fun ps5SelfTest(i: Intent?) {
         if (i?.getBooleanExtra("nowizard", false) == true) { Prefs.setWizardDone(this, true); wizard = -1; section = Section.HOME; render() }
+        if (i?.getBooleanExtra("psnlogin", false) == true) { startActivity(Intent(this, PsnLoginActivity::class.java)); return }
         val ip = i?.getStringExtra("ps5test") ?: return
         if (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE == 0) return
         Prefs.setWizardDone(this, true); wizard = -1
@@ -218,6 +219,7 @@ class MainActivity : Activity() {
                 isFocusable = true
                 isClickable = true
                 background = ui.focusBg(if (active) Theme.CARD else Theme.SIDEBAR, radius = 10)
+                ui.pop(this)
                 setPadding(ui.dp(14), ui.dp(9), ui.dp(14), ui.dp(9))
                 addView(View(this@MainActivity).apply {
                     background = GradientDrawable().apply {
@@ -286,9 +288,12 @@ class MainActivity : Activity() {
             0 -> {
                 add(ui.text(t("wz_welcome"), 17f, Theme.MUTED), 12)
                 add(tagged(ui.settingRow(t("l_lang"), lang.label) {
-                    val next = lang.next(); Prefs.setLang(this, next)
-                    OfflineTranslator.ensureModel(next) { runOnUiThread { if (wizard >= 0) render(true) } }
-                    render(true)
+                    val langs = cz.testpreklad.core.Lang.values()
+                    choose(t("l_lang"), langs.map { it.label }, langs.indexOf(lang)) { i ->
+                        Prefs.setLang(this, langs[i])
+                        OfflineTranslator.ensureModel(langs[i]) { runOnUiThread { if (wizard >= 0) render(true) } }
+                        render(true)
+                    }
                 }, "wlang"), 20)
             }
             1 -> {
@@ -483,7 +488,6 @@ class MainActivity : Activity() {
     private fun saveDrafts() {
         fun read(tagName: String): String? = window.decorView.findViewWithTag<View>(tagName)?.let { (it as? EditText)?.text?.toString() }
         read("pip")?.let { draftIp = it.trim() }
-        read("ppsn")?.let { draftPsn = it.trim() }
         read("ppin")?.let { draftPin = it.trim() }
         read("plogin")?.let {
             draftLogin = it.trim()
@@ -527,12 +531,12 @@ class MainActivity : Activity() {
                 add(tagged(ui.button(t("ps5_find")) { findPs5() }, "pfind"), 8)
             }
             2 -> {
-                add(tagged(ui.button(t("ps5_acc_btn"), primary = draftPsn.isEmpty()) {
+                val have = Ps5.parseAccountId(draftPsn) != null
+                if (have) add(ui.text(t("ps5_acc_done"), 17f, Theme.OK, bold = true), 10)
+                add(tagged(ui.button(t("ps5_acc_btn"), primary = !have) {
                     saveDrafts()
                     try { startActivity(Intent(this, PsnLoginActivity::class.java)) } catch (_: Exception) { pairNote(t("ps5_acc_err"), Theme.BAD) }
                 }, "pacc"), 10)
-                add(ui.text(t("ps5_acc_or"), 14f, Theme.MUTED), 8)
-                add(input("ps5_psn", draftPsn, "ppsn", number = false), 8)
             }
             3 -> {
                 add(input("ps5_pin", draftPin, "ppin", number = true), 10)
@@ -543,7 +547,7 @@ class MainActivity : Activity() {
         pairMsg?.let { add(ui.text(it, 15f, pairMsgColor), 10) }
         val row = ui.hbox()
         if (nextOk) {
-            row.addView(tagged(ui.button(t("wz_next"), primary = !(step == 2 && draftPsn.isEmpty())) { pairNext() }, "pnext"))
+            row.addView(tagged(ui.button(t("wz_next"), primary = !(step == 2 && Ps5.parseAccountId(draftPsn) == null)) { pairNext() }, "pnext"))
         } else {
             row.addView(tagged(ui.button(t(if (pairBusy) "ps5_pairing" else "ps5_pair"), primary = true) { if (!pairBusy) pairPs5() }, "pnext"))
         }
@@ -574,7 +578,7 @@ class MainActivity : Activity() {
                 pairStep = 2; pairMsg = null; render()
             }
             2 -> {
-                if (draftPsn.isEmpty()) { pairNote(t("pg_need_acc"), Theme.BAD); return }
+                if (Ps5.parseAccountId(draftPsn) == null) { pairNote(t("pg_need_acc"), Theme.BAD); return }
                 pairStep = 3; pairMsg = null; render()
             }
         }
@@ -600,18 +604,11 @@ class MainActivity : Activity() {
         if (!Ps5.validHost(ip)) { pairNote(t("ps5_bad_ip"), Theme.BAD); return }
         val pin = Ps5.parsePin(draftPin)
         if (pin == null) { pairNote(t("ps5_bad_pin"), Theme.BAD); return }
-        Prefs.setPs5Ip(this, ip); Prefs.setPsnId(this, draftPsn)
-        val psn = draftPsn
-        pairNote(t("ps5_looking"), busy = true)
+        Prefs.setPs5Ip(this, ip)
+        val account = Ps5.parseAccountId(draftPsn)
+        if (account == null) { pairStep = 2; pairNote(t("pg_need_acc"), Theme.BAD); return }
+        pairNote(t("ps5_pairing"), busy = true)
         Thread({
-            var account = Ps5.parseAccountId(psn)
-            if (account == null) {
-                val enc = Ps5Pairing.lookupAccountId(psn)
-                account = enc?.let { Ps5.parseAccountId(it) }
-                if (enc != null) Prefs.setPsnId(this, enc)
-            }
-            if (account == null) { pairNote(t("ps5_bad_psn"), Theme.BAD); return@Thread }
-            pairNote(t("ps5_pairing"), busy = true)
             Ps5Pairing.pair(ip, account, pin) { h: Ps5Host? ->
                 if (h != null) {
                     Prefs.setPs5Host(this, h)
@@ -651,31 +648,44 @@ class MainActivity : Activity() {
     private fun look() {
         val sizeIdx = Prefs.TEXT_SIZES.indexOf(Prefs.textSize(this)).let { if (it < 0) 2 else it }
         add(tagged(ui.settingRow(t("l_lang"), Prefs.lang(this).label) {
-            val next = Prefs.lang(this).next()
-            Prefs.setLang(this, next)
-            OfflineTranslator.ensureModel(next) { }
-            applyToService(); render(true)
+            val langs = cz.testpreklad.core.Lang.values()
+            choose(t("l_lang"), langs.map { it.label }, langs.indexOf(Prefs.lang(this))) { i ->
+                Prefs.setLang(this, langs[i])
+                OfflineTranslator.ensureModel(langs[i]) { }
+                applyToService(); render(true)
+            }
         }, "lang"), 16)
         add(tagged(ui.settingRow(t("l_size"), t("size_$sizeIdx")) {
-            Prefs.setTextSize(this, Prefs.nextOf(Prefs.TEXT_SIZES, Prefs.textSize(this))); applyToService(); render(true); showDemo()
+            choose(t("l_size"), Prefs.TEXT_SIZES.indices.map { t("size_$it") }, sizeIdx) { i ->
+                Prefs.setTextSize(this, Prefs.TEXT_SIZES[i]); applyToService(); render(true); showDemo()
+            }
         }, "size"), 8)
         val lay = Prefs.layout(this)
         add(tagged(ui.settingRow(t("l_pos"), t("pos_" + lay.position.name.lowercase())) {
-            Prefs.setLayout(this, lay.nextPosition()); applyToService(); render(true); showDemo()
+            val all = cz.testpreklad.core.ScreenLayout.Position.values().filter { it != cz.testpreklad.core.ScreenLayout.Position.CUSTOM }
+            choose(t("l_pos"), all.map { t("pos_" + it.name.lowercase()) }, all.indexOf(lay.position)) { i ->
+                Prefs.setLayout(this, lay.withPosition(all[i])); applyToService(); render(true); showDemo()
+            }
         }, "pos"), 8)
         val widthPct = Math.round(lay.barWidth * 100)
         add(tagged(ui.settingRow(t("l_width"), "$widthPct %") {
-            Prefs.setLayout(this, lay.withBarWidth(Prefs.nextOf(Prefs.BAR_WIDTHS, widthPct) / 100f)); applyToService(); render(true); showDemo()
+            choose(t("l_width"), Prefs.BAR_WIDTHS.map { "$it %" }, Prefs.BAR_WIDTHS.indexOf(widthPct)) { i ->
+                Prefs.setLayout(this, lay.withBarWidth(Prefs.BAR_WIDTHS[i] / 100f)); applyToService(); render(true); showDemo()
+            }
         }, "width"), 8)
         val colorIdx = Prefs.textColorIndex(this)
         add(tagged(ui.settingRow(t("l_color"), t("color_$colorIdx"), Prefs.TEXT_COLORS[colorIdx]) {
-            Prefs.setTextColorIndex(this, (colorIdx + 1) % Prefs.TEXT_COLORS.size); applyToService(); render(true); showDemo()
+            choose(t("l_color"), Prefs.TEXT_COLORS.indices.map { t("color_$it") }, colorIdx) { i ->
+                Prefs.setTextColorIndex(this, i); applyToService(); render(true); showDemo()
+            }
         }, "color"), 8)
         add(tagged(ui.settingRow(t("l_bold"), onOff(Prefs.boldText(this))) {
             Prefs.setBoldText(this, !Prefs.boldText(this)); applyToService(); render(true); showDemo()
         }, "bold"), 8)
         add(tagged(ui.settingRow(t("l_opacity"), "${Prefs.opacity(this)} %") {
-            Prefs.setOpacity(this, Prefs.nextOf(Prefs.OPACITIES, Prefs.opacity(this))); applyToService(); render(true); showDemo()
+            choose(t("l_opacity"), Prefs.OPACITIES.map { "$it %" }, Prefs.OPACITIES.indexOf(Prefs.opacity(this))) { i ->
+                Prefs.setOpacity(this, Prefs.OPACITIES[i]); applyToService(); render(true); showDemo()
+            }
         }, "opacity"), 8)
         add(tagged(ui.settingRow(t("l_original"), onOff(Prefs.showOriginal(this))) {
             Prefs.setShowOriginal(this, !Prefs.showOriginal(this)); applyToService(); render(true); showDemo()
@@ -685,7 +695,9 @@ class MainActivity : Activity() {
         }, "speaker"), 8)
         val hold = Prefs.holdMs(this)
         add(tagged(ui.settingRow(t("l_hold"), if (hold == 0) t("off") else "+${hold / 1000} s") {
-            Prefs.setHoldMs(this, Prefs.nextOf(Prefs.HOLD_TIMES, hold)); applyToService(); render(true)
+            choose(t("l_hold"), Prefs.HOLD_TIMES.map { if (it == 0) t("off") else "+${it / 1000} s" }, Prefs.HOLD_TIMES.indexOf(hold)) { i ->
+                Prefs.setHoldMs(this, Prefs.HOLD_TIMES[i]); applyToService(); render(true)
+            }
         }, "hold"), 8)
         add(tagged(ui.button(t("l_demo")) { showDemo() }, "demo"), 18)
         add(tagged(ui.button(t("l_fine")) { startActivity(Intent(this, CalibrationActivity::class.java)) }, "fine"), 8)
@@ -720,7 +732,10 @@ class MainActivity : Activity() {
         content.addView(ui.section(t("t_game")))
         val game = GameProfiles.of(Prefs.gameId(this))
         add(tagged(ui.settingRow(t("t_game_row"), if (game.id == "all") t("game_universal") else game.title) {
-            Prefs.setGameId(this, GameProfiles.next(game.id).id); applyToService(); render(true)
+            val games = GameProfiles.ALL
+            choose(t("t_game_row"), games.map { if (it.id == "all") t("game_universal") else it.title }, games.indexOf(game)) { i ->
+                Prefs.setGameId(this, games[i].id); applyToService(); render(true)
+            }
         }, "game"), 0)
         add(ui.text(t("t_game_desc"), 14f, Theme.MUTED), 6)
 
@@ -887,6 +902,19 @@ class MainActivity : Activity() {
     }
 
     // ======================= akce =======================
+
+    /** Nabídka se seznamem možností (místo opakovaného mačkání OK). Vybraná položka je označená. */
+    private fun choose(title: String, labels: List<String>, current: Int, onPick: (Int) -> Unit) {
+        try {
+            AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                .setTitle(title)
+                .setSingleChoiceItems(labels.toTypedArray(), current.coerceAtLeast(0)) { d, i -> d.dismiss(); onPick(i) }
+                .show()
+        } catch (e: Exception) {
+            // nouzově: další možnost v pořadí
+            onPick((current + 1).coerceAtLeast(0) % labels.size)
+        }
+    }
 
     private fun toast(s: String) = Toast.makeText(this, s, Toast.LENGTH_LONG).show()
 
@@ -1085,8 +1113,8 @@ class MainActivity : Activity() {
 }
 
 object BuildInfo {
-    const val VERSION = "verze 0.12"
-    const val VERSION_CODE = 12
+    const val VERSION = "verze 0.13"
+    const val VERSION_CODE = 13
     const val DOWNLOAD_URL = "https://github.com/adusa89/Test-Preklad/releases/download/latest/TestPreklad.apk"
     const val VERSION_URL = "https://github.com/adusa89/Test-Preklad/releases/download/latest/version.txt"
 }
