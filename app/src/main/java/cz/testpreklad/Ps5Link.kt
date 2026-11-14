@@ -61,6 +61,7 @@ class Ps5Link(
     private var retry: ScheduledFuture<*>? = null
     @Volatile private var stopped = false
     @Volatile private var connectedAt = 0L
+    @Volatile private var everConnected = false
 
     private fun log(msg: String) { Log.i("TP_TEST", "PS5|$msg"); DiagLog.add("PS5|$msg") }
 
@@ -103,6 +104,7 @@ class Ps5Link(
                 state = Ps5.Link.CONNECTED
                 reason = null
                 connectedAt = SystemClock.uptimeMillis()
+                everConnected = true
                 exec.execute { failures = 0 }
             }
             is LoginPinRequestEvent -> {
@@ -135,7 +137,9 @@ class Ps5Link(
         retry?.cancel(false)
         retry = exec.schedule({
             if (stopped) return@schedule
-            wake()
+            // Budit konzoli jen na začátku (uživatel právě spustil překlad). Jakmile jednou běžela
+            // a pak se odmlčela, nejspíš ji uživatel vypnul – a tu už aplikace znovu zapínat nesmí.
+            if (!everConnected && failures <= 2) wake()
             if (failures == 2 || failures % 5 == 0) relocate()
             connect()
         }, delay, TimeUnit.MILLISECONDS)

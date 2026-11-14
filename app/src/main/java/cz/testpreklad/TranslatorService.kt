@@ -110,6 +110,8 @@ class TranslatorService : Service() {
     private var reader: StreamReader? = null
     private var link: Ps5Link? = null
     private var feeder: DemoFeeder? = null
+    /** Drží Wi-Fi v plném výkonu, ať video z konzole nevypadává kvůli úspornému režimu. */
+    private var wifiLock: android.net.wifi.WifiManager.WifiLock? = null
     @Volatile private var overlay: SubtitleOverlay? = null
     private val recognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
     private val cache = TranslationCache()
@@ -205,6 +207,11 @@ class TranslatorService : Service() {
         }
         reader = r
         activeReader = r
+        try {
+            @Suppress("DEPRECATION")
+            wifiLock = (applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager)
+                .createWifiLock(android.net.wifi.WifiManager.WIFI_MODE_FULL_HIGH_PERF, "TestPreklad").also { it.acquire() }
+        } catch (e: Throwable) { Log.w(TAG, "wifi lock", e) }
         beginRunning()
         startSource(wantDemo)
         return START_NOT_STICKY
@@ -586,6 +593,8 @@ class TranslatorService : Service() {
         overlay?.destroy(); overlay = null
         link?.stop(); link = null
         feeder?.stop(); feeder = null
+        try { wifiLock?.let { if (it.isHeld) it.release() } } catch (_: Throwable) {}
+        wifiLock = null
         activeReader = null
         reader?.stop(); reader = null
         try { recognizer.close() } catch (_: Exception) {}

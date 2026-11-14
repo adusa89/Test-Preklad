@@ -25,10 +25,12 @@ Televize a PS5 musí být ve stejné domácí síti.
 2. Tamtéž zvol „Propojit zařízení“ – ukáže se osmimístné číslo (platí pár minut).
 3. V aplikaci na stránce PlayStation zvol „Najít PlayStation v síti“ (nebo zadej adresu ručně:
    PS5 → Nastavení → Síť → Stav připojení → Adresa IPv4).
-4. Zadej svou přezdívku na PSN (nebo ID účtu) a číslo z PS5 a zvol Spárovat.
+4. Zvol „Přihlásit se účtem PlayStation (e-mail a heslo)“ a přihlas se na stránce Sony
+   (šipky pohybují ukazatelem, OK kliká). Aplikace si tím zjistí číslo tvého účtu.
+   Místo přihlášení jde zadat i přezdívku na PSN, pokud máš veřejný profil.
+5. Zadej číslo z PS5 a zvol Spárovat.
 
-Když se účet podle přezdívky nenajde (soukromý profil), otevři na telefonu
-psn.flipscreen.games, zadej přezdívku a do aplikace opiš řádek „Encoded ID“.
+Všechno se dělá jen v televizi a na PlayStationu – telefon ani počítač není potřeba.
 
 ## 5. Hraní
 1. Na stránce Domů zvol „Spustit překlad“ a počkej na „Překlad běží“ (objeví se i malý náhled
