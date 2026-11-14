@@ -1,0 +1,10 @@
+name: Zkouška služeb pro přihlášení
+on:
+  push:
+    paths: [.github/workflows/probe.yml]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sS -m 20 -A "Mozilla/5.0" https://psn.flipscreen.games/assets/js/search.min.js | fold -w 400
