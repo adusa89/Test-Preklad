@@ -106,6 +106,7 @@ class PsnLoginActivity : Activity() {
     private var done = false
     private var loadStarted = 0L
     private var loaded = false
+    private var tries = 0
 
     /** Hlídá, že se stránka Sony vůbec načetla. */
     private val watchdog = Runnable {
@@ -122,7 +123,7 @@ class PsnLoginActivity : Activity() {
             override fun onUrl(url: String): Boolean = intercept(url)
             override fun onLoaded(ok: Boolean, detail: String) {
                 runOnUiThread {
-                    log("page loaded ok=$ok $detail")
+                    log("page loaded ok=$ok after " + (SystemClock.uptimeMillis() - loadStarted) / 1000 + "s $detail")
                     if (ok) { loaded = true; main.removeCallbacks(watchdog) } else problem(detail.ifEmpty { "load" })
                 }
             }
@@ -191,6 +192,7 @@ class PsnLoginActivity : Activity() {
         note.text = tx("ps5_acc_hint"); note.setTextColor(Color.WHITE)
         main.removeCallbacks(watchdog)
         main.postDelayed(watchdog, 45_000)
+        log("load try " + (++tries))
         b.load(LOGIN_URL)
     }
 

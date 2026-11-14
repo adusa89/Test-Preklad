@@ -132,8 +132,13 @@ private class GeckoBrowser(a: Activity, private val ev: LoginBrowser.Events) : L
     override fun destroy() {
         try { gecko.releaseSession() } catch (_: Throwable) {}
         try { session.close() } catch (_: Throwable) {}
-        // po zavření nesmí v televizi zůstat uložené přihlášení ani cookies
-        try { runtime?.storageController?.clearData(StorageController.ClearFlags.ALL) } catch (_: Throwable) {}
+        // Po zavření nesmí v televizi zůstat přihlášení ani cookies. Mezipaměť stránky se nechává:
+        // na pomalé televizi se díky ní stránka Sony podruhé načte výrazně rychleji.
+        try {
+            runtime?.storageController?.clearData(
+                StorageController.ClearFlags.COOKIES or StorageController.ClearFlags.AUTH_SESSIONS or StorageController.ClearFlags.DOM_STORAGES
+            )
+        } catch (_: Throwable) {}
     }
 }
 
