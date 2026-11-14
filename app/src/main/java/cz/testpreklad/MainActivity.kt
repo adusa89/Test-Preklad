@@ -533,6 +533,15 @@ class MainActivity : Activity() {
             2 -> {
                 val have = Ps5.parseAccountId(draftPsn) != null
                 if (have) add(ui.text(t("ps5_acc_done"), 17f, Theme.OK, bold = true), 10)
+                // starý prohlížeč televize: stránka Sony v něm hlásí „Something went wrong“
+                val wv = PsnLoginActivity.webViewVersion()
+                if (!have && Ps5.webViewTooOld(wv)) {
+                    add(ui.text(t("wv_old").replace("%s", wv), 15f, Theme.WARN), 10)
+                    add(tagged(ui.button(t("wv_update")) {
+                        try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + PsnLoginActivity.webViewPackage()))) }
+                        catch (_: Exception) { toast("Google Play → Android System WebView") }
+                    }, "wvupd"), 8)
+                }
                 add(tagged(ui.button(t("ps5_acc_btn"), primary = !have) {
                     saveDrafts()
                     try { startActivity(Intent(this, PsnLoginActivity::class.java)) } catch (_: Exception) { pairNote(t("ps5_acc_err"), Theme.BAD) }
@@ -1012,6 +1021,7 @@ class MainActivity : Activity() {
             .append(", spojení: ").append(Ps5Link.state).append(Ps5Link.reason?.let { " ($it)" } ?: "")
             .append(", ukázka: ").append(TranslatorService.demo).append(", snímků: ").append(TranslatorService.framesDecoded)
             .append(", knihovna: ").append(Ps5Link.selfTest()).append("\n")
+        sb.append("Prohlížeč televize: ").append(PsnLoginActivity.webViewVersion()).append("\n")
         sb.append("--- poslední události ---\n").append(DiagLog.dump())
         // konec záznamu spojení s konzolí (pomůže najít, proč se nepřipojila)
         try {

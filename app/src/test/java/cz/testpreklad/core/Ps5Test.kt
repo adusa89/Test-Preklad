@@ -169,4 +169,15 @@ class DemoGameTest {
         assertTrue(big.contains("10.0.5.200")); assertFalse(big.contains("10.0.6.1"))
         assertEquals(listOf("255.255.255.255"), Ps5.sweepTargets("nesmysl", 24))
     }
+
+    @Test fun oldTvBrowserIsDetected() {
+        // zkouška v emulátoru: verze 66 hlásí u Sony „Something went wrong“, 113 funguje
+        assertTrue(Ps5.webViewTooOld("66.0.3359.158"))
+        assertTrue(Ps5.webViewTooOld("90.0.4430.91"))
+        assertFalse(Ps5.webViewTooOld("113.0.5672.136"))
+        assertFalse(Ps5.webViewTooOld("131.0.6778.39"))
+        assertFalse(Ps5.webViewTooOld(null))
+        assertFalse(Ps5.webViewTooOld("?"))
+        assertEquals(90, Ps5.webViewMajor("90.0.4430.91"))
+    }
 }

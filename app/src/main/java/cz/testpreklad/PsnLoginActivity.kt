@@ -60,6 +60,16 @@ class PsnLoginActivity : Activity() {
         private const val UA_DESKTOP =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
+        /** Verze vestavěného prohlížeče televize ("?" = nejde zjistit). */
+        fun webViewVersion(): String = try {
+            if (android.os.Build.VERSION.SDK_INT >= 26) WebView.getCurrentWebViewPackage()?.versionName ?: "?" else "?"
+        } catch (_: Throwable) { "?" }
+
+        /** Balíček vestavěného prohlížeče (kvůli odkazu na aktualizaci v Google Play). */
+        fun webViewPackage(): String = try {
+            (if (android.os.Build.VERSION.SDK_INT >= 26) WebView.getCurrentWebViewPackage()?.packageName else null) ?: "com.google.android.webview"
+        } catch (_: Throwable) { "com.google.android.webview" }
+
         /** Vymění jednorázový kód za číslo účtu. Volat mimo hlavní vlákno. */
         fun accountIdForCode(code: String): String? {
             val auth = "Basic " + Base64.encodeToString("$CLIENT_ID:$CLIENT_SECRET".toByteArray(), Base64.NO_WRAP)
@@ -97,9 +107,7 @@ class PsnLoginActivity : Activity() {
     private fun log(msg: String) { Log.i("TP_TEST", "PSN|$msg"); DiagLog.add("PSN|$msg") }
 
     /** Verze vestavěného prohlížeče (stará verze bývá důvod, proč se stránka Sony nenačte). */
-    private fun webViewVersion(): String = try {
-        if (android.os.Build.VERSION.SDK_INT >= 26) WebView.getCurrentWebViewPackage()?.versionName ?: "?" else "?"
-    } catch (_: Throwable) { "?" }
+    private fun webViewVersion(): String = Companion.webViewVersion()
 
     private val main = Handler(Looper.getMainLooper())
     private var web: WebView? = null
@@ -284,7 +292,8 @@ class PsnLoginActivity : Activity() {
     /** Stránka se nenačetla – řekni to a nabídni, co s tím. */
     private fun showProblem(why: String) {
         log("problem desktop=$desktop $why")
-        note.text = tx("psn_err") + "  (" + why.take(60) + ")"
+        val v = webViewVersion()
+        note.text = (if (Ps5.webViewTooOld(v)) tx("wv_old").replace("%s", v) else tx("psn_err")) + "  (" + why.take(60) + ")"
         note.setTextColor(Theme.WARN)
     }
 

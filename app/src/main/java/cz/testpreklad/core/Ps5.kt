@@ -96,6 +96,18 @@ object Ps5 {
         return text.toULongOrNull(16)
     }
 
+    /** Nejstarší verze vestavěného prohlížeče, se kterou přihlašovací stránka Sony ještě počítá. */
+    const val MIN_WEBVIEW = 100
+
+    /** Hlavní číslo verze prohlížeče („90.0.4430.91“ → 90); null, když se nedá zjistit. */
+    fun webViewMajor(version: String?): Int? = version?.trim()?.substringBefore('.')?.toIntOrNull()
+
+    /** Je prohlížeč televize tak starý, že přihlášení u Sony nejspíš nepůjde? (neznámá verze = nevíme → ne) */
+    fun webViewTooOld(version: String?): Boolean {
+        val major = webViewMajor(version) ?: return false
+        return major < MIN_WEBVIEW
+    }
+
     /** Odpověď konzole na hledání v síti. */
     data class Reply(val ready: Boolean, val standby: Boolean, val name: String, val id: String, val type: String)
 
