@@ -67,6 +67,12 @@ class StreamReader(private val width: Int, private val height: Int) {
     @Volatile var colorSnapshot: Bitmap? = null
         private set
 
+    /** Zdroj videa se změnil → starý obraz zahoď, ať se neukazuje ani nečte. */
+    fun clearFrames() {
+        synchronized(frameLock) { frameW = 0; frameH = 0 }
+        colorSnapshot = null
+    }
+
     val frameWidth: Int get() = synchronized(frameLock) { frameW }
     val frameHeight: Int get() = synchronized(frameLock) { frameH }
 

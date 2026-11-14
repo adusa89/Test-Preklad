@@ -217,6 +217,7 @@ class TranslatorService : Service() {
         feeder?.stop(); feeder = null
         demo = wantDemo
         overlay?.hide(); tracker.reset(); lastSig = null
+        r.clearFrames()
         if (wantDemo) {
             feeder = DemoFeeder(VIDEO_W, VIDEO_H, { r.feed(it) }, { y, w, h -> r.feedRaw(y, w, h, null) }, { r.decoded }).also { it.start() }
             tp("SOURCE|demo")
@@ -371,7 +372,7 @@ class TranslatorService : Service() {
             lastLinkLogged = st
             tp("LINK|$st|" + (Ps5Link.reason ?: ""))
             // spojení spadlo → starý překlad nenechávej viset na obrazovce
-            if (st != Ps5.Link.CONNECTED) { hideAt = 0; overlay?.hide(); tracker.reset(); lastSig = null }
+            if (st != Ps5.Link.CONNECTED) { hideAt = 0; overlay?.hide(); tracker.reset(); lastSig = null; r.clearFrames() }
             updateNotification()
         }
         val l = link ?: return
